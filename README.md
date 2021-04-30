@@ -22,7 +22,7 @@ Try it out with a GPU in Colab:
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1mpdTcOam8NKqZXDtX99NqrXIfNBZsv7C?usp=sharing)
 
 
-You can also find the model on the Huggingface ModelHub:
+You can also find the model on the Huggingface Model Hub:
 
   [docketanalyzer/distilroberta-base-ddcl](https://huggingface.co/docketanalyzer/distilroberta-base-ddcl)
 
@@ -32,7 +32,7 @@ You can also find the model on the Huggingface ModelHub:
 
 This model can be used as a starting point for finetuning your own docket classification or NER tasks.  Based on a distilroberta-base, this model is trained on the masked language modeling task for 7 epochs across 5 million docket entry descriptions.
 
-Find it on the Huggingface ModelHub:
+Find it on the Huggingface Model Hub:
 
   [docketanalyzer/distilroberta-base-ddlm](https://huggingface.co/docketanalyzer/distilroberta-base-ddlm)
 
