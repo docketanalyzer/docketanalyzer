@@ -1,1 +1,5 @@
 # docketanalyzer
+
+````
+pip install docketanalyzer
+````

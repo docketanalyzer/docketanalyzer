@@ -1,0 +1,12 @@
+click
+flake8
+juriscraper
+mkdocs-material
+mkdocstrings-python
+pandas
+pydantic
+python-dotenv
+requests
+simplejson
+toolz
+tqdm
