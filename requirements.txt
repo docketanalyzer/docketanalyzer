@@ -2,7 +2,6 @@ click
 flake8
 juriscraper
 mkdocs-material
-mkdocstrings
 pandas
 pydantic
 python-dotenv
