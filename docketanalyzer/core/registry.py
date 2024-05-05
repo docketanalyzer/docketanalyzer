@@ -7,7 +7,7 @@ from types import ModuleType
 
 class Registry:
     """
-    Base class to create a registry of objects.
+    Implement a custom 'find' condition and automatically build a registry of relevant objects in the current module.
     """
 
     def __init__(self) -> None:
@@ -15,37 +15,25 @@ class Registry:
         self.module: ModuleType = inspect.getmodule(inspect.stack()[1][0])
 
     def register(self, name: str, obj: Any) -> None:
-        """
-        Add an object to the registry.
-        """
         if name in self._registry:
             raise ValueError(f"'{name}' already exists.")
         self._registry[name] = obj
 
     def get(self, name: str) -> Any:
-        """
-        Retrieve an object from the registry.
-        """
         if name not in self._registry:
             raise ValueError(f"'{name}' does not exist.")
         return self._registry[name]
 
     def all(self) -> list[Any]:
-        """
-        Get a list of all registered objects.
-        """
         return list(self._registry.values())
 
     def find_filter(self, obj: Any) -> bool:
         """
-        A filter used by the `find` method to determine if an object should be registered.
+        Add your custom object test here.
         """
         raise NotImplementedError("find_filter() must be implemented by a subclass.")
 
     def find(self, module: Optional[ModuleType] = None, recurse: bool = False) -> None:
-        """
-        Find all objects in current module and registers those that pass the filter.
-        """
         if module is None:
             module = self.module
         if isinstance(module, str):
