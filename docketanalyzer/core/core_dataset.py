@@ -50,7 +50,7 @@ class CoreDataset:
             self.cursor.execute(f"CREATE TABLE IF NOT EXISTS dataset (idx INTEGER PRIMARY KEY AUTOINCREMENT, {cols})")
             self.conn.commit()
 
-    def add(self, data):
+    def add(self, data, verbose=True):
         config = self.config
         if config['index_col']:
             data = data.drop_duplicates(subset=[config['index_col']])
@@ -78,7 +78,8 @@ class CoreDataset:
                 'idx': 'INTEGER PRIMARY KEY',
                 config['index_col']: 'VARCHAR(128) PRIMARY KEY',
             })
-        print(f"Added {len(data)} records to dataset. Total records: {start_idx}")
+        if verbose:
+            print(f"Added {len(data)} records to dataset. Total records: {len(self)}")
 
     def select(self, sample=None, **kwargs):
         query = "SELECT * FROM dataset"

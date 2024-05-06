@@ -9,7 +9,7 @@ from tqdm import tqdm
 import wget
 import zipfile
 from docketanalyzer import load_dataset
-from da.choices import (
+from docketanalyzer.choices import (
     IDBArbitrationAtFiling,
     IDBArbitrationAtTermination,
     IDBClassAction,
@@ -24,6 +24,7 @@ from da.choices import (
     IDBStatusCode,
 )
 from docketanalyzer.utils import notabs
+pd.options.mode.chained_assignment = None
 
 
 fjc_district_codes = {"00": "med", "47": "ohnd", "01": "mad", "48": "ohsd", "02": "nhd", "49": "tned", "03": "rid", "50": "tnmd", "04": "prd", "51": "tnwd", "05": "ctd", "52": "ilnd", "06": "nynd", "53": "ilcd", "07": "nyed", "54": "ilsd", "08": "nysd", "55": "innd", "09": "nywd", "56": "insd", "10": "vtd", "57": "wied", "11": "ded", "58": "wiwd", "12": "njd", "60": "ared", "13": "paed", "61": "arwd", "14": "pamd", "62": "iand", "15": "pawd", "63": "iasd", "16": "mdd", "64": "mnd", "17": "nced", "65": "moed", "18": "ncmd", "66": "mowd", "19": "ncwd", "67": "ned", "20": "scd", "68": "ndd", "22": "vaed", "69": "sdd", "23": "vawd", "7-": "akd", "24": "wvnd", "70": "azd", "25": "wvsd", "71": "cand", "26": "alnd", "72": "caed", "27": "almd", "73": "cacd", "28": "alsd", "74": "casd", "29": "flnd", "75": "hid", "3A": "flmd", "76": "idd", "3C": "flsd", "77": "mtd", "3E": "gand", "78": "nvd", "3G": "gamd", "79": "ord", "3J": "gasd", "80": "waed", "3L": "laed", "81": "wawd", "3N": "lamd", "82": "cod", "36": "lawd", "83": "ksd", "37": "msnd", "84": "nmd", "38": "mssd", "85": "oknd", "39": "txnd", "86": "oked", "40": "txed", "87": "okwd", "41": "txsd", "88": "utd", "42": "txwd", "89": "wyd", "43": "kyed", "90": "dcd", "44": "kywd", "91": "vid", "45": "mied", "93": "gud", "46": "miwd", "94": "nmid"}
@@ -216,17 +217,18 @@ def load_raw_idb_data(dataset, **kwargs):
 
 def process_chunk(chunk, start_row=0):
     chunk['idb_row'] = range(start_row, start_row + len(chunk))
+    chunk['idb_row'] = '_' + chunk['idb_row'].astype(str)
     data = chunk[['idb_row']]
     data['court'] = chunk['DISTRICT'].apply(lambda x: fjc_district_codes[x.zfill(2)])
-    data['filing_date'] = pd.to_datetime(chunk['FILEDATE']).date()
-    data['terminating_date'] = pd.to_datetime(chunk['TERMDATE']).date()
+    data['filing_date'] = pd.to_datetime(chunk['FILEDATE']).dt.date
+    data['terminating_date'] = pd.to_datetime(chunk['TERMDATE']).dt.date
     data['ifp'] = chunk['IFP'].apply(lambda x: IDBIFP('Yes' if str(x) != '-8' else 'No').name)
     data['mdl'] = chunk['MDLDOCK'].apply(lambda x: IDBMDL('Yes' if str(x) != '-8' else 'No').name)
     data['class_action'] = chunk['CLASSACT'].apply(lambda x:  IDBClassAction('Yes' if str(x) != '-8' else 'No').name)
     for field_name, field in fields.items():
-        data[field_name] = chunk[field['col']].apply(lambda x: 
-            x if pd.isnull(x) else
-            field['cat'](field['mapping'][x]).name
+        data[field_name] = chunk[field['col']].apply(lambda x:
+            None if pd.isnull(x) or str(x) not in field['mapping'] else
+            field['cat'](field['mapping'][str(x)]).name
         )
     data['docket_id'] = (
         data['court'] + '__' +
@@ -235,14 +237,15 @@ def process_chunk(chunk, start_row=0):
     ).str.lower()
     data['alternate_id'] = (
         data['court'] + '_' +
-        data['docket_id'].apply(lambda x: x.split(':')[-1]) + '_' + data['filing_date']
+        data['docket_id'].apply(lambda x: x.split(':')[-1]) + '_' + data['filing_date'].astype(str)
     )
     return data
 
 
 @click.command()
+@click.option('--reset', is_flag=True, help="Scrap any existing data and start fresh.")
 @click.option('--quiet', '-q', is_flag=True, help="Automatically accepts all prompts.")
-def check_idb(quiet):
+def check_idb(reset, quiet):
     """
     Downloads and prepares a core dataset with datafrom the IDB. We check the IDB for new data and update the dataset if necessary.
     """
@@ -256,6 +259,9 @@ def check_idb(quiet):
     """))
 
     dataset = load_dataset('idb')
+    if reset:
+        shutil.rmtree(str(dataset.dir))
+        dataset = load_dataset('idb')
     dataset.set_config('index_col', 'idb_row')
 
     last_download_date = pd.to_datetime(dataset.config.get('last_download_date')).date()
@@ -278,22 +284,25 @@ def check_idb(quiet):
         else:
             print("Ok, we will continue with the existing data.")
 
-    print('\nChecking core dataset...')
+    print('\n\nChecking core dataset...')
     total_records = len(load_raw_idb_data(dataset))
     dataset_records = len(dataset)
+    print(f"\nRaw IDB records: {total_records}")
+    print(f"Core dataset records: {dataset_records}")
     if total_records > dataset_records:
         print(f"\n{total_records - dataset_records} records need to be added to the core dataset.")
-        chunksize = 10000
-        start_row = dataset_records
+        chunksize = 200000
         chunks = load_raw_idb_data(
             dataset,
             chunksize=chunksize,
             low_memory=False,
+            skiprows=range(1, dataset_records + 1),
         )
-        for chunk in tqdm(chunks, total=total_records // chunksize):
+        start_row = dataset_records
+        print("Adding data...")
+        for chunk in tqdm(chunks, total=(total_records - dataset_records) // chunksize):
             chunk = process_chunk(chunk, start_row=start_row)
+            dataset.add(chunk, verbose=False)
             start_row += len(chunk)
-            print(chunk)
-            print(list(chunk.columns))
 
-    #print("\n\nIDB check complete! Your IDB core dataset contains {len(dataset)} records.\n\nUse load_dataset('idb') to load the dataset in your code.")
+    print(f"\n\nIDB check complete!\n\nUse load_dataset('idb') to load the dataset in your code.")
