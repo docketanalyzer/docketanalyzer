@@ -1,6 +1,6 @@
 import click
 from .hello import hello
-from .prepare_idb_dataset import prepare_idb_dataset
+from .check_idb import check_idb
 
 
 @click.group()
@@ -9,4 +9,4 @@ def cli():
 
 
 cli.add_command(hello)
-cli.add_command(prepare_idb_dataset)
+cli.add_command(check_idb)

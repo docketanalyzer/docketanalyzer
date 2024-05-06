@@ -24,6 +24,10 @@ PACER_PASSWORD = os.environ.get('PACER_PASSWORD')
 
 
 # Other Utilities
+def notabs(text):
+    return '\n'.join([x.strip() for x in text.split('\n')]).strip()
+
+
 def convert_date(x):
     if x:
         try:

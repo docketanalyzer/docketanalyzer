@@ -135,8 +135,10 @@ class CoreDataset:
         self.set_config('columns', [x for x in self.columns if x != name])
 
     def __len__(self):
-        self.cursor.execute("SELECT COUNT(*) FROM dataset")
-        return self.cursor.fetchone()[0]
+        if self.columns:
+            self.cursor.execute("SELECT COUNT(*) FROM dataset")
+            return self.cursor.fetchone()[0]
+        return 0
 
     def __getitem__(self, key):
         if isinstance(key, int):
@@ -145,3 +147,8 @@ class CoreDataset:
             query = f"SELECT * FROM dataset WHERE {self.config['index_col']} = '{key}'"
         data = pd.read_sql_query(query, self.conn)
         return data.to_dict('records')[0]
+
+
+def load_dataset(name):
+    from docketanalyzer.utils import DATA_DIR
+    return CoreDataset(DATA_DIR / 'datasets' / name)

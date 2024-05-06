@@ -1,3 +1,4 @@
+bs4
 click
 flake8
 juriscraper
@@ -5,6 +6,7 @@ mkdocs-material
 pandas
 pydantic
 python-dotenv
+regex
 requests
 simplejson
 toolz
