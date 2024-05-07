@@ -9,6 +9,8 @@ class JuriscraperUtility:
         self, host='http://localhost', port=4444,
         pacer_username=PACER_USERNAME, pacer_password=PACER_PASSWORD,
     ):
+        from juriscraper.pacer import DocketReport
+
         self.host = host
         self.port = port
         self.session = None
@@ -68,3 +70,13 @@ class JuriscraperUtility:
         docket_report.query(pacer_case_id, **kwargs)
         docket_html = docket_report.response.text
         return docket_html, docket_report.data
+
+    def parse(self, docket_html, court):
+        from juriscraper.pacer import DocketReport
+
+        parser = DocketReport(court)
+        # temp fix for error string issue https://github.com/freelawproject/juriscraper/issues/1025
+        if 'This case was administratively closed' in parser.ERROR_STRINGS:
+            parser.ERROR_STRINGS.remove('This case was administratively closed')
+        parser._parse_text(docket_html)
+        return parser.data
