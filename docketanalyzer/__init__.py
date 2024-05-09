@@ -1,3 +1,4 @@
+from docketanalyzer.config import config
 import docketanalyzer.utils as utils
 
 from docketanalyzer.core.registry import Registry

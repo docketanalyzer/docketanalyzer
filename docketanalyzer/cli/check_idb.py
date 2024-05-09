@@ -23,9 +23,11 @@ from docketanalyzer.choices import (
     IDBProSe,
     IDBStatusCode,
 )
-from docketanalyzer.utils import notabs
+from docketanalyzer.utils import DATA_DIR, notabs
 pd.options.mode.chained_assignment = None
 
+
+local_dir = DATA_DIR / 'local'
 
 fjc_district_codes = {"00": "med", "47": "ohnd", "01": "mad", "48": "ohsd", "02": "nhd", "49": "tned", "03": "rid", "50": "tnmd", "04": "prd", "51": "tnwd", "05": "ctd", "52": "ilnd", "06": "nynd", "53": "ilcd", "07": "nyed", "54": "ilsd", "08": "nysd", "55": "innd", "09": "nywd", "56": "insd", "10": "vtd", "57": "wied", "11": "ded", "58": "wiwd", "12": "njd", "60": "ared", "13": "paed", "61": "arwd", "14": "pamd", "62": "iand", "15": "pawd", "63": "iasd", "16": "mdd", "64": "mnd", "17": "nced", "65": "moed", "18": "ncmd", "66": "mowd", "19": "ncwd", "67": "ned", "20": "scd", "68": "ndd", "22": "vaed", "69": "sdd", "23": "vawd", "7-": "akd", "24": "wvnd", "70": "azd", "25": "wvsd", "71": "cand", "26": "alnd", "72": "caed", "27": "almd", "73": "cacd", "28": "alsd", "74": "casd", "29": "flnd", "75": "hid", "3A": "flmd", "76": "idd", "3C": "flsd", "77": "mtd", "3E": "gand", "78": "nvd", "3G": "gamd", "79": "ord", "3J": "gasd", "80": "waed", "3L": "laed", "81": "wawd", "3N": "lamd", "82": "cod", "36": "lawd", "83": "ksd", "37": "msnd", "84": "nmd", "38": "mssd", "85": "oknd", "39": "txnd", "86": "oked", "40": "txed", "87": "okwd", "41": "txsd", "88": "utd", "42": "txwd", "89": "wyd", "43": "kyed", "90": "dcd", "44": "kywd", "91": "vid", "45": "mied", "93": "gud", "46": "miwd", "94": "nmid"}
 
@@ -194,21 +196,21 @@ def get_last_idb_update():
 def download_idb_data(dataset):
     print('\nDownloading the latest IDB data...')
     url = 'https://www.fjc.gov/sites/default/files/idb/textfiles/cv88on.zip'
-    download_path = dataset.dir / 'raw.zip'
+    download_path = local_dir / 'raw.zip'
     wget.download(url, out=str(download_path))
     print('\nExtracting the data...')
     with zipfile.ZipFile(download_path, 'r') as f:
-        f.extractall(dataset.dir)
-    path = dataset.dir / 'cv88on.txt'
-    path.rename(dataset.dir / 'raw.csv')
+        f.extractall(local_dir)
+    path = local_dir / 'cv88on.txt'
+    path.rename(local_dir / 'idb_raw.txt')
     download_path.unlink()
-    dataset.set_config('last_download_date', str(datetime.now()))
-    print(f"\nDownload complete! The raw data is located at: {dataset.dir / 'raw.csv'}")
+    dataset.config['last_download_date'] = str(datetime.now())
+    print(f"\nDownload complete! The raw data is located at: {local_dir / 'idb_raw.txt'}")
 
 
 def load_raw_idb_data(dataset, **kwargs):
     return pd.read_csv(
-        dataset.dir / 'raw.csv',
+        local_dir / 'idb_raw.txt',
         sep='\t', encoding='ISO-8859-1',
         dtype={'DOCKET': str, 'OFFICE': str, 'DISTRICT': str},
         **kwargs
@@ -258,16 +260,16 @@ def check_idb(reset, quiet):
     - Convert the data to a CoreDataset format
     """))
 
-    dataset = load_dataset('idb')
+    dataset = load_dataset('idb', pk='idb_row')
     if reset:
-        shutil.rmtree(str(dataset.dir))
-        dataset = load_dataset('idb')
-    dataset.set_config('index_col', 'idb_row')
+        dataset.delete(quiet=True)
+        dataset = load_dataset('idb', pk='idb_row')
 
-    last_download_date = pd.to_datetime(dataset.config.get('last_download_date')).date()
+    last_download_date = dataset.config.get('last_download_date')
     if last_download_date is None:
         print("\n\nIt looks like this is the first time you're running the IDB checker.")
         download_idb_data(dataset)
+    last_download_date = pd.to_datetime(dataset.config['last_download_date']).date()
 
     last_idb_update = get_last_idb_update()
     print(f"\n\nIDB last update: {last_idb_update}")
@@ -275,11 +277,13 @@ def check_idb(reset, quiet):
     if last_download_date >= last_idb_update:
         print("\nYour IDB data is up to date!")
     else:
-        print(f"\n\nIt looks like your IDB dataset is out of date.\nWould you like to update it?\n(Warning: This will overwrite everything in {dataset.dir})")
+        print(f"\n\nIt looks like your IDB dataset is out of date.\nWould you like to update it?")
         if quiet or click.confirm('\nRun updates?'):
-            shutil.rmtree(str(dataset.dir))
-            dataset = load_dataset('idb')
-            dataset.set_config('index_col', 'idb_row')
+            path = local_dir / 'idb_raw.txt'
+            if path.exists():
+                path.unlink()
+            dataset.delete(quiet=True)
+            dataset = load_dataset('idb', pk='idb_row')
             download_idb_data(dataset)
         else:
             print("Ok, we will continue with the existing data.")
