@@ -9,9 +9,9 @@ from docketanalyzer.utils import DATA_DIR
 
 
 class DocketIndex:
-    def __init__(self, data_dir=DATA_DIR):
+    def __init__(self, data_dir=DATA_DIR, local=False):
         self.data_dir = Path(data_dir)
-        self.dataset = load_dataset('dockets', pk='docket_id')
+        self.dataset = load_dataset('dockets', pk='docket_id', local=local)
         self.cache = {}
 
     @property
@@ -38,20 +38,12 @@ class DocketIndex:
         self.dataset.add(pd.DataFrame({'docket_id': docket_ids}), verbose=verbose)
 
     def purchase_docket(self, docket_id, update=False):
-        raise NotImplementedError("finish this")
-        # think throuugh how the updating from_date will depend on the consolidated json
         manager = self[docket_id]
-        if update or not manager.docket_html_paths:
-            candidates = self.juri.find_candidates(docket_id)
-            if len(candidates) == 1:
-                # add update args here
-                html = self.juri.purchase_docket_with_pacer_case_id(
-                    docket_id.split('__')[0], candidates[0]['pacer_case_id'],
-                )
-                manager.add_docket_html(html)
-            else:
-                print(json.dumps(candidates, indent=2))
-                raise ValueError(f"Multiple candidates found for {docket_id}")
+        manager.purchase_docket(update=update, juri=self.juri)
+
+    def parse_docket(self, docket_id):
+        manager = self[docket_id]
+        manager.parse_docket(juri=self.juri)
 
     def check_dataset(self):
         """
@@ -70,4 +62,14 @@ class DocketIndex:
         self.dataset.config['last_checked'] = str(datetime.now())
 
     def __getitem__(self, docket_id):
-        return DocketManager(docket_id, data_dir=self.data_dir)
+        manager = DocketManager(docket_id, data_dir=self.data_dir)
+        manager.cache['juri'] = self.juri
+        return manager
+
+    def __iter__(self):
+        for docket_id in tqdm(self.dataset.to_pandas('docket_id')['docket_id']):
+            yield self[docket_id]
+
+
+def load_index(*args, **kwargs):
+    return DocketIndex(*args, **kwargs)

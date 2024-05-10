@@ -9,7 +9,7 @@ from docketanalyzer.core.ocr import OCRUtility
 
 from docketanalyzer.core.core_dataset import CoreDataset, load_dataset
 from docketanalyzer.core.docket_manager import DocketManager
-from docketanalyzer.core.docket_index import DocketIndex
+from docketanalyzer.core.docket_index import DocketIndex, load_index
 
 from docketanalyzer.cli import cli
 

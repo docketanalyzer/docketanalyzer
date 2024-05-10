@@ -1,5 +1,4 @@
 from datetime import datetime
-import shutil
 from bs4 import BeautifulSoup
 import click
 import pandas as pd
@@ -244,10 +243,7 @@ def process_chunk(chunk, start_row=0):
     return data
 
 
-@click.command()
-@click.option('--reset', is_flag=True, help="Scrap any existing data and start fresh.")
-@click.option('--quiet', '-q', is_flag=True, help="Automatically accepts all prompts.")
-def check_idb(reset, quiet):
+def check_idb(reset=False, quiet=False, local=False):
     """
     Downloads and prepares a core dataset with datafrom the IDB. We check the IDB for new data and update the dataset if necessary.
     """
@@ -260,10 +256,10 @@ def check_idb(reset, quiet):
     - Convert the data to a CoreDataset format
     """))
 
-    dataset = load_dataset('idb', pk='idb_row')
+    dataset = load_dataset('idb', pk='idb_row', local=local)
     if reset:
         dataset.delete(quiet=True)
-        dataset = load_dataset('idb', pk='idb_row')
+        dataset = load_dataset('idb', pk='idb_row', local=local)
 
     last_download_date = dataset.config.get('last_download_date')
     if last_download_date is None:
@@ -283,7 +279,7 @@ def check_idb(reset, quiet):
             if path.exists():
                 path.unlink()
             dataset.delete(quiet=True)
-            dataset = load_dataset('idb', pk='idb_row')
+            dataset = load_dataset('idb', pk='idb_row', local=local)
             download_idb_data(dataset)
         else:
             print("Ok, we will continue with the existing data.")
@@ -310,3 +306,11 @@ def check_idb(reset, quiet):
             start_row += len(chunk)
 
     print(f"\n\nIDB check complete!\n\nUse load_dataset('idb') to load the dataset in your code.")
+
+
+@click.command('check-idb')
+@click.option('--reset', is_flag=True, help="Scrap any existing data and start fresh.")
+@click.option('--quiet', '-q', is_flag=True, help="Automatically accepts all prompts.")
+@click.option('--local', '-l', is_flag=True, help="Force the use of local core dataset.")
+def check_idb_command(reset, quiet, local):
+    check_idb(reset, quiet, local)

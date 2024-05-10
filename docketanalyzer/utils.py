@@ -1,3 +1,4 @@
+from datetime import datetime, date
 from dateutil.parser._parser import ParserError
 from dotenv import load_dotenv
 import pandas as pd
@@ -39,3 +40,8 @@ def convert_int(x):
             return int(x)
         except ValueError:
             pass
+
+
+def json_default(obj):
+    if isinstance(obj, (datetime, date)):
+        return obj.isoformat()

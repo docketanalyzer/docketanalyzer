@@ -79,4 +79,24 @@ class JuriscraperUtility:
         if 'This case was administratively closed' in parser.ERROR_STRINGS:
             parser.ERROR_STRINGS.remove('This case was administratively closed')
         parser._parse_text(docket_html)
+        print(parser.docket_entries)
         return parser.data
+
+    def purchase_document(self, pacer_case_id, pacer_doc_id, court):
+        from juriscraper.pacer import DocketReport
+
+        docket_report = DocketReport(court, self.session)
+        r, status = docket_report.download_pdf(pacer_case_id, pacer_doc_id)
+        pdf = r.content if r else None
+        return {'file': pdf, 'status': 'success' if not status else status}
+
+    def purchase_attachment(self, pacer_case_id, pacer_doc_id, attachment_number, court):
+        from juriscraper.pacer import AttachmentPage
+
+        attachments = AttachmentPage(court, self.session)
+        attachments.query(pacer_doc_id)
+        attachments = attachments.data['attachments']
+        for attachment in attachments:
+            if int(attachment['attachment_number']) == int(attachment_number):
+                return self.purchase_document(pacer_case_id, attachment['pacer_doc_id'], court)
+        return {'status': 'error', 'file': None}

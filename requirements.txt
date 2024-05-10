@@ -1,13 +1,16 @@
 bs4
 click
 configuration-maker
+django
 flake8
 juriscraper
 pandas
+psycopg2
 pydantic
 python-dotenv
 regex
 requests
 simplejson
+sqlalchemy
 toolz
 tqdm

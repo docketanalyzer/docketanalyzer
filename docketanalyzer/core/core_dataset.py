@@ -8,7 +8,10 @@ from sqlalchemy import (
     create_engine, Table, Column, Integer,
     String, MetaData, select, insert, update, DDL
 )
-from sqlalchemy.exc import OperationalError, NoSuchTableError
+from sqlalchemy.exc import (
+    OperationalError, NoSuchTableError,
+    ProgrammingError,
+)
 from docketanalyzer.utils import (
     DATA_DIR, POSTGRES_DB, POSTGRES_HOST,
     POSTGRES_PASSWORD, POSTGRES_PORT,
@@ -106,9 +109,9 @@ class CoreDataset:
         if name == 'config':
             raise ValueError("Cannot use 'config' as a dataset name")
         self.name = name
+        self.local = local
         self.engine = self.connect()
         self.config = CoreDatasetConfig(name, self.engine)
-        self.local = local
         self.django_setup = False
         self.cache = {}
         if pk:
@@ -132,8 +135,7 @@ class CoreDataset:
         except NoSuchTableError:
             return None
 
-    @staticmethod
-    def connect():
+    def connect(self):
         if POSTGRES_HOST and not self.local:
             url = f"postgresql://{POSTGRES_USERNAME}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
         else:
@@ -245,7 +247,7 @@ class CoreDataset:
     def __len__(self):
         try:
             return pd.read_sql_query(f"SELECT COUNT(*) FROM {self.name}", self.engine).iloc[0, 0]
-        except OperationalError:
+        except (OperationalError, ProgrammingError):
             return 0
 
     def all(self):
@@ -265,6 +267,13 @@ class CoreDataset:
 
     def sample(self, *args, **kwargs):
         return self.django_model.objects.sample(*args, **kwargs)
+
+    def to_pandas(self, *args, **kwargs):
+        return self.django_model.objects.to_pandas(*args, **kwargs)
+
+    def __getitem__(self, key):
+        args = {self.pk: key}
+        return self.get(**args)
 
 
 def load_dataset(*args, **kwargs):
