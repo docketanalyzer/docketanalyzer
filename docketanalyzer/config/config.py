@@ -1,66 +1,64 @@
 from pathlib import Path
-from configuration_maker import Config, ConfigKey
+from docketanalyzer.config.env_config import EnvConfig, ConfigKey
 
 
 keys = [
     ConfigKey(
         name='DA_DATA_DIR',
         key_type='path',
-        description='Directory to store data managed by docketanalyzer',
+        description='\nChoose directory for data managed by Docket Analyzer\n',
         default=Path.home() / 'docketanalyzer',
     ),
     ConfigKey(
         name='COURTLISTENER_TOKEN',
         key_type='str',
-        description='API token for CourtListener',
+        description='\nConfigure CourtListener API\n',
         default=None,
+        mask=True,
     ),
     ConfigKey(
         name='PACER_USERNAME',
         key_type='str',
-        description='Username for PACER',
+        description='\nConfigure PACER Credentials\n',
         default=None,
     ),
     ConfigKey(
         name='PACER_PASSWORD',
         key_type='str',
-        description='Password for PACER',
         default=None,
+        mask=True,
     ),
     ConfigKey(
         name='POSTGRES_HOST',
         key_type='str',
-        description='Postgres host',
+        description='\nConfigure Postgres\n',
         default=None,
     ),
     ConfigKey(
         name='POSTGRES_PORT',
         key_type='int',
-        description='Postgres port',
         default=5432,
     ),
     ConfigKey(
         name='POSTGRES_USERNAME',
         key_type='str',
-        description='Postgres username',
-        default=None,
+        default='admin',
     ),
     ConfigKey(
         name='POSTGRES_PASSWORD',
         key_type='str',
-        description='Postgres password',
         default=None,
+        mask=True,
     ),
     ConfigKey(
         name='POSTGRES_DB',
         key_type='str',
-        description='Postgres database',
         default='docketanalyzer',
     ),
 ]
 
 
-config = Config(
+config = EnvConfig(
     path=Path.home() / '.cache' / 'docketanalyzer' / 'config.json',
     config_keys=keys,
     cli_command='da configure',

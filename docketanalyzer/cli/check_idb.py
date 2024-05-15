@@ -243,7 +243,7 @@ def process_chunk(chunk, start_row=0):
     return data
 
 
-def check_idb(reset=False, quiet=False, local=False):
+def check_idb(reset=False, quiet=True, local=False, skip_row_check=False):
     """
     Downloads and prepares a core dataset with datafrom the IDB. We check the IDB for new data and update the dataset if necessary.
     """
@@ -261,8 +261,11 @@ def check_idb(reset=False, quiet=False, local=False):
         dataset.delete(quiet=True)
         dataset = load_dataset('idb', pk='idb_row', local=local)
 
+    has_new_data = False
+    local_path = local_dir / 'idb_raw.txt'
     last_download_date = dataset.config.get('last_download_date')
-    if last_download_date is None:
+    if last_download_date is None or not local_path.exists():
+        has_new_data = True
         print("\n\nIt looks like this is the first time you're running the IDB checker.")
         download_idb_data(dataset)
     last_download_date = pd.to_datetime(dataset.config['last_download_date']).date()
@@ -275,35 +278,38 @@ def check_idb(reset=False, quiet=False, local=False):
     else:
         print(f"\n\nIt looks like your IDB dataset is out of date.\nWould you like to update it?")
         if quiet or click.confirm('\nRun updates?'):
-            path = local_dir / 'idb_raw.txt'
-            if path.exists():
-                path.unlink()
+            if local_path.exists():
+                local_path.unlink()
             dataset.delete(quiet=True)
             dataset = load_dataset('idb', pk='idb_row', local=local)
             download_idb_data(dataset)
+            has_new_data = True
         else:
             print("Ok, we will continue with the existing data.")
 
-    print('\n\nChecking core dataset...')
-    total_records = len(load_raw_idb_data(dataset))
-    dataset_records = len(dataset)
-    print(f"\nRaw IDB records: {total_records}")
-    print(f"Core dataset records: {dataset_records}")
-    if total_records > dataset_records:
-        print(f"\n{total_records - dataset_records} records need to be added to the core dataset.")
-        chunksize = 200000
-        chunks = load_raw_idb_data(
-            dataset,
-            chunksize=chunksize,
-            low_memory=False,
-            skiprows=range(1, dataset_records + 1),
-        )
-        start_row = dataset_records
-        print("Adding data...")
-        for chunk in tqdm(chunks, total=(total_records - dataset_records) // chunksize):
-            chunk = process_chunk(chunk, start_row=start_row)
-            dataset.add(chunk, verbose=False)
-            start_row += len(chunk)
+    if skip_row_check and not has_new_data:
+        print('\n\nSkipping core dataset check as there are no new updates.')
+    else:
+        print('\n\nChecking core dataset...')
+        total_records = len(load_raw_idb_data(dataset))
+        dataset_records = len(dataset)
+        print(f"\nRaw IDB records: {total_records}")
+        print(f"Core dataset records: {dataset_records}")
+        if total_records > dataset_records:
+            print(f"\n{total_records - dataset_records} records need to be added to the core dataset.")
+            chunksize = 200000
+            chunks = load_raw_idb_data(
+                dataset,
+                chunksize=chunksize,
+                low_memory=False,
+                skiprows=range(1, dataset_records + 1),
+            )
+            start_row = dataset_records
+            print("Adding data...")
+            for chunk in tqdm(chunks, total=(total_records - dataset_records) // chunksize):
+                chunk = process_chunk(chunk, start_row=start_row)
+                dataset.add(chunk, verbose=False)
+                start_row += len(chunk)
 
     print(f"\n\nIDB check complete!\n\nUse load_dataset('idb') to load the dataset in your code.")
 

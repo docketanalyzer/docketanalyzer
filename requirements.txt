@@ -1,11 +1,10 @@
 bs4
 click
-configuration-maker
 django
 flake8
 juriscraper
 pandas
-psycopg2
+psycopg2-binary
 pydantic
 python-dotenv
 regex
@@ -14,3 +13,4 @@ simplejson
 sqlalchemy
 toolz
 tqdm
+wget

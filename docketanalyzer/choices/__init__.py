@@ -3,9 +3,6 @@ from docketanalyzer import Registry
 
 
 class ChoiceRegistry(Registry):
-    """
-    A registry for all choices.
-    """
     def find_filter(self, obj):
         return isinstance(obj, type) and issubclass(obj, Choice) and obj is not Choice
 

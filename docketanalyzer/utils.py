@@ -3,10 +3,8 @@ from dateutil.parser._parser import ParserError
 from dotenv import load_dotenv
 import pandas as pd
 from pandas._libs.tslibs.np_datetime import OutOfBoundsDatetime
+from pathlib import Path
 from docketanalyzer import config
-
-
-load_dotenv(override=True)
 
 
 # Configuration

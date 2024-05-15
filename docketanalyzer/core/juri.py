@@ -9,12 +9,11 @@ class JuriscraperUtility:
         self, host='http://localhost', port=4444,
         pacer_username=PACER_USERNAME, pacer_password=PACER_PASSWORD,
     ):
-        from juriscraper.pacer import DocketReport
-
         self.host = host
         self.port = port
-        self.session = None
-        self.start(pacer_username, pacer_password)
+        self.pacer_username = pacer_username
+        self.pacer_password = pacer_password
+        self.cache = {}
 
     @property
     def url(self):
@@ -28,21 +27,23 @@ class JuriscraperUtility:
         except requests.exceptions.ConnectionError:
             return False
 
-    def start(self, pacer_username, pacer_password):
-        from juriscraper.pacer import PacerSession
+    @property
+    def session(self):
+        if 'session' not in self.cache:
+            from juriscraper.pacer import PacerSession
 
-        os.environ['WEBDRIVER_CONN'] = self.host
-        if self.is_running:
-            print('Selenium server already running.')
-        else:
-            cmd = f'docker run -d -p {self.port}:4444 selenium/standalone-firefox-debug'
-            print(f'Starting Selenium server with command: {cmd}')
-            os.system(cmd)
-            while not self.is_running:
-                print('waiting for server to start...')
-                time.sleep(3)
-        if self.session is None:
-            self.session = PacerSession(username=pacer_username, password=pacer_password)
+            os.environ['WEBDRIVER_CONN'] = self.host
+            if self.is_running:
+                print('Selenium server already running.')
+            else:
+                cmd = f'docker run -d -p {self.port}:4444 selenium/standalone-firefox-debug'
+                print(f'Starting Selenium server with command: {cmd}')
+                os.system(cmd)
+                while not self.is_running:
+                    print('waiting for service to start...')
+                    time.sleep(3)
+            self.cache['session'] = PacerSession(username=self.pacer_username, password=self.pacer_password)
+        return self.cache['session']
 
     def find_candidates(self, docket_id):
         from juriscraper.pacer import PossibleCaseNumberApi
@@ -84,6 +85,9 @@ class JuriscraperUtility:
 
     def purchase_document(self, pacer_case_id, pacer_doc_id, court):
         from juriscraper.pacer import DocketReport
+
+        if pacer_doc_id is None:
+            return {'file': None, 'status': 'no pacer_doc_id provided'}
 
         docket_report = DocketReport(court, self.session)
         r, status = docket_report.download_pdf(pacer_case_id, pacer_doc_id)

@@ -8,8 +8,36 @@ class DocketManager():
     def __init__(self, docket_id, data_dir=DATA_DIR, local=False):
         self.docket_id = docket_id
         self.data_dir = Path(data_dir)
-        self.dataset = load_dataset('dockets', pk='docket_id', local=local)
+        self.local = local
         self.cache = {}
+
+    @property
+    def row(self):
+        return self.dataset[self.docket_id]
+
+    @property
+    def dataset(self):
+        if 'dataset' not in self.cache:
+            self.cache['dataset'] = load_dataset('dockets', pk='docket_id', local=self.local)
+        return self.cache['dataset']
+
+    @property
+    def entry_dataset(self):
+        if 'entry_dataset' not in self.cache:
+            self.cache['entry_dataset'] = load_dataset('entries', pk='entry_id', local=self.local)
+        return self.cache['entry_dataset']
+
+    @property
+    def doc_dataset(self):
+        if 'doc_dataset' not in self.cache:
+            self.cache['doc_dataset'] = load_dataset('docs', pk='doc_id', local=self.local)
+        return self.cache['doc_dataset']
+
+    @property
+    def juri(self):
+        if 'juri' not in self.cache:
+            self.cache['juri'] = JuriscraperUtility()
+        return self.cache['juri']
 
     @property
     def dir(self):
@@ -33,16 +61,30 @@ class DocketManager():
         if self.docket_json_path.exists():
             return json.loads(self.docket_json_path.read_text())
 
+    @property
+    def pdf_paths(self):
+        return list(self.dir.glob('doc.pdf.*.pdf'))
+
+    @property
+    def ocr_paths(self):
+        return list(self.dir.glob('doc.ocr.*.json'))
+
+    def parse_document_path(self, path):
+        path = Path(path)
+        name = path.name.split('.')[-2]
+        entry_number, attachment_number = name.split('_')
+        entry_number, attachment_number = int(entry_number), int(attachment_number)
+        attachment_number = attachment_number if attachment_number else None
+        return entry_number, attachment_number
+
     def document_get_name(self, entry_number, attachment_number=None):
         return f'{entry_number}_{attachment_number or 0}'
 
-    def document_get_pdf_path(self, entry_number, attachment_number=None):
+    def get_document_path(self, entry_number, attachment_number=None, ocr=False):
         name = self.document_get_name(entry_number, attachment_number)
+        if ocr:
+            return self.dir / f'doc.ocr.{name}.json'
         return self.dir / f'doc.pdf.{name}.pdf'
-
-    def document_get_ocr_path(self, entry_number, attachment_number=None):
-        name = self.document_get_name(entry_number, attachment_number)
-        return self.dir / f'doc.ocr.{name}.json'
 
     @property
     def court(self):
@@ -88,7 +130,7 @@ class DocketManager():
 
     def purchase_document(self, entry_number, attachment_number=None):
         juri = self.juri
-        pdf_path = self.document_get_pdf_path(entry_number, attachment_number)
+        pdf_path = self.get_document_path(entry_number, attachment_number)
         if not pdf_path.exists():
             if self.pacer_case_id:
                 docket_json = self.docket_json
@@ -99,17 +141,12 @@ class DocketManager():
                                 data = juri.purchase_document(self.pacer_case_id, entry['pacer_doc_id'], self.court)
                             else:
                                 data = juri.purchase_attachment(
-                                    self.pacer_case_id, entry['pacer_doc_id'], 
+                                    self.pacer_case_id, entry['pacer_doc_id'],
                                     attachment_number, self.court,
                                 )
                             if data['status'] != 'success':
                                 print(f"Error purchasing document: {data['status']}")
                             else:
                                 pdf_path.write_bytes(data['file'])
+                            return data['status']
                             break
-
-    @property
-    def juri(self):
-        if 'juri' not in self.cache:
-            self.cache['juri'] = JuriscraperUtility()
-        return self.cache['juri']

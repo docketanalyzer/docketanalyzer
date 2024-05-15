@@ -3,5 +3,6 @@ import docketanalyzer
 
 
 @click.command()
-def configure():
-    docketanalyzer.config.update()
+@click.option('--reset', is_flag=True)
+def configure(reset):
+    docketanalyzer.config.update(reset=reset)

@@ -1,17 +1,23 @@
-import os
+from datetime import datetime
+import urllib.parse
 import django
 from django.db import models
 from django.conf import settings
 from django.core.management.commands.inspectdb import Command as InspectDB
+from django.core.paginator import Paginator
 import pandas as pd
 from sqlalchemy import (
-    create_engine, Table, Column, Integer,
-    String, MetaData, select, insert, update, DDL
+    create_engine, Table, Column,
+    MetaData, select, insert, update, DDL,
+    Integer, String, DateTime, Float, Boolean
 )
+from sqlalchemy.engine.url import URL
 from sqlalchemy.exc import (
     OperationalError, NoSuchTableError,
     ProgrammingError,
 )
+from toolz import partition_all
+from tqdm import tqdm
 from docketanalyzer.utils import (
     DATA_DIR, POSTGRES_DB, POSTGRES_HOST,
     POSTGRES_PASSWORD, POSTGRES_PORT,
@@ -46,8 +52,7 @@ class CoreDatasetConfig:
 
     def __setitem__(self, key, value):
         with self.engine.connect() as conn:
-            transaction = conn.begin()
-            try:
+            with conn.begin():
                 s = select(self.table).where(
                     self.table.c.dataset == self.dataset_name,
                     self.table.c.key == key,
@@ -64,10 +69,6 @@ class CoreDatasetConfig:
                         key=key, value=value,
                     )
                 conn.execute(stmt)
-                transaction.commit()
-            except:
-                transaction.rollback()
-                raise
 
     def get(self, key, default=None):
         try:
@@ -77,42 +78,55 @@ class CoreDatasetConfig:
 
     def delete(self, key=None):
         with self.engine.connect() as conn:
-            try:
-                transaction = conn.begin()
+            with conn.begin():
                 stmt = self.table.delete().where(self.table.c.dataset == self.dataset_name)
                 if key:
                     stmt = stmt.where(self.table.c.key == key)
                 conn.execute(stmt)
-                transaction.commit()
-            except:
-                transaction.rollback()
-                raise
+
+
+class CoreDatasetQuerySet(models.QuerySet):
+    def pandas(self, *columns):
+        return pd.DataFrame(list(self.values(*columns)))
+
+    def sample(self, n):
+        return self.order_by('?')[:n]
+
+    def get_first_as_dict(self, *args, **kwargs):
+        return self.filter(*args, **kwargs).values().first()
+
+    def page(self, page_number=1, results_per_page=100):
+        queryset = self
+        if not self.query.order_by:
+            queryset = queryset.order_by('id')
+        paginator = Paginator(queryset, results_per_page)
+        return paginator.get_page(page_number)
+
+    def batch(self, batch_size):
+        queryset = self
+        if not self.query.order_by:
+            queryset = queryset.order_by('id')
+        ids = list(queryset.values_list('id', flat=True))
+        for batch_ids in tqdm(list(partition_all(batch_size, ids))):
+            yield queryset.filter(id__in=batch_ids)
 
 
 class CoreDatasetModelManager(models.Manager):
-    def to_pandas(self, *columns):
-        queryset = self.get_queryset()
-        return pd.DataFrame(list(queryset.values(*columns)))
-
-    def sample(self, n, *columns):
-        queryset = self.get_queryset().order_by('?')
-        return pd.DataFrame(queryset.values(*columns)[:n])
-
-    def get(self, *args, **kwargs):
-        return self.get_queryset().filter(*args, **kwargs).values().first()
+    def get_queryset(self):
+        return CoreDatasetQuerySet(self.model, using=self._db)
 
 
 class CoreDataset:
-    def __init__(self, name, pk=None, local=False):
+    def __init__(self, name, pk=None, local=False, connect_args={'sslmode': 'disable'}):
         if pk == 'id':
             raise ValueError("Cannot use 'id' as a primary key")
         if name == 'config':
             raise ValueError("Cannot use 'config' as a dataset name")
         self.name = name
         self.local = local
+        self.connect_args = connect_args
         self.engine = self.connect()
         self.config = CoreDatasetConfig(name, self.engine)
-        self.django_setup = False
         self.cache = {}
         if pk:
             self.config['pk'] = pk
@@ -137,14 +151,25 @@ class CoreDataset:
 
     def connect(self):
         if POSTGRES_HOST and not self.local:
-            url = f"postgresql://{POSTGRES_USERNAME}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
+            engine = create_engine(
+                URL.create(
+                    drivername="postgresql",
+                    username=POSTGRES_USERNAME,
+                    password=POSTGRES_PASSWORD,
+                    host=POSTGRES_HOST,
+                    port=POSTGRES_PORT,
+                    database=POSTGRES_DB,
+                ),
+                connect_args=self.connect_args
+            )
+            return engine
         else:
             (DATA_DIR / 'local').mkdir(exist_ok=True, parents=True)
             url = f"sqlite:///{DATA_DIR / 'local' / 'db.sqlite3'}"
-        return create_engine(url)
+            return create_engine(url, connect_args=self.connect_args)
 
     def setup_django(self):
-        if not self.django_setup:
+        if not settings.configured:
             if POSTGRES_HOST and not self.local:
                 database = {
                     'ENGINE': 'django.db.backends.postgresql',
@@ -162,10 +187,10 @@ class CoreDataset:
 
             settings.configure(
                 DATABASES={'default': database},
-                INSTALLED_APPS=['docketanalyzer.app.data']
+                INSTALLED_APPS=['docketanalyzer.app.data'],
+                USE_TZ=False,
             )
             django.setup()
-            self.django_setup = True
 
     @property
     def django_model_name(self):
@@ -173,33 +198,62 @@ class CoreDataset:
 
     @property
     def django_model(self):
-        if 'django_model' not in self.cache:
+        if not self.cache.get('django_model'):
             self.pk
             self.setup_django()
-            db_schema = list(InspectDB().handle_inspection({
-                'database': 'default',
-                'table': [self.name],
-                'include_partitions': False,
-                'include_views': False,
-            }))
-            db_schema = '\n'.join(db_schema[db_schema.index('from django.db import models') + 4:])
-            db_schema = f'class {self.django_model_name}(models.Model):\n' + db_schema
-            db_schema += '\n        app_label = "docketanalyzer.app.data"'
-            db_schema += '\n\n    objects = CoreDatasetModelManager()'
-
-            exec(db_schema, globals())
-            self.cache['django_model'] = globals()[self.django_model_name]
+            if self.django_model_name not in globals():
+                db_schema = list(InspectDB().handle_inspection({
+                    'database': 'default',
+                    'table': [self.name],
+                    'include_partitions': False,
+                    'include_views': False,
+                }))
+                db_schema = '\n'.join(db_schema[db_schema.index('from django.db import models') + 4:])
+                if len(db_schema.strip()):
+                    db_schema = f'class {self.django_model_name}(models.Model):\n' + db_schema
+                    db_schema += '\n        app_label = "docketanalyzer.app.data"'
+                    db_schema += '\n\n    objects = CoreDatasetModelManager()'
+                    exec(db_schema, globals())
+            self.cache['django_model'] = globals().get(self.django_model_name)
         return self.cache['django_model']
 
+    @property
+    def q(self):
+        return self.get_queryset()
+
+    def get_queryset(self):
+        return self.django_model.objects.all()
+
     def add_column(self, column_name, column_type):
+        type_mapping = {
+            int: Integer,
+            str: String,
+            float: Float,
+            bool: Boolean,
+            datetime: DateTime,
+            'int': Integer,
+            'str': String,
+            'float': Float,
+            'bool': Boolean,
+            'datetime': DateTime,
+        }
+        column_type = type_mapping.get(column_type, column_type)()
         with self.engine.connect() as conn:
-            conn.execute(DDL(f'ALTER TABLE {self.name} ADD COLUMN {column_name} {column_type}'))
+            column_definition = f"{column_name} {column_type.compile(dialect=self.engine.dialect)}"
+            sql = DDL(f"ALTER TABLE {self.name} ADD COLUMN {column_definition}")
+            with conn.begin():
+                conn.execute(sql)
         self.cache.pop('django_model', None)
+        if self.django_model_name in globals():
+            del globals()[self.django_model_name]
 
     def drop_column(self, column_name):
         with self.engine.connect() as conn:
-            conn.execute(DDL(f'ALTER TABLE {self.name} DROP COLUMN {column_name}'))
+            with conn.begin():
+                conn.execute(DDL(f'ALTER TABLE {self.name} DROP COLUMN {column_name}'))
         self.cache.pop('django_model', None)
+        if self.django_model_name in globals():
+            del globals()[self.django_model_name]
 
     def delete(self, quiet=False):
         if not quiet:
@@ -208,7 +262,8 @@ class CoreDataset:
                 return
         self.config.delete()
         with self.engine.connect() as conn:
-            conn.execute(DDL(f'DROP TABLE IF EXISTS {self.name}'))
+            with conn.begin():
+                conn.execute(DDL(f'DROP TABLE IF EXISTS {self.name}'))
 
     def add(self, data, verbose=True):
         pk = self.pk
@@ -244,36 +299,49 @@ class CoreDataset:
         if verbose:
             print(f"Added {len(data)} records to dataset. Total records: {len(self)}")
 
-    def __len__(self):
-        try:
-            return pd.read_sql_query(f"SELECT COUNT(*) FROM {self.name}", self.engine).iloc[0, 0]
-        except (OperationalError, ProgrammingError):
-            return 0
-
     def all(self):
-        return self.django_model.objects.all()
+        return self.q
 
     def get(self, *args, **kwargs):
-        return self.django_model.objects.get(*args, **kwargs)
+        return self.q.get(*args, **kwargs)
 
-    def filter(*args, **kwargs):
-        return self.django_model.objects.filter(*args, **kwargs)
+    def filter(self, *args, **kwargs):
+        return self.q.filter(*args, **kwargs)
 
-    def exclude(*args, **kwargs):
-        return self.django_model.objects.exclude(*args, **kwargs)
+    def exclude(self, *args, **kwargs):
+        return self.q.exclude(*args, **kwargs)
 
     def values(self, *args, **kwargs):
-        return self.django_model.objects.values(*args, **kwargs)
+        return self.q.values(*args, **kwargs)
 
     def sample(self, *args, **kwargs):
-        return self.django_model.objects.sample(*args, **kwargs)
+        return self.q.sample(*args, **kwargs)
 
-    def to_pandas(self, *args, **kwargs):
-        return self.django_model.objects.to_pandas(*args, **kwargs)
+    def pandas(self, *args, **kwargs):
+        return self.q.pandas(*args, **kwargs)
+
+    def page(self, *args, **kwargs):
+        return self.q.page(*args, **kwargs)
+
+    def batch(self, *args, **kwargs):
+        return self.q.batch(*args, **kwargs)
+
+    def count(self, *args, **kwargs):
+        return self.q.count(*args, **kwargs)
 
     def __getitem__(self, key):
         args = {self.pk: key}
         return self.get(**args)
+
+    def __iter__(self):
+        return iter(tqdm(self.all(), total=len(self)))
+
+    def __len__(self):
+        django_model = self.django_model
+        if django_model:
+            return django_model.objects.count()
+        else:
+            return 0
 
 
 def load_dataset(*args, **kwargs):

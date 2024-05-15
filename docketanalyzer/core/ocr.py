@@ -5,10 +5,11 @@ import requests
 
 
 class OCRUtility:
-    def __init__(self, host='http://localhost', port=5050, workers=8):
+    def __init__(self, host='http://localhost', port=5050, workers=6):
         self.host = host
         self.port = port
-        self.start(workers)
+        self.workers = workers
+        self.started = False
 
     @property
     def url(self):
@@ -22,7 +23,7 @@ class OCRUtility:
         except requests.exceptions.ConnectionError:
             return False
 
-    def start(self, workers=8):
+    def start(self, workers):
         if self.is_running:
             print('OCR server already running.')
         else:
@@ -30,9 +31,15 @@ class OCRUtility:
             cmd = f'docker run -d -p {self.port}:5050 {workers_arg} freelawproject/doctor:latest'
             print(f'Starting OCR server with command: {cmd}')
             os.system(cmd)
-            time.sleep(5)
+            while not self.is_running:
+                print('Waiting for service to start...')
+                time.sleep(5)
+            print(f'OCR server running at {self.url}')
+        self.started = True
 
     def extract_text(self, pdf_path, ocr_available=True):
+        if not self.started:
+            self.start(self.workers)
         pdf_path = Path(pdf_path)
         url = self.url + '/extract/doc/text/'
         if ocr_available:
