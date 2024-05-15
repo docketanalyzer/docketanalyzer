@@ -4,6 +4,7 @@ import docketanalyzer.utils as utils
 from docketanalyzer.core.registry import Registry
 import docketanalyzer.choices as choices
 
+from docketanalyzer.core.elastic import load_elastic
 from docketanalyzer.core.juri import JuriscraperUtility
 from docketanalyzer.core.ocr import OCRUtility
 

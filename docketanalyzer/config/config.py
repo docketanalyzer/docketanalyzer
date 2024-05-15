@@ -55,6 +55,28 @@ keys = [
         key_type='str',
         default='docketanalyzer',
     ),
+    ConfigKey(
+        name='ELASTIC_HOST',
+        key_type='str',
+        description='\nConfigure Elasticsearch\n',
+        default=None,
+    ),
+    ConfigKey(
+        name='ELASTIC_PORT',
+        key_type='int',
+        default=9200,
+    ),
+    ConfigKey(
+        name='ELASTIC_USERNAME',
+        key_type='str',
+        default=None,
+    ),
+    ConfigKey(
+        name='ELASTIC_PASSWORD',
+        key_type='str',
+        default=None,
+        mask=True,
+    ),
 ]
 
 

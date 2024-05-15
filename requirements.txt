@@ -1,6 +1,7 @@
 bs4
 click
 django
+elasticsearch
 flake8
 juriscraper
 pandas
