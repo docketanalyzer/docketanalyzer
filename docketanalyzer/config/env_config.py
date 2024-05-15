@@ -91,7 +91,7 @@ class EnvConfig():
             for key in self.keys:
                 if key.group == group or group is None:
                     config = self.update_key(key, config, reset=reset)
-            self.path.write_text(json.dumps(config, indent=2))
+            self.path.write_text(json.dumps(config, indent=2, default=str))
             print('Config saved to %s' % self.path)
         except KeyboardInterrupt:
             print('\nExiting without saving.')

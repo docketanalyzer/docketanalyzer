@@ -5,7 +5,10 @@ click
 django
 elasticsearch
 flake8
+groq
+instructor
 juriscraper
+openai
 pandas
 psycopg2-binary
 pydantic
@@ -14,6 +17,8 @@ regex
 requests
 simplejson
 sqlalchemy
+tiktoken
 toolz
 tqdm
+uuid
 wget

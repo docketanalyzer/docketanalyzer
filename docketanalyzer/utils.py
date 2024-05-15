@@ -12,6 +12,13 @@ DATA_DIR = config['DA_DATA_DIR']
 COURTLISTENER_TOKEN = config['COURTLISTENER_TOKEN']
 PACER_USERNAME = config['PACER_USERNAME']
 PACER_PASSWORD = config['PACER_PASSWORD']
+HF_TOKEN = config['HF_TOKEN']
+GROQ_API_KEY = config['GROQ_API_KEY']
+GROQ_DEFAULT_CHAT_MODEL = config['GROQ_DEFAULT_CHAT_MODEL']
+OPENAI_API_KEY = config['OPENAI_API_KEY']
+OPENAI_ORG_ID = config['OPENAI_ORG_ID']
+OPENAI_DEFAULT_CHAT_MODEL = config['OPENAI_DEFAULT_CHAT_MODEL']
+OPENAI_DEFAULT_EMBEDDING_MODEL = config['OPENAI_DEFAULT_EMBEDDING_MODEL']
 POSTGRES_HOST = config['POSTGRES_HOST']
 POSTGRES_PORT = config['POSTGRES_PORT']
 POSTGRES_USERNAME = config['POSTGRES_USERNAME']
@@ -51,3 +58,11 @@ def convert_int(x):
 def json_default(obj):
     if isinstance(obj, (datetime, date)):
         return obj.isoformat()
+
+
+def pd_save_or_append(data, path, **kwargs):
+    path = Path(path)
+    if path.exists():
+        data.to_csv(path, mode='a', header=False, index=False, **kwargs)
+    else:
+        data.to_csv(path, index=False, **kwargs)

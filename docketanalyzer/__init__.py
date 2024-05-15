@@ -4,6 +4,7 @@ import docketanalyzer.utils as utils
 from docketanalyzer.core.registry import Registry
 import docketanalyzer.choices as choices
 
+from docketanalyzer.core.chat import Chat, ChatThread
 from docketanalyzer.core.elastic import load_elastic
 from docketanalyzer.core.s3 import S3Utility
 from docketanalyzer.core.juri import JuriscraperUtility
