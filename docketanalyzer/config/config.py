@@ -77,6 +77,34 @@ keys = [
         default=None,
         mask=True,
     ),
+    ConfigKey(
+        name='AWS_ACCESS_KEY_ID',
+        key_type='str',
+        description='\nConfigure AWS S3\n',
+        default=None,
+        mask=True,
+    ),
+    ConfigKey(
+        name='AWS_SECRET_ACCESS_KEY',
+        key_type='str',
+        default=None,
+        mask=True,
+    ),
+    ConfigKey(
+        name='AWS_S3_BUCKET_NAME',
+        key_type='str',
+        default=None,
+    ),
+    ConfigKey(
+        name='AWS_S3_ENDPOINT_URL',
+        key_type='str',
+        default=None,
+    ),
+    ConfigKey(
+        name='AWS_S3_REGION_NAME',
+        key_type='str',
+        default=None,
+    ),
 ]
 
 
