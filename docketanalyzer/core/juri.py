@@ -80,7 +80,6 @@ class JuriscraperUtility:
         if 'This case was administratively closed' in parser.ERROR_STRINGS:
             parser.ERROR_STRINGS.remove('This case was administratively closed')
         parser._parse_text(docket_html)
-        print(parser.docket_entries)
         return parser.data
 
     def purchase_document(self, pacer_case_id, pacer_doc_id, court):

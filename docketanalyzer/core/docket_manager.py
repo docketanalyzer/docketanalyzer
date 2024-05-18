@@ -117,7 +117,7 @@ class DocketManager():
         juri = self.juri
         html_paths = self.docket_html_paths
         if len(html_paths) > 1:
-            raise NotImplementedError("Consolidating multiple dockets not yet implemented")
+            print(f"Consolidating multiple dockets not yet implemented: {self.docket_id}")
         if html_paths:
             html = html_paths[0].read_text()
             docket_parsed = juri.parse(html, self.court)

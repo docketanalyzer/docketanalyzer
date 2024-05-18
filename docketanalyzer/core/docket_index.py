@@ -17,6 +17,12 @@ class DocketIndex:
         self.juri = JuriscraperUtility()
         self.cache = {}
 
+    @property
+    def tasks(self):
+        from docketanalyzer import load_tasks
+        for task in load_tasks().values():
+            yield task(dataset=self.dataset)
+
     def add_from_html(self, html, court, append_if_exists=False, add_to_dataset=True):
         docket_parsed = self.juri.parse(html, court)
         docket_id = f"{docket_parsed['court_id']}__{docket_parsed['docket_number'].replace(':', '_')}"
@@ -33,7 +39,7 @@ class DocketIndex:
         """
         Checks if any dockets have been inadverently added to the DATA_DIR without being in the dockets core dataset.
         """
-        dockets_dir = self.data_dir / 'dockets' / 'data'
+        dockets_dir = self.data_dir / 'dockets'
         dockets_dir.mkdir(parents=True, exist_ok=True)
         docket_ids = pd.DataFrame({'docket_id': [
             x.name for x in dockets_dir.iterdir()
@@ -55,20 +61,9 @@ class DocketIndex:
         return manager
 
     def run_tasks(self, task_name=None, *args, **kwargs):
-        from docketanalyzer import load_tasks
-
-        tasks = load_tasks()
-        if task_name:
-            if isinstance(task_name, str):
-                tasks = [tasks[task_name]]
-            elif isinstance(task_name, list):
-                tasks = [tasks[x] for x in task_name]
-        else:
-            tasks = list(tasks.values())
-
-        for task in tasks:
-            task = task(dataset=self.dataset)
-            task.run(*args, **kwargs)
+        for task in self.tasks:
+            if task_name is None or task.name == task_name:
+                task.run(*args, **kwargs)
 
     def __iter__(self):
         for docket_id in tqdm(self.dataset.pandas('docket_id')['docket_id']):

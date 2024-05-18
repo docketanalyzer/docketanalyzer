@@ -1,9 +1,9 @@
 from datetime import datetime, date
 from dateutil.parser._parser import ParserError
-from dotenv import load_dotenv
 import pandas as pd
 from pandas._libs.tslibs.np_datetime import OutOfBoundsDatetime
 from pathlib import Path
+import regex as re
 from docketanalyzer import config
 
 
@@ -66,3 +66,7 @@ def pd_save_or_append(data, path, **kwargs):
         data.to_csv(path, mode='a', header=False, index=False, **kwargs)
     else:
         data.to_csv(path, index=False, **kwargs)
+
+
+def get_clean_name(name):
+    return re.sub(r"[,.;@#?!&$]+\ *", " ", name.lower()).strip()

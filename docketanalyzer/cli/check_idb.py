@@ -263,6 +263,7 @@ def check_idb(reset=False, quiet=True, local=False, skip_row_check=False):
 
     has_new_data = False
     local_path = local_dir / 'idb_raw.txt'
+    local_dir.mkdir(parents=True, exist_ok=True)
     last_download_date = dataset.config.get('last_download_date')
     if last_download_date is None or not local_path.exists():
         has_new_data = True

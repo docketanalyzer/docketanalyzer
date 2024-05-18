@@ -9,3 +9,4 @@ def check_dockets():
     """
     index = DocketIndex()
     index.check_docket_dirs()
+    print(f"Total dockets: {len(index.dataset)}")

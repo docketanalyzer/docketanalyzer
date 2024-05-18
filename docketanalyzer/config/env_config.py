@@ -74,6 +74,8 @@ class EnvConfig():
         print()
         if not value:
             value = current_value
+        elif value == '*':
+            value = key.default
         else:
             try:
                 value = key.convert(value)

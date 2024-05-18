@@ -166,7 +166,7 @@ class CoreDataset:
         else:
             (DATA_DIR / 'local').mkdir(exist_ok=True, parents=True)
             url = f"sqlite:///{DATA_DIR / 'local' / 'db.sqlite3'}"
-            return create_engine(url, connect_args=self.connect_args)
+            return create_engine(url)
 
     def setup_django(self):
         if not settings.configured:
@@ -217,6 +217,11 @@ class CoreDataset:
             self.cache['django_model'] = globals().get(self.django_model_name)
         return self.cache['django_model']
 
+    def reload_django_model(self):
+        self.cache.pop('django_model', None)
+        if self.django_model_name in globals():
+            del globals()[self.django_model_name]
+
     @property
     def q(self):
         return self.get_queryset()
@@ -243,17 +248,13 @@ class CoreDataset:
             sql = DDL(f"ALTER TABLE {self.name} ADD COLUMN {column_definition}")
             with conn.begin():
                 conn.execute(sql)
-        self.cache.pop('django_model', None)
-        if self.django_model_name in globals():
-            del globals()[self.django_model_name]
+        self.reload_django_model()
 
     def drop_column(self, column_name):
         with self.engine.connect() as conn:
             with conn.begin():
                 conn.execute(DDL(f'ALTER TABLE {self.name} DROP COLUMN {column_name}'))
-        self.cache.pop('django_model', None)
-        if self.django_model_name in globals():
-            del globals()[self.django_model_name]
+        self.reload_django_model()
 
     def delete(self, quiet=False):
         if not quiet:
@@ -275,6 +276,10 @@ class CoreDataset:
 
         data = data.drop_duplicates(subset=[pk])
 
+        if 'id' in data.columns:
+            data = data.drop(columns=['id'])
+            print("Warning: 'id' column is reserved. Removing from dataset.")
+
         if columns is not None:
             missing_cols = [x for x in self.columns if x not in data.columns]
             for col in missing_cols:
@@ -286,16 +291,25 @@ class CoreDataset:
 
         total_records = len(self)
         if total_records:
-            ids = pd.read_sql_query(f"SELECT {pk} FROM {self.name}", self.engine)
-            data = data[~data[pk].isin(ids[pk])]
+            ids = self.all().values_list(pk, flat=True)
+            data = data[~data[pk].isin(ids)]
 
         if len(data):
-            start_id = total_records
+            if columns is None or 'id' not in columns:
+                start_id = 0
+            else:
+                start_id = self.q.aggregate(models.Max('id'))['id__max'] + 1 or 0
+
             data['id'] = range(start_id, start_id + len(data))
             data.to_sql(self.name, self.engine, if_exists='append', index=False, dtype={
-                'id': Integer,
-                pk: String(128),
+                pk: String(128), 'id': Integer(),
             })
+            if start_id == 0:
+                with self.engine.connect() as conn:
+                    with conn.begin():
+                        sql = f"ALTER TABLE {self.name} ADD PRIMARY KEY ({self.pk})"
+                        conn.execute(DDL(sql))
+
         if verbose:
             print(f"Added {len(data)} records to dataset. Total records: {len(self)}")
 

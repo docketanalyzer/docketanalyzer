@@ -46,7 +46,7 @@ class Task:
     def progress(self):
         total = self.get_queryset().count()
         complete = self.dataset.filter(**{f"{self.last_updated_col}__isnull": False}).count()
-        pct = complete / total
+        pct = 0 if not total else complete / total
         return total, complete, pct
 
     @property
