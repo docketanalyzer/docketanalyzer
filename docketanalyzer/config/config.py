@@ -114,30 +114,11 @@ keys = [
         group='postgres',
     ),
     ConfigKey(
-        name='ELASTIC_HOST',
+        name='ELASTIC_URL',
         key_type='str',
         description='\nConfigure Elasticsearch\n',
         default=None,
-        group='elasticsearch',
-    ),
-    ConfigKey(
-        name='ELASTIC_PORT',
-        key_type='int',
-        default=9200,
-        group='elasticsearch',
-    ),
-    ConfigKey(
-        name='ELASTIC_USERNAME',
-        key_type='str',
-        default=None,
-        group='elasticsearch',
-    ),
-    ConfigKey(
-        name='ELASTIC_PASSWORD',
-        key_type='str',
-        default=None,
-        mask=True,
-        group='elasticsearch',
+        group='elastic',
     ),
     ConfigKey(
         name='AWS_ACCESS_KEY_ID',

@@ -117,7 +117,7 @@ class CoreDatasetModelManager(models.Manager):
 
 
 class CoreDataset:
-    def __init__(self, name, pk=None, local=False, connect_args={'sslmode': 'disable'}):
+    def __init__(self, name, pk=None, local=False, connect_args={}):
         if pk == 'id':
             raise ValueError("Cannot use 'id' as a primary key")
         if name == 'config':

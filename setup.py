@@ -13,7 +13,7 @@ def get_requirements(filename):
 
 setup(
     name='docketanalyzer',
-    version='0.1.0',
+    version='0.1.1',
     description='',
     url='https://github.com/docketanalyzer/docketanalyzer',
     author='Nathan Dahlberg',
