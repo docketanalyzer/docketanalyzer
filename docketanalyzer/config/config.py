@@ -118,6 +118,7 @@ keys = [
         key_type='str',
         description='\nConfigure Elasticsearch\n',
         default=None,
+        mask=True,
         group='elastic',
     ),
     ConfigKey(

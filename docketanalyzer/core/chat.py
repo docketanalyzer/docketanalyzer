@@ -15,7 +15,7 @@ from docketanalyzer.utils import (
 
 
 class Chat:
-    def __init__(self, api_key=None, organization=OPENAI_ORG_ID, base_url=None, mode='openai'):
+    def __init__(self, api_key=None, organization=OPENAI_ORG_ID, base_url=None, mode='openai', model=None):
         self.mode = mode
         if api_key is None:
             if mode == 'openai':
@@ -39,6 +39,8 @@ class Chat:
             self.default_model = GROQ_DEFAULT_CHAT_MODEL
         else:
             raise ValueError("Invalid mode. Must be one of: 'openai', 'groq'")
+        if model is not None:
+            self.default_model = model
         self.cache = {}
 
     def embed(self, texts, model=OPENAI_DEFAULT_EMBEDDING_MODEL):

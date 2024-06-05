@@ -1,5 +1,6 @@
 from datetime import datetime, date
 from dateutil.parser._parser import ParserError
+import numpy as np
 import pandas as pd
 from pandas._libs.tslibs.np_datetime import OutOfBoundsDatetime
 from pathlib import Path
@@ -30,6 +31,36 @@ AWS_SECRET_ACCESS_KEY = config['AWS_SECRET_ACCESS_KEY']
 AWS_S3_BUCKET_NAME = config['AWS_S3_BUCKET_NAME']
 AWS_S3_ENDPOINT_URL = config['AWS_S3_ENDPOINT_URL']
 AWS_S3_REGION_NAME = config['AWS_S3_REGION_NAME']
+
+
+# Docket Utilities
+def get_entries(docket_ids, add_shuffle_number=False):
+    from docketanalyzer import DocketManager
+
+    data = []
+    for docket_id in docket_ids:
+        manager = DocketManager(docket_id)
+        docket_json = manager.docket_json
+        if docket_json:
+            entries = pd.DataFrame(docket_json['docket_entries'])
+            if len(entries):
+                entries['docket_id'] = docket_id
+                entries['row_number'] = range(len(entries))
+                if add_shuffle_number:
+                    entries['shuffle_number'] = np.random.permutation(len(entries))
+                data.append(entries)
+    if not len(data):
+        return None
+    data = pd.concat(data)
+    data['entry_id'] = data.apply(lambda x: f"{x['docket_id']}__{x['row_number']}", axis=1)
+    data['date_filed'] = pd.to_datetime(data['date_filed'], errors='coerce')
+    data['pacer_doc_id'] = data['pacer_doc_id'].astype(pd.Int64Dtype())
+    data['document_number'] = data['document_number'].astype(pd.Int64Dtype())
+    data['pacer_seq_no'] = data['pacer_seq_no'].astype(pd.Int64Dtype())
+    data['date_entered'] = pd.to_datetime(data['date_entered'], errors='coerce')
+    return data
+
+
 
 # Other Utilities
 def notabs(text):

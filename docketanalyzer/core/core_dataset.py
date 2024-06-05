@@ -1,4 +1,5 @@
 from datetime import datetime
+from io import StringIO
 import urllib.parse
 import django
 from django.db import models
@@ -6,6 +7,7 @@ from django.conf import settings
 from django.core.management.commands.inspectdb import Command as InspectDB
 from django.core.paginator import Paginator
 import pandas as pd
+from postgres_copy import CopyQuerySet
 from sqlalchemy import (
     create_engine, Table, Column,
     MetaData, select, insert, update, DDL,
@@ -85,9 +87,17 @@ class CoreDatasetConfig:
                 conn.execute(stmt)
 
 
-class CoreDatasetQuerySet(models.QuerySet):
-    def pandas(self, *columns):
-        return pd.DataFrame(list(self.values(*columns)))
+class CoreDatasetQuerySet(CopyQuerySet):
+    def pandas(self, *columns, use_copy=False, **kwargs):
+        if use_copy:
+            if columns:
+                kwargs['fields'] = columns
+            f = StringIO()
+            self.to_csv(f, **kwargs)
+            f.seek(0)
+            return pd.read_csv(f)
+        else:
+            return pd.DataFrame(list(self.values(*columns)))
 
     def sample(self, n):
         return self.order_by('?')[:n]
@@ -111,9 +121,7 @@ class CoreDatasetQuerySet(models.QuerySet):
             yield queryset.filter(id__in=batch_ids)
 
 
-class CoreDatasetModelManager(models.Manager):
-    def get_queryset(self):
-        return CoreDatasetQuerySet(self.model, using=self._db)
+CoreDatasetModelManager = models.Manager.from_queryset(CoreDatasetQuerySet)
 
 
 class CoreDataset:
@@ -122,6 +130,7 @@ class CoreDataset:
             raise ValueError("Cannot use 'id' as a primary key")
         if name == 'config':
             raise ValueError("Cannot use 'config' as a dataset name")
+        self.psql = POSTGRES_HOST and not local
         self.name = name
         self.local = local
         self.connect_args = connect_args
@@ -150,7 +159,7 @@ class CoreDataset:
             return None
 
     def connect(self):
-        if POSTGRES_HOST and not self.local:
+        if self.psql:
             engine = create_engine(
                 URL.create(
                     drivername="postgresql",
@@ -170,7 +179,7 @@ class CoreDataset:
 
     def setup_django(self):
         if not settings.configured:
-            if POSTGRES_HOST and not self.local:
+            if self.psql:
                 database = {
                     'ENGINE': 'django.db.backends.postgresql',
                     'NAME': POSTGRES_DB,
@@ -212,7 +221,7 @@ class CoreDataset:
                 if len(db_schema.strip()):
                     db_schema = f'class {self.django_model_name}(models.Model):\n' + db_schema
                     db_schema += '\n        app_label = "docketanalyzer.app.data"'
-                    db_schema += '\n\n    objects = CoreDatasetModelManager()'
+                    db_schema += f'\n\n    objects = CoreDatasetModelManager()'
                     exec(db_schema, globals())
             self.cache['django_model'] = globals().get(self.django_model_name)
         return self.cache['django_model']
@@ -298,17 +307,41 @@ class CoreDataset:
             if columns is None or 'id' not in columns:
                 start_id = 0
             else:
-                start_id = self.q.aggregate(models.Max('id'))['id__max'] + 1 or 0
+                start_id = self.q.aggregate(models.Max('id'))['id__max']
+                start_id = 0 if start_id is None else start_id + 1
 
             data['id'] = range(start_id, start_id + len(data))
-            data.to_sql(self.name, self.engine, if_exists='append', index=False, dtype={
-                pk: String(128), 'id': Integer(),
-            })
-            if start_id == 0:
-                with self.engine.connect() as conn:
-                    with conn.begin():
-                        sql = f"ALTER TABLE {self.name} ADD PRIMARY KEY ({self.pk})"
-                        conn.execute(DDL(sql))
+            if self.psql and start_id != 0 and len(data) > 1000:
+                f = StringIO()
+                data.to_csv(f, index=False)
+                f.seek(0)
+                self.django_model.objects.from_csv(f)
+            else:
+                if start_id != 0:
+                    data.to_sql(self.name, self.engine, if_exists='append', index=False, dtype={
+                        pk: String(128), 'id': Integer(),
+                    })
+                else:
+                    data.to_sql('temp', self.engine, if_exists='replace', index=False, dtype={
+                        pk: String(128), 'id': Integer(),
+                    })
+                    metadata = MetaData()
+                    schema = Table('temp', metadata, autoload_with=self.engine)
+                    with self.engine.connect() as conn:
+                        with conn.begin():
+                            table_meta = MetaData()
+                            table = Table(self.name, table_meta,
+                                Column(pk, String(128), primary_key=True),
+                                *[Column(col.name, col.type) for col in schema.columns if col.name != pk],
+                                extend_existing=True
+                            )
+                            table.drop(bind=self.engine, checkfirst=True)
+                            table.create(bind=self.engine)
+                            col_names = ', '.join([col.name for col in schema.columns])
+                            sql = f'INSERT INTO {self.name} ({col_names}) SELECT {col_names} FROM temp'
+                            conn.execute(DDL(sql))
+                            sql = 'DROP TABLE temp'
+                            conn.execute(DDL(sql))
 
         if verbose:
             print(f"Added {len(data)} records to dataset. Total records: {len(self)}")

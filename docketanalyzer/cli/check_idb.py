@@ -237,8 +237,8 @@ def process_chunk(chunk, start_row=0):
         '-cv-' + chunk['DOCKET'].apply(lambda x: x[-5:])
     ).str.lower()
     data['alternate_id'] = (
-        data['court'] + '_' +
-        data['docket_id'].apply(lambda x: x.split(':')[-1]) + '_' + data['filing_date'].astype(str)
+        data['court'] + '__' +
+        data['docket_id'].apply(lambda x: x.split('_')[-1]) + '__' + data['filing_date'].astype(str)
     )
     return data
 

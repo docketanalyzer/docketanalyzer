@@ -14,14 +14,15 @@ class DocketIndex:
         self.dataset = load_dataset('dockets', pk='docket_id', local=local)
         self.entry_dataset = load_dataset('entries', pk='entry_id', local=local)
         self.doc_dataset = load_dataset('docs', pk='doc_id', local=local)
+        self.idb_dataset = load_dataset('idb', pk='idb_row', local=local)
+        self.label_dataset = load_dataset('labels', pk='label_id', local=local)
         self.juri = JuriscraperUtility()
         self.cache = {}
 
     @property
     def tasks(self):
         from docketanalyzer import load_tasks
-        for task in load_tasks().values():
-            yield task(dataset=self.dataset)
+        return {k: v(dataset=self.dataset) for k, v in load_tasks().items()}
 
     def add_from_html(self, html, court, append_if_exists=False, add_to_dataset=True):
         docket_parsed = self.juri.parse(html, court)
@@ -57,11 +58,13 @@ class DocketIndex:
         manager.cache['dataset'] = self.dataset
         manager.cache['entry_dataset'] = self.entry_dataset
         manager.cache['doc_dataset'] = self.doc_dataset
+        manager.cache['idb_dataset'] = self.idb_dataset
+        manager.cache['label_dataset'] = self.label_dataset
         manager.cache['juri'] = self.juri
         return manager
 
     def run_tasks(self, task_name=None, *args, **kwargs):
-        for task in self.tasks:
+        for task in self.tasks.values():
             if task_name is None or task.name == task_name:
                 task.run(*args, **kwargs)
 

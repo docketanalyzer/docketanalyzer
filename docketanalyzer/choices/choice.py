@@ -17,3 +17,7 @@ class Choice(Enum):
     @property
     def data(self):
         return self._data
+
+    @classmethod
+    def choices(cls):
+        return [(x.name, x.value) for x in list(cls)]

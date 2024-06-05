@@ -1,7 +1,8 @@
+import pandas as pd
 from pathlib import Path
 import simplejson as json
-from docketanalyzer import load_dataset, JuriscraperUtility
-from docketanalyzer.utils import DATA_DIR, json_default, convert_int
+from docketanalyzer import load_dataset, JuriscraperUtility, S3Utility
+from docketanalyzer.utils import DATA_DIR, json_default, convert_int, get_entries
 
 
 class DocketManager():
@@ -14,6 +15,10 @@ class DocketManager():
     @property
     def row(self):
         return self.dataset[self.docket_id]
+
+    @property
+    def status(self):
+        return self.dataset.filter(docket_id=self.docket_id).get_first_as_dict()
 
     @property
     def dataset(self):
@@ -32,6 +37,18 @@ class DocketManager():
         if 'doc_dataset' not in self.cache:
             self.cache['doc_dataset'] = load_dataset('docs', pk='doc_id', local=self.local)
         return self.cache['doc_dataset']
+
+    @property
+    def idb_dataset(self):
+        if 'idb_dataset' not in self.cache:
+            self.cache['idb_dataset'] = load_dataset('idb', pk='idb_row', local=self.local)
+        return self.cache['idb_dataset']
+    
+    @property
+    def label_dataset(self):
+        if 'label_dataset' not in self.cache:
+            self.cache['label_dataset'] = load_dataset('labels', pk='label_id', local=self.local)
+        return self.cache['label_dataset']
 
     @property
     def juri(self):
@@ -62,6 +79,19 @@ class DocketManager():
             return json.loads(self.docket_json_path.read_text())
 
     @property
+    def search_json_path(self):
+        return self.dir / 'search.json'
+
+    @property
+    def search_json(self):
+        if self.search_json_path.exists():
+            return json.loads(self.search_json_path.read_text())
+
+    @property
+    def entries(self):
+        return get_entries([self.docket_id])
+
+    @property
     def pdf_paths(self):
         return list(self.dir.glob('doc.pdf.*.pdf'))
 
@@ -85,6 +115,21 @@ class DocketManager():
         if ocr:
             return self.dir / f'doc.ocr.{name}.json'
         return self.dir / f'doc.pdf.{name}.pdf'
+
+    def sync(self, mode, **kwargs):
+        self.dir.mkdir(parents=True, exist_ok=True)
+        s3 = S3Utility(data_dir=self.data_dir)
+        s3_path = f'dockets/{self.docket_id}'
+        if mode == 'push':
+            s3.push(s3_path, s3_path, **kwargs)
+        elif mode == 'pull':
+            s3.pull(s3_path, s3_path, **kwargs)
+
+    def push(self, **kwargs):
+        self.sync('push', **kwargs)
+
+    def pull(self, **kwargs):
+        self.sync('pull', **kwargs)
 
     @property
     def court(self):

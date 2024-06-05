@@ -4,10 +4,6 @@ from docketanalyzer.choices.choice import Choice
 class CaseType(Choice):
     cv = "Civil"
     cr = "Criminal"
-    md = "Other"
-    mj = "Other"
-    mi = "Other"
-    mc = "Other"
 
 
 class Jurisdiction(Choice):

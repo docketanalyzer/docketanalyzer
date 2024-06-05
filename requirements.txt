@@ -3,6 +3,7 @@ boto3
 bs4
 click
 django
+django-postgres-copy
 elasticsearch
 flake8
 groq

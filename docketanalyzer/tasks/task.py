@@ -54,15 +54,20 @@ class Task:
         total, complete, pct = self.progress
         return f"{pct:.2%} ({complete} / {total})"
 
-    def reset(self, data=True):
-        print(f"Resetting task: {self.name}")
+    def reset(self, data=True, init=True):
+        print(f"Deleting task data: {self.name}")
         if self.last_updated_col in self.dataset.columns:
             self.dataset.drop_column(self.last_updated_col)
         if data:
             for col in self.data_cols:
                 if col[0] in self.dataset.columns:
                     self.dataset.drop_column(col[0])
-        self.init_columns()
+        if init:
+            print(f"Reinitializing task data: {self.name}")
+            self.init_columns()
+
+    def delete(self):
+        self.reset(init=False)
 
     def run_batch(self, batch):
         batch_ids = batch.pandas(self.dataset.pk)[self.dataset.pk].tolist()
@@ -104,7 +109,7 @@ class Task:
                         total += len(batch)
                         futures.append(executor.submit(self.run_batch, batch))
 
-                    for _ in tqdm(as_completed(futures), total=len(futures)):
+                    for future in tqdm(as_completed(futures), total=len(futures)):
                         pass
 
         return done
