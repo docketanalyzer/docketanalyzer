@@ -82,6 +82,20 @@ keys = [
         group='openai',
     ),
     ConfigKey(
+        name='TOGETHER_API_KEY',
+        key_type='str',
+        description='\nConfigure Together AI\n',
+        default=None,
+        mask=True,
+        group='together',
+    ),
+    ConfigKey(
+        name='TOGETHER_DEFAULT_CHAT_MODEL',
+        key_type='str',
+        default='meta-llama/Llama-3-70b-chat-hf',
+        group='together',
+    ),
+    ConfigKey(
         name='POSTGRES_HOST',
         key_type='str',
         description='\nConfigure Postgres\n',

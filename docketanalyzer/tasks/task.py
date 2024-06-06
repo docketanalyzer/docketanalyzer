@@ -14,7 +14,7 @@ class Task:
     data_cols = []
     workers = None
 
-    def __init__(self, dataset=None, **kwargs):
+    def __init__(self, dataset=None, selected_ids=None, **kwargs):
         if dataset is None:
             dataset_args = self.dataset_args.copy()
             dataset_args.update(kwargs)
@@ -22,6 +22,7 @@ class Task:
         self.dataset = dataset
         self.cache = {}
         self.init_columns()
+        self.selected_ids = selected_ids
 
     def init_columns(self):
         columns = self.dataset.columns
@@ -44,7 +45,7 @@ class Task:
 
     @property
     def progress(self):
-        total = self.get_queryset().count()
+        total = self.q.count()
         complete = self.dataset.filter(**{f"{self.last_updated_col}__isnull": False}).count()
         pct = 0 if not total else complete / total
         return total, complete, pct
@@ -54,17 +55,27 @@ class Task:
         total, complete, pct = self.progress
         return f"{pct:.2%} ({complete} / {total})"
 
+    @property
+    def q(self):
+        query = self.get_queryset()
+        if self.selected_ids:
+            query = query.filter(**{self.dataset.pk + '__in': self.selected_ids})
+        return query
+
     def reset(self, data=True, init=True):
-        print(f"Deleting task data: {self.name}")
-        if self.last_updated_col in self.dataset.columns:
-            self.dataset.drop_column(self.last_updated_col)
-        if data:
-            for col in self.data_cols:
-                if col[0] in self.dataset.columns:
-                    self.dataset.drop_column(col[0])
-        if init:
-            print(f"Reinitializing task data: {self.name}")
-            self.init_columns()
+        if self.selected_ids:
+            self.q.update(**{self.last_updated_col: None})
+        else:
+            print(f"Deleting task data: {self.name}")
+            if self.last_updated_col in self.dataset.columns:
+                self.dataset.drop_column(self.last_updated_col)
+            if data:
+                for col in self.data_cols:
+                    if col[0] in self.dataset.columns:
+                        self.dataset.drop_column(col[0])
+            if init:
+                print(f"Reinitializing task data: {self.name}")
+                self.init_columns()
 
     def delete(self):
         self.reset(init=False)
@@ -86,8 +97,7 @@ class Task:
             ).update(
                 **{self.last_updated_col: None}
             )
-        query = self.get_queryset()
-        query = query.filter(**{f"{self.last_updated_col}__isnull": True})
+        query = self.q.filter(**{f"{self.last_updated_col}__isnull": True})
         for depends_on in self.depends_on:
             status_col = self.get_last_updated_col(depends_on)
             query = query.filter(

@@ -137,6 +137,7 @@ class CoreDataset:
         self.engine = self.connect()
         self.config = CoreDatasetConfig(name, self.engine)
         self.cache = {}
+        self.queryset_filter = None
         if pk:
             self.config['pk'] = pk
 
@@ -236,7 +237,16 @@ class CoreDataset:
         return self.get_queryset()
 
     def get_queryset(self):
-        return self.django_model.objects.all()
+        query = self.django_model.objects.all()
+        if self.queryset_filter is not None:
+            query = self.queryset_filter(query)
+        return query
+
+    def set_filter(self, filter_func):
+        self.queryset_filter = filter_func
+
+    def reset_filter(self):
+        self.queryset_filter = None
 
     def add_column(self, column_name, column_type):
         type_mapping = {

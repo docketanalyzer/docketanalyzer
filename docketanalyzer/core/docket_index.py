@@ -55,18 +55,8 @@ class DocketIndex:
 
     def __getitem__(self, docket_id):
         manager = DocketManager(docket_id, data_dir=self.data_dir)
-        manager.cache['dataset'] = self.dataset
-        manager.cache['entry_dataset'] = self.entry_dataset
-        manager.cache['doc_dataset'] = self.doc_dataset
-        manager.cache['idb_dataset'] = self.idb_dataset
-        manager.cache['label_dataset'] = self.label_dataset
-        manager.cache['juri'] = self.juri
+        manager.cache['index'] = self
         return manager
-
-    def run_tasks(self, task_name=None, *args, **kwargs):
-        for task in self.tasks.values():
-            if task_name is None or task.name == task_name:
-                task.run(*args, **kwargs)
 
     def __iter__(self):
         for docket_id in tqdm(self.dataset.pandas('docket_id')['docket_id']):

@@ -21,40 +21,34 @@ class DocketManager():
         return self.dataset.filter(docket_id=self.docket_id).get_first_as_dict()
 
     @property
+    def index(self):
+        if 'index' not in self.cache:
+            self.cache['index'] = load_docket_index(local=self.local)
+        return self.cache['index']
+
+    @property
     def dataset(self):
-        if 'dataset' not in self.cache:
-            self.cache['dataset'] = load_dataset('dockets', pk='docket_id', local=self.local)
-        return self.cache['dataset']
+        return self.index.dataset
 
     @property
     def entry_dataset(self):
-        if 'entry_dataset' not in self.cache:
-            self.cache['entry_dataset'] = load_dataset('entries', pk='entry_id', local=self.local)
-        return self.cache['entry_dataset']
+        return self.index.entry_dataset
 
     @property
     def doc_dataset(self):
-        if 'doc_dataset' not in self.cache:
-            self.cache['doc_dataset'] = load_dataset('docs', pk='doc_id', local=self.local)
-        return self.cache['doc_dataset']
+        return self.index.doc_dataset
 
     @property
     def idb_dataset(self):
-        if 'idb_dataset' not in self.cache:
-            self.cache['idb_dataset'] = load_dataset('idb', pk='idb_row', local=self.local)
-        return self.cache['idb_dataset']
-    
+        return self.index.idb_dataset
+
     @property
     def label_dataset(self):
-        if 'label_dataset' not in self.cache:
-            self.cache['label_dataset'] = load_dataset('labels', pk='label_id', local=self.local)
-        return self.cache['label_dataset']
+        return self.index.label_dataset
 
     @property
     def juri(self):
-        if 'juri' not in self.cache:
-            self.cache['juri'] = JuriscraperUtility()
-        return self.cache['juri']
+        return self.index.juri
 
     @property
     def dir(self):
@@ -130,6 +124,14 @@ class DocketManager():
 
     def pull(self, **kwargs):
         self.sync('pull', **kwargs)
+
+    @property
+    def tasks(self):
+        from docketanalyzer import load_tasks
+        return {
+            k: v(dataset=self.dataset, selected_ids=[self.docket_id]) 
+            for k, v in load_tasks().items()
+        }
 
     @property
     def court(self):

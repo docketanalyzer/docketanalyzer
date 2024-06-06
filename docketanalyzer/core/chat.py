@@ -11,6 +11,7 @@ from docketanalyzer.utils import (
     GROQ_API_KEY, GROQ_DEFAULT_CHAT_MODEL,
     OPENAI_API_KEY, OPENAI_ORG_ID,
     OPENAI_DEFAULT_CHAT_MODEL, OPENAI_DEFAULT_EMBEDDING_MODEL,
+    TOGETHER_API_KEY, TOGETHER_DEFAULT_CHAT_MODEL,
 )
 
 
@@ -22,6 +23,8 @@ class Chat:
                 api_key = OPENAI_API_KEY
             elif mode == 'groq':
                 api_key = GROQ_API_KEY
+            elif mode == 'together':
+                api_key = TOGETHER_API_KEY
         self.api_key = api_key
         self.organization = organization
 
@@ -37,6 +40,14 @@ class Chat:
                 api_key=self.api_key,
             ), mode=instructor.Mode.JSON)
             self.default_model = GROQ_DEFAULT_CHAT_MODEL
+        elif mode == 'together':
+            if base_url is None:
+                base_url = 'https://api.together.xyz/v1'
+            self.client = instructor.patch(OpenAI(
+                base_url=base_url,
+                api_key=self.api_key,
+            ))
+            self.default_model = TOGETHER_DEFAULT_CHAT_MODEL
         else:
             raise ValueError("Invalid mode. Must be one of: 'openai', 'groq'")
         if model is not None:
@@ -121,9 +132,9 @@ class Chat:
 
 
 class ChatThread:
-    def __init__(self, messages=[], model=None, chat_args={}, data={}, parent=None, **kwargs):
+    def __init__(self, messages=[], chat_model=None, chat_args={}, data={}, parent=None, **kwargs):
         self.messages = deepcopy(messages)
-        self.model = model if model is not None else Chat(**kwargs)
+        self.chat_model = chat_model if chat_model is not None else Chat(**kwargs)
         self.chat_args = chat_args
         self.data = data
         self.parent = parent
@@ -157,13 +168,13 @@ class ChatThread:
         for k, v in self.chat_args.items():
             if k not in kwargs:
                 kwargs[k] = v
-        response = self.model(self.history, **kwargs)
+        response = self.chat_model(self.history, **kwargs)
         self.messages.append({'role': 'assistant', 'content': response})
         return response
 
     def branch(self):
         thread = ChatThread(
-            model=self.model,
+            chat_model=self.chat_model,
             chat_args=self.chat_args,
             parent=self,
             data=self.data
@@ -174,7 +185,7 @@ class ChatThread:
     def copy(self):
         return ChatThread(
             messages=self.messages,
-            model=self.model,
+            chat_model=self.chat_model,
             chat_args=self.chat_args,
             data=deepcopy(self.data),
             parent=self.parent
