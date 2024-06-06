@@ -2,6 +2,7 @@ awscli
 boto3
 bs4
 click
+datasets
 django
 django-postgres-copy
 elasticsearch
@@ -20,6 +21,8 @@ simplejson
 sqlalchemy
 tiktoken
 toolz
+torch
 tqdm
+transformers
 uuid
 wget
