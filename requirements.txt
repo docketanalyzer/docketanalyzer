@@ -19,6 +19,7 @@ pydantic
 python-dotenv
 regex
 requests
+sentencepiece
 simplejson
 sqlalchemy
 tiktoken

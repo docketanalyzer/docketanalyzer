@@ -15,6 +15,8 @@ from docketanalyzer.core.docket_manager import DocketManager
 from docketanalyzer.core.docket_index import DocketIndex, load_docket_index
 from docketanalyzer.core.embeddings import Embeddings, EmbeddingSample, create_embeddings, load_embeddings
 
+from docketanalyzer.pipelines import pipeline
+
 from docketanalyzer.labels import Label, load_labels, load_label, register_label
 from docketanalyzer.tasks import Task, DocketTask, load_tasks, load_task, register_task
 
