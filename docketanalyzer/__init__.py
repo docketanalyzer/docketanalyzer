@@ -13,6 +13,7 @@ from docketanalyzer.core.ocr import OCRUtility
 from docketanalyzer.core.core_dataset import CoreDataset, load_dataset
 from docketanalyzer.core.docket_manager import DocketManager
 from docketanalyzer.core.docket_index import DocketIndex, load_docket_index
+from docketanalyzer.core.embeddings import Embeddings, EmbeddingSample, create_embeddings, load_embeddings
 
 from docketanalyzer.tasks import Task, DocketTask, load_tasks, load_task, register_task
 

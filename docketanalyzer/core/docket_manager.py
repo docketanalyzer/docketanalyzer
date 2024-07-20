@@ -2,7 +2,7 @@ import pandas as pd
 from pathlib import Path
 import simplejson as json
 from docketanalyzer import load_dataset, JuriscraperUtility, S3Utility
-from docketanalyzer.utils import DATA_DIR, json_default, convert_int, get_entries
+from docketanalyzer.utils import DATA_DIR, json_default, convert_int
 
 
 class DocketManager():
@@ -23,6 +23,7 @@ class DocketManager():
     @property
     def index(self):
         if 'index' not in self.cache:
+            from docketanalyzer import load_docket_index
             self.cache['index'] = load_docket_index(local=self.local)
         return self.cache['index']
 
@@ -83,7 +84,7 @@ class DocketManager():
 
     @property
     def entries(self):
-        return get_entries([self.docket_id])
+        return self.index.make_batch([self.docket_id]).entries
 
     @property
     def pdf_paths(self):

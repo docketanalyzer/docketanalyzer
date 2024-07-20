@@ -24,6 +24,9 @@ def sync(path, delete, exact_timestamps, exclude, push=True):
 @click.option('--exact-timestamps', '-e', is_flag=True, help='Use exact timestamps for comparison')
 @click.option('--exclude', default=None, help='Exclude pattern')
 def push(path, delete, exact_timestamps, exclude):
+    """
+    Push data from the DA_DATA_DIR to the S3 bucket.
+    """
     sync(path, delete, exact_timestamps, exclude, push=True)
 
 
@@ -33,4 +36,7 @@ def push(path, delete, exact_timestamps, exclude):
 @click.option('--exact-timestamps', '-e', is_flag=True, help='Use exact timestamps for comparison')
 @click.option('--exclude', default=None, help='Exclude pattern')
 def pull(path, delete, exact_timestamps, exclude):
+    """
+    Pull data from the S3 bucket to the DA_DATA_DIR.
+    """
     sync(path, delete, exact_timestamps, exclude, push=False)

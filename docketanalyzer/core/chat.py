@@ -1,4 +1,5 @@
 from copy import deepcopy
+from anthropic import Anthropic
 from groq import Groq
 import instructor
 from openai import OpenAI
@@ -8,6 +9,7 @@ import tiktoken
 import uuid
 from docketanalyzer.utils import (
     notabs,
+    ANTHROPIC_API_KEY, ANTHROPIC_DEFAULT_CHAT_MODEL,
     GROQ_API_KEY, GROQ_DEFAULT_CHAT_MODEL,
     OPENAI_API_KEY, OPENAI_ORG_ID,
     OPENAI_DEFAULT_CHAT_MODEL, OPENAI_DEFAULT_EMBEDDING_MODEL,
@@ -16,10 +18,12 @@ from docketanalyzer.utils import (
 
 
 class Chat:
-    def __init__(self, api_key=None, organization=OPENAI_ORG_ID, base_url=None, mode='openai', model=None):
+    def __init__(self, api_key=None, organization=OPENAI_ORG_ID, base_url=None, mode='anthropic', model=None):
         self.mode = mode
         if api_key is None:
-            if mode == 'openai':
+            if mode == 'anthropic':
+                api_key = ANTHROPIC_API_KEY
+            elif mode == 'openai':
                 api_key = OPENAI_API_KEY
             elif mode == 'groq':
                 api_key = GROQ_API_KEY
@@ -28,7 +32,12 @@ class Chat:
         self.api_key = api_key
         self.organization = organization
 
-        if mode == 'openai':
+        if mode == 'anthropic':
+            self.client = instructor.from_anthropic(Anthropic(
+                api_key=self.api_key,
+            ))
+            self.default_model = ANTHROPIC_DEFAULT_CHAT_MODEL
+        elif mode == 'openai':
             self.client = instructor.patch(OpenAI(
                 base_url=base_url,
                 api_key=self.api_key,
@@ -89,6 +98,11 @@ class Chat:
             **kwargs
         }
 
+        if self.mode == 'anthropic':
+            args['max_tokens'] = args.get('max_tokens', 4000)
+            del args['seed']
+
+
         response = None
         cache_path = None
         if cache_dir is not None:
@@ -100,7 +114,10 @@ class Chat:
         if response is None:
             response = self.client.chat.completions.create(**args)
             if response_model is None:
-                response = response.choices[0].message.content
+                if self.mode == 'anthropic':
+                    response = response.content[0].text
+                else:
+                    response = response.choices[0].message.content
             else:
                 response = response.dict()
             if cache_path is not None:

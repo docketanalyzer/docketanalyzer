@@ -194,7 +194,7 @@ def get_last_idb_update():
 
 def download_idb_data(dataset):
     print('\nDownloading the latest IDB data...')
-    url = 'https://www.fjc.gov/sites/default/files/idb/textfiles/cv88on.zip'
+    url = 'https://www.fjc.gov/sites/default/files/idb/textfiles/cv88on_0.zip'
     download_path = local_dir / 'raw.zip'
     wget.download(url, out=str(download_path))
     print('\nExtracting the data...')
@@ -320,4 +320,7 @@ def check_idb(reset=False, quiet=True, local=False, skip_row_check=False):
 @click.option('--quiet', '-q', is_flag=True, help="Automatically accepts all prompts.")
 @click.option('--local', '-l', is_flag=True, help="Force the use of local core dataset.")
 def check_idb_command(reset, quiet, local):
+    """
+    Downloads raw IDB data, preprocesses it, and adds it to index.idb_dataset.
+    """
     check_idb(reset, quiet, local)

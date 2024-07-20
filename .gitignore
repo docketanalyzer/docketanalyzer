@@ -1,5 +1,6 @@
 dev/*
 local/*
+notes/*
 
 # Created by https://www.toptal.com/developers/gitignore/api/django,osx,linux
 # Edit at https://www.toptal.com/developers/gitignore?templates=django,osx,linux

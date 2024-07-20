@@ -5,7 +5,7 @@ from docketanalyzer import DocketIndex
 @click.command()
 def check_dockets():
     """
-    Checks and updates the core dataset for indexing all dockets in the DA_DATA_DIR.
+    Adds any missing docket_ids in DA_DATA_DIR to index.dataset.
     """
     index = DocketIndex()
     index.check_docket_dirs()

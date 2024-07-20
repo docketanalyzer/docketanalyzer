@@ -1,4 +1,6 @@
+from copy import deepcopy
 from datetime import datetime
+import numpy as np
 import pandas as pd
 from pathlib import Path
 import simplejson as json
@@ -11,18 +13,97 @@ from docketanalyzer.utils import DATA_DIR
 class DocketIndex:
     def __init__(self, data_dir=DATA_DIR, local=False):
         self.data_dir = Path(data_dir)
-        self.dataset = load_dataset('dockets', pk='docket_id', local=local)
-        self.entry_dataset = load_dataset('entries', pk='entry_id', local=local)
-        self.doc_dataset = load_dataset('docs', pk='doc_id', local=local)
-        self.idb_dataset = load_dataset('idb', pk='idb_row', local=local)
-        self.label_dataset = load_dataset('labels', pk='label_id', local=local)
-        self.juri = JuriscraperUtility()
+        self.local = local
         self.cache = {}
 
     @property
+    def dataset(self):
+        if 'dataset' not in self.cache:
+            self.cache['dataset'] = load_dataset('dockets', pk='docket_id', local=self.local)
+        return self.cache['dataset']
+
+    @property
+    def header_dataset(self):
+        if 'header_dataset' not in self.cache:
+            self.cache['header_dataset'] = load_dataset('headers', pk='docket_id', local=self.local)
+        return self.cache['header_dataset']
+
+    @property
+    def party_dataset(self):
+        if 'party_dataset' not in self.cache:
+            self.cache['party_dataset'] = load_dataset('parties', pk='party_id', local=self.local)
+        return self.cache['party_dataset']
+
+    @property
+    def counsel_dataset(self):
+        if 'counsel_dataset' not in self.cache:
+            self.cache['counsel_dataset'] = load_dataset('counsel', pk='attorney_id', local=self.local)
+        return self.cache['counsel_dataset']
+
+    @property
+    def judge_dataset(self):
+        if 'judge_dataset' not in self.cache:
+            self.cache['judge_dataset'] = load_dataset('judges', pk='judge_id', local=self.local)
+        return self.cache['judge_dataset']
+
+    @property
+    def entry_dataset(self):
+        if 'entry_dataset' not in self.cache:
+            self.cache['entry_dataset'] = load_dataset('entries', pk='entry_id', local=self.local)
+        return self.cache['entry_dataset']
+
+    @property
+    def doc_dataset(self):
+        if 'doc_dataset' not in self.cache:
+            self.cache['doc_dataset'] = load_dataset('docs', pk='doc_id', local=self.local)
+        return self.cache['doc_dataset']
+
+    @property
+    def idb_dataset(self):
+        if 'idb_dataset' not in self.cache:
+            self.cache['idb_dataset'] = load_dataset('idb', pk='idb_row', local=self.local)
+        return self.cache['idb_dataset']
+
+    @property
+    def label_dataset(self):
+        if 'label_dataset' not in self.cache:
+            self.cache['label_dataset'] = load_dataset('labels', pk='label_id', local=self.local)
+        return self.cache['label_dataset']
+
+    @property
+    def juri(self):
+        if 'juri' not in self.cache:
+            self.cache['juri'] = JuriscraperUtility()
+        return self.cache['juri']
+
+    @property
     def tasks(self):
-        from docketanalyzer import load_tasks
-        return {k: v(dataset=self.dataset) for k, v in load_tasks().items()}
+        if 'tasks' not in self.cache:
+            from docketanalyzer import load_tasks
+            self.cache['tasks'] = {k: v(dataset=self.dataset) for k, v in load_tasks().items()}
+        return self.cache['tasks']
+
+    @property
+    def choices(self):
+        if 'choices' not in self.cache:
+            from docketanalyzer.choices import choice_registry
+            choices = {}
+            for name, choice in choice_registry._registry.items():
+                choices[name] = {x[0]: x[1] for x in choice.choices()}
+            self.cache['choices'] = choices
+        return self.cache['choices']
+
+    @property
+    def values(self):
+        if 'values' not in self.cache:
+            choices = deepcopy(self.choices)
+            for k in choices:
+                choices[k] = {v: k for k, v in choices[k].items()}
+            self.cache['values'] = choices
+        return self.cache['values']
+
+    def make_batch(self, docket_ids):
+        return DocketBatch(docket_ids, self)
 
     def add_from_html(self, html, court, append_if_exists=False, add_to_dataset=True):
         docket_parsed = self.juri.parse(html, court)
@@ -47,6 +128,10 @@ class DocketIndex:
             if x.is_dir() and not x.name.startswith('.')
         ]})
 
+        if len(self.dataset):
+            existing_docket_ids = self.dataset.pandas('docket_id')['docket_id']
+            docket_ids = docket_ids[~docket_ids['docket_id'].isin(existing_docket_ids)]
+
         if len(docket_ids):
             batch_size = 100000
             for batch in tqdm(list(partition_all(batch_size, docket_ids.to_dict('records')))):
@@ -61,6 +146,131 @@ class DocketIndex:
     def __iter__(self):
         for docket_id in tqdm(self.dataset.pandas('docket_id')['docket_id']):
             yield self[docket_id]
+
+
+class DocketBatch:
+    def __init__(self, docket_ids, index):
+        self.docket_ids = docket_ids
+        self.index = index
+
+    @property
+    def headers(self):
+        choices, values = self.index.choices, self.index.values
+        data = []
+        for manager in self:
+            header = manager.docket_json
+            if header:
+                header['docket_id'] = manager.docket_id
+                del header['parties']
+                del header['docket_entries']
+                data.append(header)
+
+        def validate(x, valid_items):
+            if x not in valid_items:
+                raise ValueError(f"Invalid value '{x}'.")
+
+        data = pd.DataFrame(data)
+        data = data.rename(columns={'court_id': 'court', 'nature_of_suit': 'nature_suit'})
+        data['court'].apply(lambda x: validate(x, choices['DistrictCourt']))
+        data['case_type'] = data['docket_number'].apply(lambda x: x.split('-')[1])
+        data['case_type'] = data['case_type'].apply(lambda x: x if x in values['CaseType'] else 'other')
+        data['nature_suit'] = data['nature_suit'].apply(lambda x: None if not x else '_' + x.split()[0].strip())
+        data['nature_suit'].apply(lambda x: None if pd.isnull(x) else validate(x, choices['NatureSuit']))
+        data['jury_demand'] = data['jury_demand'].apply(lambda x: None if not x else values['JuryDemand'][x])
+        data['jurisdiction'] = data['jurisdiction'].apply(lambda x: None if not x else values['Jurisdiction'][x])
+        data['date_filed'] = pd.to_datetime(data['date_filed'], errors='coerce')
+        data['date_terminated'] = pd.to_datetime(data['date_terminated'], errors='coerce')
+
+        cols = self.index.header_dataset.columns
+        for col in data.columns:
+            if cols is not None and col not in cols:
+                raise ValueError(f"Column '{col}' not in header columns.")
+        return data
+
+    @property
+    def parties_and_counsel(self):
+        parties, counsel = [], []
+        for manager in self:
+            docket_json = manager.docket_json
+            if docket_json:
+                for i, party in enumerate(docket_json['parties']):
+                    party_counsel = party.pop('attorneys', [])
+                    party_id = f"{manager.docket_id}__{i}"
+                    parties.append({
+                        'docket_id': manager.docket_id,
+                        'party_row': i,
+                        'party_id': party_id,
+                        **party
+                    })
+                    for j, attorney in enumerate(party_counsel):
+                        counsel.append({
+                            'docket_id': manager.docket_id,
+                            'party_id': party_id,
+                            'attorney_row': j,
+                            'attorney_id': f"{manager.docket_id}__{i}__{j}",
+                            **attorney
+                        })
+
+        parties = pd.DataFrame(parties)
+        parties['type'] = parties['type'].apply(lambda x: self.index.values['PartyType'].get(x, 'other'))
+        parties['date_terminated'] = pd.to_datetime(parties['date_terminated'], errors='coerce')
+        if 'criminal_data' not in parties.columns:
+            parties['criminal_data'] = None
+        parties.loc[parties['criminal_data'].notnull(), 'criminal_data'] = (
+            parties[parties['criminal_data'].notnull()]['criminal_data'].apply(json.dumps)
+        )
+
+        counsel = pd.DataFrame(counsel)
+        counsel['roles'] = counsel['roles'].apply(json.dumps)
+
+        cols = self.index.party_dataset.columns
+        for col in parties.columns:
+            if cols is not None and col not in cols:
+                raise ValueError(f"Column '{col}' not in party columns.")
+
+        cols = self.index.counsel_dataset.columns
+        for col in counsel.columns:
+            if cols is not None and col not in cols:
+                raise ValueError(f"Column '{col}' not in counsel columns.")
+        return parties, counsel
+
+    def get_entries(self, add_shuffle_number=False):
+        data = []
+        for manager in self:
+            docket_json = manager.docket_json
+            if docket_json:
+                entries = pd.DataFrame(docket_json['docket_entries'])
+                if len(entries):
+                    entries['docket_id'] = manager.docket_id
+                    entries['row_number'] = range(len(entries))
+                    if add_shuffle_number:
+                        entries['shuffle_number'] = np.random.permutation(len(entries))
+                    data.append(entries)
+        if not len(data):
+            return None
+        data = pd.concat(data)
+        data['entry_id'] = data.apply(lambda x: f"{x['docket_id']}__{x['row_number']}", axis=1)
+        data['date_filed'] = pd.to_datetime(data['date_filed'], errors='coerce')
+        data['pacer_doc_id'] = data['pacer_doc_id'].astype(pd.Int64Dtype())
+        data['document_number'] = data['document_number'].astype(pd.Int64Dtype())
+        data['pacer_seq_no'] = data['pacer_seq_no'].astype(pd.Int64Dtype())
+        data['date_entered'] = pd.to_datetime(data['date_entered'], errors='coerce')
+
+        cols = self.index.entry_dataset.columns
+        for col in data.columns:
+            if cols is not None and col not in cols:
+                raise ValueError(f"Column '{col}' not in entry columns.")
+        return data
+
+
+
+    @property
+    def entries(self):
+        return self.get_entries()
+
+    def __iter__(self):
+        for docket_id in self.docket_ids:
+            yield self.index[docket_id]
 
 
 def load_docket_index(*args, **kwargs):

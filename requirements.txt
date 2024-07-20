@@ -1,3 +1,4 @@
+anthropic
 awscli
 boto3
 bs4
@@ -6,6 +7,7 @@ datasets
 django
 django-postgres-copy
 elasticsearch
+faiss-cpu
 flake8
 groq
 instructor

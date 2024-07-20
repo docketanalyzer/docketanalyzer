@@ -53,7 +53,7 @@ class Task:
     @property
     def progress_str(self):
         total, complete, pct = self.progress
-        return f"{pct:.2%} ({complete} / {total})"
+        return f"\n{self.name}: {pct:.2%} ({complete} / {total})\n"
 
     @property
     def q(self):
@@ -146,17 +146,3 @@ class DocketTask(Task):
         if 'index' not in self.cache:
             self.cache['index'] = load_docket_index(local=self.dataset.local)
         return self.cache['index']
-
-    def get_batch_entries(self, batch):
-        data = []
-        docket_ids = batch.pandas('docket_id')['docket_id'].tolist()
-        for docket_id in docket_ids:
-            manager = self.index[docket_id]
-            docket_json = manager.docket_json
-            if docket_json:
-                entry_data = pd.DataFrame(docket_json['docket_entries'])
-                entry_data['row_number'] = range(len(entry_data))
-                entry_data['docket_id'] = docket_id
-                data.append(entry_data)
-        if data:
-            return pd.concat(data)

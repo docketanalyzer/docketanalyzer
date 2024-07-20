@@ -314,11 +314,11 @@ class CoreDataset:
             data = data[~data[pk].isin(ids)]
 
         if len(data):
-            if columns is None or 'id' not in columns:
-                start_id = 0
-            else:
+            try:
                 start_id = self.q.aggregate(models.Max('id'))['id__max']
                 start_id = 0 if start_id is None else start_id + 1
+            except AttributeError:
+                start_id = 0
 
             data['id'] = range(start_id, start_id + len(data))
             if self.psql and start_id != 0 and len(data) > 1000:

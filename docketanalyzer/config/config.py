@@ -41,6 +41,20 @@ keys = [
         group='huggingface',
     ),
     ConfigKey(
+        name='ANTHROPIC_API_KEY',
+        key_type='str',
+        description='\nConfigure Anthropic\n',
+        default=None,
+        mask=True,
+        group='anthropic',
+    ),
+    ConfigKey(
+        name='ANTHROPIC_DEFAULT_CHAT_MODEL',
+        key_type='str',
+        default='claude-3-5-sonnet-20240620',
+        group='anthropic',
+    ),
+    ConfigKey(
         name='GROQ_API_KEY',
         key_type='str',
         description='\nConfigure Groq\n',
