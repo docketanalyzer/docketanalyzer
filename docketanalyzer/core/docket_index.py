@@ -65,16 +65,35 @@ class DocketIndex:
         return self.cache['idb_dataset']
 
     @property
-    def label_dataset(self):
-        if 'label_dataset' not in self.cache:
-            self.cache['label_dataset'] = load_dataset('labels', pk='label_id', local=self.local)
-        return self.cache['label_dataset']
+    def label_prediction_dataset(self):
+        if 'label_prediction_dataset' not in self.cache:
+            self.cache['label_prediction_dataset'] = load_dataset('label_predictions', pk='pred_id', local=self.local)
+        return self.cache['label_prediction_dataset']
+    
+    @property
+    def label_anno_dataset(self):
+        if 'label_anno_dataset' not in self.cache:
+            self.cache['label_anno_dataset'] = load_dataset('label_annos', pk='anno_id', local=self.local)
+        return self.cache['label_anno_dataset']
+    
+    @property
+    def label_eval_dataset(self):
+        if 'label_eval_dataset' not in self.cache:
+            self.cache['label_eval_dataset'] = load_dataset('label_evals', pk='eval_id', local=self.local)
+        return self.cache['label_eval_dataset']
 
     @property
     def juri(self):
         if 'juri' not in self.cache:
             self.cache['juri'] = JuriscraperUtility()
         return self.cache['juri']
+    
+    @property
+    def labels(self):
+        if 'labels' not in self.cache:
+            from docketanalyzer import load_labels
+            self.cache['labels'] = {k: v(index=self) for k, v in load_labels().items()}
+        return self.cache['labels']
 
     @property
     def tasks(self):
@@ -139,9 +158,7 @@ class DocketIndex:
         self.dataset.config['last_checked'] = str(datetime.now())
 
     def __getitem__(self, docket_id):
-        manager = DocketManager(docket_id, data_dir=self.data_dir)
-        manager.cache['index'] = self
-        return manager
+        return DocketManager(docket_id, data_dir=self.data_dir, index=self)
 
     def __iter__(self):
         for docket_id in tqdm(self.dataset.pandas('docket_id')['docket_id']):

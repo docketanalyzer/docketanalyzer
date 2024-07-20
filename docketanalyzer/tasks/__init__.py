@@ -8,7 +8,8 @@ class TaskRegistry(Registry):
             isinstance(obj, type) and
             issubclass(obj, Task) and
             obj is not Task and
-            obj.name is not None
+            obj.name is not None and 
+            obj.inactive is False
         )
 
 

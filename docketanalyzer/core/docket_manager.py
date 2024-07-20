@@ -6,11 +6,13 @@ from docketanalyzer.utils import DATA_DIR, json_default, convert_int
 
 
 class DocketManager():
-    def __init__(self, docket_id, data_dir=DATA_DIR, local=False):
+    def __init__(self, docket_id, data_dir=DATA_DIR, local=False, index=None):
         self.docket_id = docket_id
         self.data_dir = Path(data_dir)
         self.local = local
         self.cache = {}
+        if index is not None:
+            self.cache['index'] = index
 
     @property
     def row(self):
@@ -42,10 +44,6 @@ class DocketManager():
     @property
     def idb_dataset(self):
         return self.index.idb_dataset
-
-    @property
-    def label_dataset(self):
-        return self.index.label_dataset
 
     @property
     def juri(self):

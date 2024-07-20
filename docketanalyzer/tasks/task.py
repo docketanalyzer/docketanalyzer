@@ -13,6 +13,7 @@ class Task:
     depends_on = []
     data_cols = []
     workers = None
+    inactive = False
 
     def __init__(self, dataset=None, selected_ids=None, **kwargs):
         if dataset is None:
