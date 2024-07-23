@@ -11,12 +11,12 @@ class ParseDockets(DocketTask):
     Parse the downloaded html dockets into json format.
     """
     name = 'parse-dockets'
-    batch_size = 10000
+    batch_size = 500
+    workers = None
 
     def process_row(self, row):
         manager = self.index[row.docket_id]
-        if not manager.docket_json_path.exists():
-            manager.parse_docket()
+        manager.parse_docket()
 
 
 class FindIDBEntries(DocketTask):

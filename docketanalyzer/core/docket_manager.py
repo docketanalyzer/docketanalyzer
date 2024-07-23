@@ -1,3 +1,4 @@
+from copy import deepcopy
 import pandas as pd
 from pathlib import Path
 import simplejson as json
@@ -161,18 +162,20 @@ class DocketManager():
 
     def parse_docket(self):
         juri = self.juri
-        html_paths = self.docket_html_paths
-        if len(html_paths) > 1:
-            print(f"Consolidating multiple dockets not yet implemented: {self.docket_id}")
+        html_paths = list(sorted(self.docket_html_paths))
         if html_paths:
-            html = html_paths[0].read_text()
-            docket_parsed = juri.parse(html, self.court)
-            if docket_parsed:
-                self.docket_json_path.write_text(json.dumps(
-                    docket_parsed, indent=2, default=json_default,
-                ))
-            else:
-                raise ValueError("Docket could not be parsed")
+            entries = []
+            for html_path in html_paths:
+                html = html_path.read_text()
+                docket_parsed = juri.parse(html, self.court)
+                if docket_parsed:
+                    entries += deepcopy(docket_parsed['docket_entries'])
+                else:
+                    raise ValueError("Docket could not be parsed")
+            docket_parsed['docket_entries'] = entries
+            self.docket_json_path.write_text(json.dumps(
+                docket_parsed, indent=2, default=json_default,
+            ))
 
     def purchase_document(self, entry_number, attachment_number=None):
         juri = self.juri

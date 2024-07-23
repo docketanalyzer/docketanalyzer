@@ -17,8 +17,8 @@ from docketanalyzer.core.embeddings import Embeddings, EmbeddingSample, create_e
 
 from docketanalyzer.pipelines import pipeline
 
-from docketanalyzer.labels import Label, load_labels, load_label, register_label
 from docketanalyzer.tasks import Task, DocketTask, load_tasks, load_task, register_task
+from docketanalyzer.labels import Label, load_labels, load_label, register_label
 
 from docketanalyzer.cli import cli
 

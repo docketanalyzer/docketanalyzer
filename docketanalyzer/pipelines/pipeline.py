@@ -14,6 +14,7 @@ class Pipeline:
     pipeline_name = None
     pipeline_defaults = {}
     forward_defaults = {}
+    minimal_condition = None
 
     def __init__(self, model_name=None, tokenizer_name=None, device=None):
         if model_name is not None:
@@ -32,10 +33,6 @@ class Pipeline:
                 self.pipeline_name, model=self.model, tokenizer=self.tokenizer,
                 device=device, **self.pipeline_defaults,
             )
-
-    @property
-    def minimal_condition(self):
-        return None
 
     def get_excluded_pred(self, **kwargs):
         return []
