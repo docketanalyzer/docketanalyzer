@@ -12,16 +12,20 @@ def tasks(name, run, reset):
     Run a registered task across the default docket index.
     """
     index = load_docket_index()
-    for task in index.tasks.values():
+    for task in index.ordered_tasks:
         if name is None or task.name == name:
+            print(task.name)
+            print(task.progress_str)
             if run:
                 if name is not None and reset:
+                    confirm = input(f'Are you sure you want to reset {task.name}? (y/n): ')
+                    if confirm.lower() != 'y':
+                        print('Task reset aborted.')
+                        return
                     task.reset()
                 task.run()
-                print(task.progress_str)
             else:
-                print(task.name)
-                print('\t', task.__doc__.strip())
+                print(task.__doc__.strip())
                 print()
     if not run:
         print('Add --run to execute the task.')

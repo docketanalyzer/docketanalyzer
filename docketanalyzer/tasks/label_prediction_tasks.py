@@ -9,6 +9,13 @@ class LabelPredictions(DocketTask):
     depends_on = ['add-entries']
     label_name = None
 
+    def post_reset(self, selected_ids):
+        filter_args = {'label': self.label_name}
+        if selected_ids is not None:
+            filter_args['docket_id__in'] = selected_ids
+        if selected_ids is None:
+            self.index.label_prediction_dataset.filter(**filter_args).delete()
+
     def prepare(self):
         from docketanalyzer import load_label
         self.label = load_label(self.label_name)(index=self.index)

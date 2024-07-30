@@ -51,6 +51,10 @@ class DocketManager():
         return self.index.juri
 
     @property
+    def ocr(self):
+        return self.index.ocr
+
+    @property
     def dir(self):
         return self.data_dir / 'dockets' / self.docket_id
 
@@ -109,6 +113,13 @@ class DocketManager():
         if ocr:
             return self.dir / f'doc.ocr.{name}.json'
         return self.dir / f'doc.pdf.{name}.pdf'
+    
+    def ocr_document(self, entry_number, attachment_number=None, overwrite=False):
+        pdf_path = self.get_document_path(entry_number, attachment_number)
+        ocr_path = self.get_document_path(entry_number, attachment_number, ocr=True)
+        if overwrite or not ocr_path.exists():
+            ocr_text = self.ocr.extract_text(pdf_path)
+            ocr_path.write_text(json.dumps(ocr_text, indent=2, default=json_default))
 
     def sync(self, mode, **kwargs):
         self.dir.mkdir(parents=True, exist_ok=True)
@@ -169,9 +180,9 @@ class DocketManager():
                 html = html_path.read_text()
                 docket_parsed = juri.parse(html, self.court)
                 if docket_parsed:
-                    entries += deepcopy(docket_parsed['docket_entries'])
+                    entries += docket_parsed['docket_entries']
                 else:
-                    raise ValueError("Docket could not be parsed")
+                    raise ValueError(f"Docket {self.docket_id} could not be parsed")
             docket_parsed['docket_entries'] = entries
             self.docket_json_path.write_text(json.dumps(
                 docket_parsed, indent=2, default=json_default,

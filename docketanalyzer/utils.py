@@ -1,5 +1,6 @@
 from datetime import datetime, date
 from dateutil.parser._parser import ParserError
+import signal
 import numpy as np
 import pandas as pd
 from pandas._libs.tslibs.np_datetime import OutOfBoundsDatetime
@@ -73,6 +74,55 @@ def pd_save_or_append(data, path, **kwargs):
         data.to_csv(path, mode='a', header=False, index=False, **kwargs)
     else:
         data.to_csv(path, index=False, **kwargs)
+
+
+class timeout:
+    def __init__(self, seconds=1, error_message='Timeout'):
+        self.seconds = seconds
+        self.error_message = error_message
+    def handle_timeout(self, signum, frame):
+        raise TimeoutError(self.error_message)
+    def __enter__(self):
+        signal.signal(signal.SIGALRM, self.handle_timeout)
+        signal.alarm(self.seconds)
+    def __exit__(self, type, value, traceback):
+        signal.alarm(0)
+
+
+class timeit:
+    def __init__(self, tag='Task'):
+        self.tag = tag
+        self.start = None
+
+    def __enter__(self):
+        self.start = datetime.now()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        end = datetime.now()
+        execution_time = (end - self.start).total_seconds()
+        print(f"{self.tag} took {execution_time:.4f} seconds")
+
+
+class LazyLoad:
+    def __init__(self, import_path, object_name):
+        self.import_path = import_path
+        self.object_name = object_name
+        self._object = None
+
+    def __call__(self, *args, **kwargs):
+        if self._object is None:
+            self._load()
+        return self._object(*args, **kwargs)
+
+    def __getattr__(self, name):
+        if self._object is None:
+            self._load()
+        return getattr(self._object, name)
+
+    def _load(self):
+        module = __import__(self.import_path, fromlist=[self.object_name])
+        self._object = getattr(module, self.object_name)
 
 
 # Extraction Utilities

@@ -49,7 +49,10 @@ class EmbeddingSample:
 class Embeddings:
     def __init__(self, path):
         self.path = Path(path)
-        self.config = json.loads(self.config_path.read_text())
+        try:
+            self.config = json.loads(self.config_path.read_text())
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Embeddings config not found at {self.config_path}. You can try to pull the embeddings first by adding pull=True to load_embeddings.")
         self.dataset = load_dataset(self.config['dataset_name'])
         self.cache = {}
         if self.config['dataset_filter'] is not None:
@@ -133,7 +136,24 @@ class Embeddings:
         if flat:
             results = [r for result in results for r in result]
         return results
-    
+
+    def push(self, delete=False, exact_timestamps=True):
+        from docketanalyzer.cli.sync import sync
+        try:
+            path = self.path.relative_to(DATA_DIR)
+        except ValueError:
+            raise ValueError(f"Path {self.path} must be a subpath of {DATA_DIR} to push.")
+        sync(path, delete, exact_timestamps, exclude=None, confirm=False, push=True)
+
+    @staticmethod
+    def pull(path, delete=False, exact_timestamps=True):
+        from docketanalyzer.cli.sync import sync
+        try:
+            path = path.relative_to(DATA_DIR)
+        except ValueError:
+            raise ValueError(f"Path {path} must be a subpath of {DATA_DIR} to pull.")
+        sync(path, delete, exact_timestamps, exclude=None, confirm=False, push=False)
+        
     @staticmethod
     def create(
         name, dataset, text_col, path=None, dataset_filter=None, 
@@ -178,16 +198,19 @@ class Embeddings:
         index.train(fit_embeddings)
         index.set_direct_map_type(faiss.DirectMap.Hashtable)
         embeddings.save_index(index)
+        embeddings.update()
         return embeddings
 
     def __len__(self):
         return self.index.ntotal
 
 
-def load_embeddings(name=None, path=None):
+def load_embeddings(name=None, path=None, pull=False):
     if name is not None:
         path = DATA_DIR / 'embeddings' / name
     path = Path(path)
+    if pull:
+        Embeddings.pull(path)
     return Embeddings(path)
 
 

@@ -54,7 +54,7 @@ class Task:
     @property
     def progress_str(self):
         total, complete, pct = self.progress
-        return f"\n{self.name}: {pct:.2%} ({complete} / {total})\n"
+        return f"{pct:.2%} ({complete} / {total})"
 
     @property
     def q(self):
@@ -62,8 +62,13 @@ class Task:
         if self.selected_ids:
             query = query.filter(**{self.dataset.pk + '__in': self.selected_ids})
         return query
+    
+    def post_reset(self, selected_ids):
+        pass
 
-    def reset(self, data=True, init=True):
+    def reset(self, data=True, init=True, selected_ids=None):
+        if selected_ids is not None:
+            self.selected_ids = selected_ids
         if self.selected_ids:
             self.q.update(**{self.last_updated_col: None})
         else:
@@ -77,6 +82,7 @@ class Task:
             if init:
                 print(f"Reinitializing task data: {self.name}")
                 self.init_columns()
+        self.post_reset(self.selected_ids)
 
     def delete(self):
         self.reset(init=False)
@@ -88,7 +94,10 @@ class Task:
             **{self.dataset.pk + '__in': batch_ids}
         ).update(**{self.last_updated_col: timezone.now()})
 
-    def run(self):
+    def run(self, selected_ids=None):
+        if selected_ids is not None:
+            self.selected_ids = selected_ids
+
         print(f"Running {self.name}")
         for depends_on in self.depends_on:
             status_col = self.get_last_updated_col(depends_on)

@@ -33,17 +33,3 @@ class OrderLabel(EntryTypeLabel):
 class MinuteEntryLabel(EntryTypeLabel):
     name = 'minute entry'
     minimal_condition = lambda *xs: 'minute' in xs[-1].lower()
-
-
-# move to different file
-class MotionTypeLabel(EntryTypeLabel):
-    parent_labels = [MotionLabel]
-    minimal_condition = lambda *xs: any(y in xs[-1].lower() for y in ['motion', 'petition'])
-
-
-class MotionDismissLabel(MotionTypeLabel):
-    name = 'motion to dismiss'
-
-
-class MotioSummaryJudgmentLabel(MotionTypeLabel):
-    name = 'motion for summary judgment'

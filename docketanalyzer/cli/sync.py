@@ -2,7 +2,7 @@ import click
 from docketanalyzer import S3Utility
 
 
-def sync(path, delete, exact_timestamps, exclude, push=True):
+def sync(path, delete, exact_timestamps, exclude, push=True, confirm=True):
     exclude = [] if exclude is None else exclude.split(',')
     exclude.append("*__pycache__*")
 
@@ -10,7 +10,7 @@ def sync(path, delete, exact_timestamps, exclude, push=True):
     args = dict(
         from_path=path, to_path=path, delete=delete,
         exact_timestamps=exact_timestamps,
-        confirm=True, exclude=exclude,
+        confirm=confirm, exclude=exclude,
     )
     if push:
         s3.push(**args)

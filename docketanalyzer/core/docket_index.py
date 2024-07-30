@@ -87,6 +87,13 @@ class DocketIndex:
         if 'juri' not in self.cache:
             self.cache['juri'] = JuriscraperUtility()
         return self.cache['juri']
+
+    @property
+    def ocr(self):
+        if 'ocr' not in self.cache:
+            from docketanalyzer import OCRUtility
+            self.cache['ocr'] = OCRUtility()
+        return self.cache['ocr']
     
     @property
     def labels(self):
@@ -101,6 +108,25 @@ class DocketIndex:
             from docketanalyzer import load_tasks
             self.cache['tasks'] = {k: v(dataset=self.dataset) for k, v in load_tasks().items()}
         return self.cache['tasks']
+
+    @property
+    def ordered_tasks(self):
+        tasks = self.tasks
+        visited = {}
+        sorted_tasks = []
+
+        def dfs(task):
+            visited[task.name] = True
+            for dep_name in task.depends_on:
+                if dep_name not in visited:
+                    dfs(tasks[dep_name])
+            sorted_tasks.append(task)
+
+        for task in tasks.values():
+            if task.name not in visited:
+                dfs(task)
+
+        return sorted_tasks
 
     @property
     def choices(self):

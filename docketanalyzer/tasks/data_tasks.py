@@ -1,8 +1,11 @@
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import threading
 import numpy as np
 import pandas as pd
 import simplejson as json
 from tqdm import tqdm
 from docketanalyzer.cli.check_idb import check_idb
+from docketanalyzer.utils import timeout
 from .task import DocketTask
 
 
@@ -11,8 +14,7 @@ class ParseDockets(DocketTask):
     Parse the downloaded html dockets into json format.
     """
     name = 'parse-dockets'
-    batch_size = 500
-    workers = None
+    batch_size = 1000
 
     def process_row(self, row):
         manager = self.index[row.docket_id]
@@ -76,8 +78,14 @@ class AddHeaders(DocketTask):
     """
     name = 'add-headers'
     batch_size = 200000
-    workers = None
     depends_on = ['parse-dockets']
+
+    def post_reset(self, selected_ids):
+        if selected_ids is None:
+            self.index.header_dataset.delete(quiet=True)
+            self.cache = {}
+        else:
+            self.index.header_dataset.filter(docket_id__in=selected_ids).delete()
 
     def process(self, batch):
         docket_ids = batch.pandas('docket_id')['docket_id'].tolist()
@@ -95,8 +103,14 @@ class AddEntries(DocketTask):
     """
     name = 'add-entries'
     batch_size = 20000
-    workers = None
     depends_on = ['parse-dockets']
+
+    def post_reset(self, selected_ids):
+        if selected_ids is None:
+            self.index.entry_dataset.delete(quiet=True)
+            self.cache = {}
+        else:
+            self.index.entry_dataset.filter(docket_id__in=selected_ids).delete()
 
     def process(self, batch):
         docket_ids = batch.pandas('docket_id')['docket_id'].tolist()
@@ -117,6 +131,15 @@ class AddPartiesAndCounsel(DocketTask):
     workers = None
     depends_on = ['parse-dockets']
 
+    def post_reset(self, selected_ids):
+        if selected_ids is None:
+            self.index.party_dataset.delete(quiet=True)
+            self.index.counsel_dataset.delete(quiet=True)
+            self.cache = {}
+        else:
+            self.index.party_dataset.filter(docket_id__in=selected_ids).delete()
+            self.index.counsel_dataset.filter(docket_id__in=selected_ids).delete()
+
     def process(self, batch):
         docket_ids = batch.pandas('docket_id')['docket_id'].tolist()
         try:
@@ -130,3 +153,20 @@ class AddPartiesAndCounsel(DocketTask):
         parties, counsel = self.index.make_batch([x.docket_id for x in list(batch)]).parties_and_counsel
         self.index.party_dataset.add(parties)
         self.index.counsel_dataset.add(counsel)
+
+
+class OCRDocuments(DocketTask):
+    """
+    OCR any case documents.
+    """
+    name = 'ocr-documents'
+    batch_size = 5000
+    depends_on = ['parse-dockets']
+    overwrite = False
+
+    def process_row(self, row):
+        manager = self.index[row.docket_id]
+        for pdf_path in manager.pdf_paths:
+            entry_number, attachment_number = manager.parse_document_path(pdf_path)
+            manager.ocr_document(entry_number, attachment_number, overwrite=self.overwrite)
+   
