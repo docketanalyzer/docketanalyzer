@@ -58,3 +58,4 @@ class S3Utility:
             to_path = self.data_dir / to_path
         from_path = f's3://{self.bucket / from_path}'
         self._sync(from_path, to_path, **kwargs)
+

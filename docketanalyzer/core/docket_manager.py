@@ -2,7 +2,7 @@ from copy import deepcopy
 import pandas as pd
 from pathlib import Path
 import simplejson as json
-from docketanalyzer import load_dataset, JuriscraperUtility, S3Utility
+from docketanalyzer import load_dataset
 from docketanalyzer.utils import DATA_DIR, json_default, convert_int
 
 
@@ -121,20 +121,13 @@ class DocketManager():
             ocr_text = self.ocr.extract_text(pdf_path)
             ocr_path.write_text(json.dumps(ocr_text, indent=2, default=json_default))
 
-    def sync(self, mode, **kwargs):
-        self.dir.mkdir(parents=True, exist_ok=True)
-        s3 = S3Utility(data_dir=self.data_dir)
-        s3_path = f'dockets/{self.docket_id}'
-        if mode == 'push':
-            s3.push(s3_path, s3_path, **kwargs)
-        elif mode == 'pull':
-            s3.pull(s3_path, s3_path, **kwargs)
+    def push(self, name=None, delete=False, exact_timestamps=True, exclude=None, confirm=False):
+        path = self.dir if name is None else self.dir / name
+        self.index.push(path, delete, exact_timestamps, exclude, confirm=confirm)
 
-    def push(self, **kwargs):
-        self.sync('push', **kwargs)
-
-    def pull(self, **kwargs):
-        self.sync('pull', **kwargs)
+    def pull(self, name=None, delete=False, exact_timestamps=True, exclude=None, confirm=False):
+        path = self.dir if name is None else self.dir / name
+        self.index.pull(path, delete, exact_timestamps, exclude, confirm=confirm)
 
     @property
     def tasks(self):

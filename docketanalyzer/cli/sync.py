@@ -1,21 +1,5 @@
 import click
-from docketanalyzer import S3Utility
-
-
-def sync(path, delete, exact_timestamps, exclude, push=True, confirm=True):
-    exclude = [] if exclude is None else exclude.split(',')
-    exclude.append("*__pycache__*")
-
-    s3 = S3Utility()
-    args = dict(
-        from_path=path, to_path=path, delete=delete,
-        exact_timestamps=exact_timestamps,
-        confirm=confirm, exclude=exclude,
-    )
-    if push:
-        s3.push(**args)
-    else:
-        s3.pull(**args)
+from docketanalyzer import load_docket_index
 
 
 @click.command()
@@ -27,7 +11,8 @@ def push(path, delete, exact_timestamps, exclude):
     """
     Push data from the DA_DATA_DIR to the S3 bucket.
     """
-    sync(path, delete, exact_timestamps, exclude, push=True)
+    index = load_docket_index()
+    index.push(path, delete=delete, exact_timestamps=exact_timestamps, exclude=exclude, confirm=True)
 
 
 @click.command()
@@ -39,4 +24,5 @@ def pull(path, delete, exact_timestamps, exclude):
     """
     Pull data from the S3 bucket to the DA_DATA_DIR.
     """
-    sync(path, delete, exact_timestamps, exclude, push=False)
+    index = load_docket_index()
+    index.pull(path, delete=delete, exact_timestamps=exact_timestamps, exclude=exclude, confirm=True)

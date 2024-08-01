@@ -1,11 +1,11 @@
 from docketanalyzer.config import config
 import docketanalyzer.utils as utils
 from docketanalyzer.core.registry import Registry
+import docketanalyzer.choices as choices
 
 from docketanalyzer.utils import LazyLoad
 
 imports = {
-    'choices': ['choices'],
     'core.chat': ['Chat', 'ChatThread'],
     'core.elastic': ['load_elastic'],
     'core.s3': ['S3Utility'],
@@ -22,11 +22,19 @@ imports = {
     'cli': ['cli'],
 }
 
-__all__ = []
+
+__all__ = ['config', 'utils', 'Registry', 'choices']
 for module, names in imports.items():
     for name in names:
         globals()[name] = LazyLoad(f'docketanalyzer.{module}', name)
         __all__.append(name)
+
+
+try:
+    import docketanalyzer.dev as dev
+    __all__.append('dev')
+except ImportError:
+    pass
 
 
 class RecapApi:

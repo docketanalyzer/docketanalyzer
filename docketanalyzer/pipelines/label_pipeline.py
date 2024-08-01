@@ -1,3 +1,4 @@
+import torch
 from transformers import AutoModelForSequenceClassification
 from .pipeline import Pipeline
 
@@ -14,6 +15,20 @@ class LabelPipeline(Pipeline):
         'truncation': True,
         'max_length': 256,
     }
+
+    def __init__(self, label, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.label = label
+    
+    @property
+    def minimal_condition(self):
+        return self.label.minimal_condition
+    
+    def load_model(self):
+        model = super().load_model()
+        if model.device.type == 'cuda':
+            model.half()
+        return model
 
     def get_excluded_pred(self, **kwargs):
         return {'label': 'False', 'score': 1.0}

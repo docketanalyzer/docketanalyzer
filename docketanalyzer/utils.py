@@ -162,3 +162,13 @@ def extract_entered_date(text):
 
 def get_clean_name(name):
     return re.sub(r"[,.;@#?!&$]+\ *", " ", name.lower()).strip()
+
+
+def mask_text_with_spans(text, spans, mapper=None):
+    if mapper is None:
+        mapper = lambda text, span: f"<{span['label']}>"
+    spans = sorted(spans, key=lambda x: -x['start'])
+    for span in spans:
+        span_replace = mapper(text, span)
+        text = text[:span['start']] + span_replace + text[span['end']:]
+    return text

@@ -144,6 +144,11 @@ class Chat:
         tokenizer = self.get_tokenizer(model)
         return tokenizer.decode(tokens)
 
+    def truncate(self, text, max_length, model=None):
+        tokens = self.tokenize(text, model)
+        tokens = tokens[:max_length]
+        return self.decode(tokens, model)
+
     def __call__(self, *args, **kwargs):
         return self.chat(*args, **kwargs)
 

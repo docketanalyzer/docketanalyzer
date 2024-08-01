@@ -6,7 +6,7 @@ from pathlib import Path
 import simplejson as json
 from toolz import partition_all
 from tqdm import tqdm
-from docketanalyzer import load_dataset, JuriscraperUtility, DocketManager
+from docketanalyzer import load_dataset, DocketManager
 from docketanalyzer.utils import DATA_DIR
 
 
@@ -83,8 +83,16 @@ class DocketIndex:
         return self.cache['label_eval_dataset']
 
     @property
+    def s3(self):
+        if 's3' not in self.cache:
+            from docketanalyzer import S3Utility
+            self.cache['s3'] = S3Utility(data_dir=self.data_dir)
+        return self.cache['s3']
+
+    @property
     def juri(self):
         if 'juri' not in self.cache:
+            from docketanalyzer import JuriscraperUtility
             self.cache['juri'] = JuriscraperUtility()
         return self.cache['juri']
 
@@ -99,7 +107,7 @@ class DocketIndex:
     def labels(self):
         if 'labels' not in self.cache:
             from docketanalyzer import load_labels
-            self.cache['labels'] = {k: v(index=self) for k, v in load_labels().items()}
+            self.cache['labels'] = load_labels(index=self)
         return self.cache['labels']
 
     @property
@@ -182,6 +190,36 @@ class DocketIndex:
             for batch in tqdm(list(partition_all(batch_size, docket_ids.to_dict('records')))):
                 self.dataset.add(pd.DataFrame(batch))
         self.dataset.config['last_checked'] = str(datetime.now())
+
+    def sync(self, path='', delete=False, exact_timestamps=True, exclude=None, push=True, confirm=False):
+        path = Path(path)
+        try:
+            path = path.relative_to(self.data_dir)
+        except ValueError:
+            pass
+        
+        if exclude is None:
+            exclude = []
+        elif isinstance(exclude, str):
+            exclude = exclude.split(',')
+
+        exclude.append("*__pycache__*")
+
+        args = dict(
+            from_path=path, to_path=path, delete=delete,
+            exact_timestamps=exact_timestamps,
+            confirm=confirm, exclude=exclude,
+        )
+        if push:
+            self.s3.push(**args)
+        else:
+            self.s3.pull(**args)
+    
+    def push(self, path=None, delete=False, exact_timestamps=True, exclude=None, confirm=False):
+        self.sync(path, delete, exact_timestamps, exclude, push=True, confirm=confirm)
+
+    def pull(self, path=None, delete=False, exact_timestamps=True, exclude=None, confirm=False):
+        self.sync(path, delete, exact_timestamps, exclude, push=False, confirm=confirm)
 
     def __getitem__(self, docket_id):
         return DocketManager(docket_id, data_dir=self.data_dir, index=self)
@@ -304,8 +342,6 @@ class DocketBatch:
             if cols is not None and col not in cols:
                 raise ValueError(f"Column '{col}' not in entry columns.")
         return data
-
-
 
     @property
     def entries(self):

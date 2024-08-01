@@ -7,29 +7,39 @@ class EntryTypeLabel(Label):
 
 class AnswerLabel(EntryTypeLabel):
     name = 'answer'
-    minimal_condition = lambda *xs: 'answer' in xs[-1].lower()
+    minimal_keywords_any = ['answer']
 
 
 class ComplaintLabel(EntryTypeLabel):
     name = 'complaint'
-    minimal_condition = lambda *xs: 'complaint' in xs[-1].lower()
+    minimal_keywords_any = ['complaint']
 
 
 class MotionLabel(EntryTypeLabel):
     name = 'motion'
-    minimal_condition = lambda *xs: any(y in xs[-1].lower() for y in ['motion', 'petition'])
+    minimal_keywords_any = ['motion', 'petition']
 
 
 class NoticeLabel(EntryTypeLabel):
     name = 'notice'
-    minimal_condition = lambda *xs: 'notice' in xs[-1].lower()
+    minimal_keywords_any = ['notice']
+
+
+class StipulationLabel(EntryTypeLabel):
+    name = 'stipulation'
+    minimal_keywords_any = ['stipulat']
 
 
 class OrderLabel(EntryTypeLabel):
     name = 'order'
-    minimal_condition = lambda *xs: 'order' in xs[-1].lower()
+    minimal_keywords_any = ['order']
 
 
 class MinuteEntryLabel(EntryTypeLabel):
     name = 'minute entry'
-    minimal_condition = lambda *xs: 'minute' in xs[-1].lower()
+    minimal_keywords_any = ['minut']
+
+
+class JudgmentLabel(EntryTypeLabel):
+    name = 'judgment'
+    minimal_keywords_any = ['judgment', 'judgement']

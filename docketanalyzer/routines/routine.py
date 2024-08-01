@@ -178,12 +178,6 @@ class Routine:
 
         trainer_class = self.get_trainer_class()
         args = self.trainer_args_hook(args)
-        if 'save_steps' in args:
-            if args['save_steps'] < 1:
-                args['save_steps'] = int(len(train_dataset) * args['save_steps'])
-        if 'eval_steps' in args:
-            if args['eval_steps'] < 1:
-                args['eval_steps'] = int(len(train_dataset) * args['eval_steps'])
         trainer = trainer_class(**args)
         trainer.routine = self
         return self.trainer_hook(trainer)

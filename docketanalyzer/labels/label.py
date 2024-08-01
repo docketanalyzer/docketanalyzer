@@ -13,17 +13,20 @@ class Label:
     run_args = {'max_length': 256}
     training_args = {
         'num_train_epochs': 1,
-        'per_device_train_batch_size': 8,
+        'per_device_train_batch_size': 16,
         'per_device_eval_batch_size': 16,
-        'gradient_accumulation_steps': 2,
+        'gradient_accumulation_steps': 1,
         'learning_rate': 5e-5,
         'weight_decay': 0.1,
-        'warmup_steps': 100,
+        'warmup_ratio': 0.02,
         'evaluation_strategy': 'steps',
         'eval_steps': 0.08,
         'save_steps': 0.08,
         'save_total_limit': 2,
+        'fp16': True,
     }
+    minimal_keywords_any = None
+    minimal_keywords_all = None
 
     def __init__(self, index=None):
         if index is None:
@@ -34,10 +37,6 @@ class Label:
     @classmethod
     def get_slug(cls):
         return cls.name.lower().replace(' ', '-')
-    
-    @property
-    def minimal_condition(self):
-        return None
 
     @property
     def slug(self):
@@ -50,13 +49,21 @@ class Label:
     @property
     def train_dir(self):
         return self.index.data_dir / 'runs'
+    
+    def minimal_condition(self, text):
+        if self.minimal_keywords_any is not None:
+            if not any(x in text.lower() for x in self.minimal_keywords_any):
+                return False
+        if self.minimal_keywords_all is not None:
+            if not all(x in text.lower() for x in self.minimal_keywords_all):
+                return False
+        return True
 
     @property
     def model(self):
         if 'model' not in self.cache:
             from transformers import AutoModelForTokenClassification
-            model = pipeline('label', model_name=self.model_name)
-            model.minimal_condition = self.minimal_condition
+            model = pipeline('label', model_name=self.model_name, label=self)
             self.cache['model'] = model
         return self.cache['model']
     

@@ -4,7 +4,7 @@ from .task import DocketTask
 
 class LabelPredictions(DocketTask):
     name = None
-    batch_size = 5000
+    batch_size = 20000
     workers = None
     depends_on = ['add-entries']
     label_name = None
@@ -18,7 +18,7 @@ class LabelPredictions(DocketTask):
 
     def prepare(self):
         from docketanalyzer import load_label
-        self.label = load_label(self.label_name)(index=self.index)
+        self.label = load_label(self.label_name, index=self.index)
         model = self.label.model
 
     def process(self, batch):
@@ -34,7 +34,7 @@ class LabelPredictions(DocketTask):
             keep_entries = list(keep_entries.pandas('entry_id')['entry_id'].unique())
             entries = entries[entries['entry_id'].isin(keep_entries)]
         entries['label'] = self.label.name
-        entries['value'] = self.label.model(entries['description'], batch_size=16)
+        entries['value'] = self.label.model(entries['description'], batch_size=8)
         entries = entries[entries['value']]
         entries['pred_id'] = entries['entry_id'] + '__' + self.label.slug
         entries = entries[['pred_id', 'entry_id', 'docket_id', 'label']]

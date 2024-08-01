@@ -11,10 +11,10 @@ class Pipeline:
     model_name = None
     tokenizer_name = None
     model_class = AutoModel
+    model_defaults = {}
     pipeline_name = None
     pipeline_defaults = {}
     forward_defaults = {}
-    minimal_condition = None
 
     def __init__(self, model_name=None, tokenizer_name=None, device=None):
         if model_name is not None:
@@ -24,6 +24,7 @@ class Pipeline:
         if self.tokenizer_name is None:
             self.tokenizer_name = self.model_name
         device = device if device is not None else 0 if torch.cuda.is_available() else 'cpu'
+        self.cache = {}
         self.model = self.load_model()
         self.model.to(device)
         self.model.eval()
@@ -33,12 +34,16 @@ class Pipeline:
                 self.pipeline_name, model=self.model, tokenizer=self.tokenizer,
                 device=device, **self.pipeline_defaults,
             )
+        
+    @property
+    def minimal_condition(self):
+        return None
 
     def get_excluded_pred(self, **kwargs):
         return []
 
     def load_model(self):
-        return self.model_class.from_pretrained(self.model_name)
+        return self.model_class.from_pretrained(self.model_name, **self.model_defaults)
 
     def load_tokenizer(self):
         tokenizer = AutoTokenizer.from_pretrained(self.tokenizer_name)

@@ -1,3 +1,4 @@
+import simplejson as json
 from docketanalyzer import choices
 from .task import DocketTask
 
@@ -10,7 +11,7 @@ class ConsolidateSearchDocket(DocketTask):
     batch_size = 5000
     workers = None
     depends_on = ['parse-dockets', 'find-idb-entries']
-    inactive = True
+    inactive = False
 
     def prepare(self):
         self.court_choices = {x[0]: x[1] for x in choices.DistrictCourt.choices()}
@@ -36,14 +37,27 @@ class ConsolidateSearchDocket(DocketTask):
         entries = docket_batch.entries.groupby('docket_id').apply(lambda x:
             x.to_dict('records')
         , include_groups=False).to_dict()
+  
+        parties, counsel = docket_batch.parties_and_counsel
+        counsel = counsel.drop(columns=['docket_id'])
+        counsel = counsel.groupby('party_id').apply(lambda x:
+            x.to_dict('records')
+        , include_groups=False).to_dict()
+        parties['counsel'] = parties['party_id'].apply(lambda x:
+            counsel.get(x, [])
+        )
+        parties = parties.groupby('docket_id').apply(lambda x:
+            x.to_dict('records')
+        , include_groups=False).to_dict()
 
         for row in batch:
             self.process_row(row,
+                parties.get(row.docket_id, []),
                 entries=entries.get(row.docket_id, []),
                 idb_entries=idb_rows.get(row.docket_id, []),
             )
 
-    def process_row(self, row, entries, idb_entries):
+    def process_row(self, row, parties, entries, idb_entries):
         manager = self.index[row.docket_id]
         docket_json = manager.docket_json
         if docket_json:
@@ -92,6 +106,8 @@ class ConsolidateSearchDocket(DocketTask):
                 'jury_demand': jury_demand,
                 'jurisdiction': jurisdiction,
                 'num_entries': len(entries),
+                'num_idb_entries': len(idb_entries),
+                'parties': parties,
                 'entries': entries,
                 'idb_entries': idb_entries,
             }

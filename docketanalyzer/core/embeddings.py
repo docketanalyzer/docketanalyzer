@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor
 import faiss
 import pandas as pd
 from pathlib import Path
@@ -87,14 +88,14 @@ class Embeddings:
         if reset:
             self.dataset.all().update(**{self.dataset_col: False})
         needs_update = self.dataset.exclude(**{self.dataset_col: True})
-        chat = Chat(mode='openai')
 
         for batch in needs_update.batch(100000):
             batch_data = batch.pandas('id', self.config['text_col'])
             texts = batch_data[self.config['text_col']].tolist()
+            chat = Chat(mode='openai')
             batch_embeddings = []
             for mini_batch in tqdm(list(partition_all(self.config['batch_size'], texts))):
-                batch_embeddings += chat.embed(mini_batch, model=self.config['embedding_model'])
+                batch_embeddings += self.batch_embed(mini_batch, self.config['embedding_model'], self.config['truncate'], chat=chat)
             batch_embeddings = list_to_array(batch_embeddings)
             ids = batch_data['id'].values
             idsel = faiss.IDSelectorArray(ids.size, faiss.swig_ptr(ids))
@@ -138,27 +139,36 @@ class Embeddings:
         return results
 
     def push(self, delete=False, exact_timestamps=True):
-        from docketanalyzer.cli.sync import sync
-        try:
-            path = self.path.relative_to(DATA_DIR)
-        except ValueError:
-            raise ValueError(f"Path {self.path} must be a subpath of {DATA_DIR} to push.")
-        sync(path, delete, exact_timestamps, exclude=None, confirm=False, push=True)
+        from docketanalyzer import load_docket_index
+        index = load_docket_index()
+        index.push(self.path, delete=delete, exact_timestamps=exact_timestamps, exclude=None, confirm=False)
 
     @staticmethod
     def pull(path, delete=False, exact_timestamps=True):
-        from docketanalyzer.cli.sync import sync
-        try:
-            path = path.relative_to(DATA_DIR)
-        except ValueError:
-            raise ValueError(f"Path {path} must be a subpath of {DATA_DIR} to pull.")
-        sync(path, delete, exact_timestamps, exclude=None, confirm=False, push=False)
+        from docketanalyzer import load_docket_index
+        index = load_docket_index()
+        index.pull(path, delete=delete, exact_timestamps=exact_timestamps, exclude=None, confirm=False)
+    
+    @staticmethod
+    def batch_embed(texts, embedding_model, truncate, chat=None, micro_batch_size=10, workers=10):
+        if chat is None:
+            chat = Chat(mode='openai')
+        results, futures = [], []
+        if truncate is not None:
+            texts = [chat.truncate(text, max_length=truncate) for text in texts]
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            for mini_batch in partition_all(micro_batch_size, texts):
+                future = executor.submit(chat.embed, mini_batch, model=embedding_model)
+                futures.append(future)
+            for future in futures:
+                results += future.result()
+        return results
         
     @staticmethod
     def create(
         name, dataset, text_col, path=None, dataset_filter=None, 
         embedding_model=OPENAI_DEFAULT_EMBEDDING_MODEL, fit_examples=300000,
-        nlist=100, m=16, nbits=8, nprobe=10, batch_size=1000
+        nlist=100, m=16, nbits=8, nprobe=10, batch_size=1000, truncate=800,
     ):
         if path is None:
             path = DATA_DIR / 'embeddings' / name
@@ -177,17 +187,18 @@ class Embeddings:
             'nbits': nbits,
             'nprobe': nprobe,
             'batch_size': batch_size,
+            'truncate': truncate,
         }
         path.mkdir(parents=True, exist_ok=True)
         (path / 'config.json').write_text(json.dumps(config, indent=2))
 
+        chat = Chat(mode='openai')
         embeddings = Embeddings(path)
         fit_examples = embeddings.dataset.sample(fit_examples).pandas(dataset.pk, text_col)
         fit_embeddings = []
-        chat = Chat(mode='openai')
         for batch in tqdm(list(partition_all(batch_size, fit_examples.to_dict('records')))):
             batch = pd.DataFrame(batch)
-            fit_embeddings += chat.embed(batch[text_col].tolist(), model=embedding_model)
+            fit_embeddings += Embeddings.batch_embed(batch[text_col].tolist(), embedding_model, truncate, chat=chat)
         fit_embeddings = list_to_array(fit_embeddings)
 
         dims = fit_embeddings.shape[1]
