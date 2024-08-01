@@ -1,5 +1,17 @@
+import distutils.command.build
 import os
 from setuptools import setup, find_packages
+
+
+VERSION = os.environ.get('VERSION')
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+os.chdir(BASE_DIR)
+
+
+class BuildCommand(distutils.command.build.build):
+    def initialize_options(self):
+        distutils.command.build.build.initialize_options(self)
+        self.build_base = os.path.join(BASE_DIR, 'build', 'build')
 
 
 def get_requirements(filename):
@@ -13,20 +25,21 @@ def get_requirements(filename):
 
 setup(
     name='docketanalyzer',
-    version='0.1.4',
+    version=VERSION,
     description='',
     url='https://github.com/docketanalyzer/docketanalyzer',
     author='Nathan Dahlberg',
-    package_dir={'': '.'},
-    packages=find_packages('.'),
+    packages=['docketanalyzer'],
+    include_package_data=True,
     install_requires=get_requirements('requirements.txt'),
     entry_points={
         'console_scripts': [
             'da = docketanalyzer:cli',
         ],
     },
+    cmdclass={"build": BuildCommand},
+    manifest_dir=BASE_DIR,
 )
-
 
 # python setup.py bdist_wheel
 # twine upload dist/*

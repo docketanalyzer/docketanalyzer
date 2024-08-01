@@ -1,3 +1,4 @@
+from docketanalyzer._version import __version__
 from docketanalyzer.config import config
 import docketanalyzer.utils as utils
 from docketanalyzer.core.registry import Registry
@@ -30,11 +31,19 @@ for module, names in imports.items():
         __all__.append(name)
 
 
-try:
-    import docketanalyzer.dev as dev
-    __all__.append('dev')
-except ImportError:
-    pass
+from docketanalyzer.utils import BUILD_MODE
+if not BUILD_MODE:
+    try:
+        import docketanalyzer.dev as dev
+        print(BUILD_MODE)
+        print(dev)
+        from docketanalyzer.cli import cli
+        from docketanalyzer.dev import command_registry
+        for command in command_registry.all():
+            cli.add_command(command)
+        __all__.append('dev')
+    except ImportError:
+        pass
 
 
 class RecapApi:

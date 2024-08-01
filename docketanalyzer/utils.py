@@ -1,5 +1,6 @@
 from datetime import datetime, date
 from dateutil.parser._parser import ParserError
+import os
 import signal
 import numpy as np
 import pandas as pd
@@ -36,6 +37,7 @@ AWS_SECRET_ACCESS_KEY = config['AWS_SECRET_ACCESS_KEY']
 AWS_S3_BUCKET_NAME = config['AWS_S3_BUCKET_NAME']
 AWS_S3_ENDPOINT_URL = config['AWS_S3_ENDPOINT_URL']
 AWS_S3_REGION_NAME = config['AWS_S3_REGION_NAME']
+BUILD_MODE = os.environ.get('BUILD_MODE', False)
 
 
 # Other Utilities
