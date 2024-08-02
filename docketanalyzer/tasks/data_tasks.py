@@ -5,7 +5,7 @@ import pandas as pd
 import simplejson as json
 from tqdm import tqdm
 from docketanalyzer.cli.check_idb import check_idb
-from docketanalyzer.utils import timeout
+from docketanalyzer.utils import timeout, timeit
 from .task import DocketTask
 
 
@@ -119,7 +119,34 @@ class AddEntries(DocketTask):
         except AttributeError:
             pass
         entries = self.index.make_batch([x.docket_id for x in list(batch)]).get_entries(add_shuffle_number=True)
-        self.index.entry_dataset.add(entries)
+        if entries is not None:
+            self.index.entry_dataset.add(entries)
+
+
+class AddDocuments(DocketTask):
+    """
+    Adds documents to index.doc_dataset.
+    """
+    name = 'add-documents'
+    batch_size = 20000
+    depends_on = ['parse-dockets']
+
+    def post_reset(self, selected_ids):
+        if selected_ids is None:
+            self.index.doc_dataset.delete(quiet=True)
+            self.cache = {}
+        else:
+            self.index.doc_dataset.filter(docket_id__in=selected_ids).delete()
+
+    def process(self, batch):
+        docket_ids = batch.pandas('docket_id')['docket_id'].tolist()
+        try:
+            self.index.doc_dataset.filter(docket_id__in=docket_ids).delete()
+        except AttributeError:
+            pass
+        docs = self.index.make_batch([x.docket_id for x in list(batch)]).docs
+        if docs is not None:
+            self.index.doc_dataset.add(docs)
 
 
 class AddPartiesAndCounsel(DocketTask):
@@ -151,8 +178,10 @@ class AddPartiesAndCounsel(DocketTask):
         except AttributeError:
             pass
         parties, counsel = self.index.make_batch([x.docket_id for x in list(batch)]).parties_and_counsel
-        self.index.party_dataset.add(parties)
-        self.index.counsel_dataset.add(counsel)
+        if parties is not None:
+            self.index.party_dataset.add(parties)
+        if counsel is not None:
+            self.index.counsel_dataset.add(counsel)
 
 
 class OCRDocuments(DocketTask):
@@ -160,7 +189,7 @@ class OCRDocuments(DocketTask):
     OCR any case documents.
     """
     name = 'ocr-documents'
-    batch_size = 5000
+    batch_size = 20000
     depends_on = ['parse-dockets']
     overwrite = False
 

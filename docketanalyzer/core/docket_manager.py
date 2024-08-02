@@ -62,11 +62,6 @@ class DocketManager():
     def docket_html_paths(self):
         return list(self.dir.glob('pacer.*.html'))
 
-    def add_docket_html(self, html):
-        self.dir.mkdir(parents=True, exist_ok=True)
-        path = self.dir / f'pacer.{len(list(self.docket_html_paths))}.html'
-        path.write_text(html)
-
     @property
     def docket_json_path(self):
         return self.dir / 'pacer.json'
@@ -87,7 +82,43 @@ class DocketManager():
 
     @property
     def entries(self):
-        return self.index.make_batch([self.docket_id]).entries
+        if 'entries' not in self.cache:
+            self.cache['entries'] = self.index.make_batch([self.docket_id]).entries
+        return self.cache['entries']
+    
+    @property
+    def entries_with_labels(self):
+        if 'entries_with_labels' not in self.cache:
+            self.cache['entries_with_labels'] =  self.index.make_batch([self.docket_id]).get_entries(add_predictions=True)
+        return self.cache['entries_with_labels']
+    
+    @property
+    def docs(self):
+        if 'docs' not in self.cache:
+            self.cache['docs'] = self.index.make_batch([self.docket_id]).docs
+        return self.cache['docs']
+    
+    @property
+    def header(self):
+        if 'header' not in self.cache:
+            self.cache['header'] = self.index.make_batch([self.docket_id]).headers.iloc[0].to_dict()
+        return self.cache['header']
+    
+    @property
+    def parties(self):
+        if 'parties' not in self.cache:
+            parties, counsel = self.index.make_batch([self.docket_id]).parties_and_counsel
+            self.cache['parties'] = parties
+            self.cache['counsel'] = counsel
+        return self.cache['parties']
+    
+    @property
+    def counsel(self):
+        if 'counsel' not in self.cache:
+            parties, counsel = self.index.make_batch([self.docket_id]).parties_and_counsel
+            self.cache['parties'] = parties
+            self.cache['counsel'] = counsel
+        return self.cache['counsel']
 
     @property
     def pdf_paths(self):
@@ -150,6 +181,22 @@ class DocketManager():
                 candidates = sorted(candidates, key=lambda x: len(x['docket_number']))
                 self.cache['pacer_case_id'] = candidates[0]['pacer_case_id']
         return self.cache['pacer_case_id']
+    
+    def add_to_dataset(self):
+        self.dataset.add(pd.DataFrame({'docket_id': [self.docket_id]}))
+
+    def add_docket_html(self, html, skip_duplicates=True, add_to_dataset=True):
+        self.dir.mkdir(parents=True, exist_ok=True)
+        html_paths = list(self.docket_html_paths)
+        if skip_duplicates and len(html_paths) > 0:
+            for path in html_paths:
+                if html == path.read_text():
+                    print(f"Skipping duplicate docket html for {self.docket_id}")
+                    return
+        path = self.dir / f'pacer.{len(html_paths)}.html'
+        path.write_text(html)
+        if add_to_dataset:
+            self.add_to_dataset()
 
     def purchase_docket(self, update=False):
         if update:
@@ -162,26 +209,31 @@ class DocketManager():
                     show_parties_and_counsel=True,
                     show_terminated_parties=True,
                 )
-                self.add_docket_html(html)
+            self.add_docket_html(html)
+        else:
+            self.add_to_dataset()
 
     def parse_docket(self):
         juri = self.juri
         html_paths = list(sorted(self.docket_html_paths))
-        if html_paths:
-            entries = []
-            for html_path in html_paths:
-                html = html_path.read_text()
-                docket_parsed = juri.parse(html, self.court)
-                if docket_parsed:
-                    entries += docket_parsed['docket_entries']
-                else:
-                    raise ValueError(f"Docket {self.docket_id} could not be parsed")
-            docket_parsed['docket_entries'] = entries
-            self.docket_json_path.write_text(json.dumps(
-                docket_parsed, indent=2, default=json_default,
-            ))
+        if not html_paths:
+            raise ValueError(f"No docket html found for {self.docket_id}")
+        entries = []
+        for html_path in html_paths:
+            html = html_path.read_text()
+            docket_parsed = juri.parse(html, self.court)
+            if docket_parsed:
+                entries += docket_parsed['docket_entries']
+            else:
+                raise ValueError(f"Docket {self.docket_id} could not be parsed")
+        docket_parsed['docket_entries'] = entries
+        self.docket_json_path.write_text(json.dumps(
+            docket_parsed, indent=2, default=json_default,
+        ))
 
     def purchase_document(self, entry_number, attachment_number=None):
+        if self.court == 'psc':
+            raise ValueError("Cannot purchase documents for cases on the demo site")
         juri = self.juri
         pdf_path = self.get_document_path(entry_number, attachment_number)
         if not pdf_path.exists():

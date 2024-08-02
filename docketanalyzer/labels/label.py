@@ -68,7 +68,7 @@ class Label:
         return self.cache['model']
     
     @property
-    def prediction_task(self):
+    def prediction_task_class(self):
         class_name = self.name.title().replace(' ', '') + 'LabelPredictions'
         attributes = {
             "__doc__": f"Make predictions for {self.name}.",
@@ -81,8 +81,11 @@ class Label:
                 parent_slug = parent_label.get_slug()
                 depends_on.append(f'label-predict-{parent_slug}')
             attributes['depends_on'] = depends_on
-        globals()[class_name] = type(class_name, (LabelPredictions,), attributes)
-        return globals()[class_name](dataset=self.index.dataset)
+        return type(class_name, (LabelPredictions,), attributes)
+    
+    @property
+    def prediction_task(self):
+        return self.prediction_task_class(dataset=self.index.dataset)
 
     @property
     def predictions(self):

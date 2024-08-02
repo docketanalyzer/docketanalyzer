@@ -1,12 +1,15 @@
 import os
 import time
 import requests
-from docketanalyzer.utils import PACER_USERNAME, PACER_PASSWORD
+from docketanalyzer.utils import (
+    PACER_USERNAME, PACER_PASSWORD,
+    SELENIUM_HOST, SELENIUM_PORT,
+)
 
 
 class JuriscraperUtility:
     def __init__(
-        self, host='http://localhost', port=4444,
+        self, host=SELENIUM_HOST, port=SELENIUM_PORT,
         pacer_username=PACER_USERNAME, pacer_password=PACER_PASSWORD,
     ):
         self.host = host

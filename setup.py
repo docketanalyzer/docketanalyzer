@@ -7,6 +7,11 @@ VERSION = os.environ.get('VERSION')
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 os.chdir(BASE_DIR)
 
+if VERSION is None:
+    version_path = os.path.join(BASE_DIR, 'docketanalyzer', '_version.py')
+    with open(version_path, 'r') as f:
+        lines = f.read().splitlines()
+    VERSION = lines[0].split('=')[1].strip().strip('"')
 
 class BuildCommand(distutils.command.build.build):
     def initialize_options(self):
@@ -40,6 +45,3 @@ setup(
     cmdclass={"build": BuildCommand},
     manifest_dir=BASE_DIR,
 )
-
-# python setup.py bdist_wheel
-# twine upload dist/*

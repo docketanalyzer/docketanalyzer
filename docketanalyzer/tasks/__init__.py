@@ -1,5 +1,5 @@
 from docketanalyzer.tasks.task import Task, DocketTask
-from docketanalyzer import Registry
+from docketanalyzer import Registry, load_labels
 
 
 class TaskRegistry(Registry):
@@ -16,7 +16,9 @@ class TaskRegistry(Registry):
 task_registry = TaskRegistry()
 task_registry.find()
 
-task_registry.import_registered()
+
+for task in task_registry.all():
+    task.custom = False
 
 
 def load_tasks():
@@ -31,3 +33,7 @@ def load_task(name):
 
 def register_task(task_class):
     task_registry.register(task_class.__name__, task_class)
+
+
+for label in load_labels().values():
+    register_task(label.prediction_task_class)

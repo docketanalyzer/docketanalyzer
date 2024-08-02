@@ -8,9 +8,10 @@ class MotionTypeLabel(Label):
     minimal_keywords_any = ['motion', 'petition']
 
 
-class MotionDismissLabel(MotionTypeLabel):
-    name = 'motion to dismiss'
+if 0:
+    class MotionDismissLabel(MotionTypeLabel):
+        name = 'motion to dismiss'
 
 
-class MotioSummaryJudgmentLabel(MotionTypeLabel):
-    name = 'motion for summary judgment'
+    class MotioSummaryJudgmentLabel(MotionTypeLabel):
+        name = 'motion for summary judgment'

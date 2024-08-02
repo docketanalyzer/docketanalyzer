@@ -182,6 +182,27 @@ keys = [
         default=None,
         group='s3',
     ),
+    ConfigKey(
+        name='SELENIUM_HOST',
+        key_type='str',
+        description='\nConfigure Selenium\n',
+        default='http://localhost',
+        group='selenium',
+    ),
+    ConfigKey(
+        name='SELENIUM_PORT',
+        key_type='int',
+        default=4444,
+        group='selenium',
+    ),
+    ConfigKey(
+        name='PYPI_TOKEN',
+        key_type='str',
+        description='\nConfigure PyPI\n',
+        default=None,
+        mask=True,
+        group='pypi',
+    ),
 ]
 
 

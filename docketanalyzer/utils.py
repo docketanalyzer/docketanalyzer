@@ -7,7 +7,7 @@ import pandas as pd
 from pandas._libs.tslibs.np_datetime import OutOfBoundsDatetime
 from pathlib import Path
 import regex as re
-from docketanalyzer import config
+from docketanalyzer.config import config
 
 
 # Configuration
@@ -37,10 +37,28 @@ AWS_SECRET_ACCESS_KEY = config['AWS_SECRET_ACCESS_KEY']
 AWS_S3_BUCKET_NAME = config['AWS_S3_BUCKET_NAME']
 AWS_S3_ENDPOINT_URL = config['AWS_S3_ENDPOINT_URL']
 AWS_S3_REGION_NAME = config['AWS_S3_REGION_NAME']
+SELENIUM_HOST = config['SELENIUM_HOST']
+SELENIUM_PORT = config['SELENIUM_PORT']
+PYPI_TOKEN = config['PYPI_TOKEN']
 BUILD_MODE = os.environ.get('BUILD_MODE', False)
 
 
 # Other Utilities
+def configure(vars):
+    setting2name = {
+        'DATA_DIR': 'DA_DATA_DIR',
+    }
+    name2setting = {v: k for k, v in setting2name.items()}
+    names = config.names
+    for k, v in vars.items():
+        if k in names or setting2name.get(k) in names:
+            if k in name2setting:
+                k = name2setting[k]
+            globals()[k] = v
+        else:
+            print(f"Skipping invalid setting: {k}")
+
+
 def notabs(text):
     return '\n'.join([x.strip() for x in text.split('\n')]).strip()
 

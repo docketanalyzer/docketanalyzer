@@ -36,6 +36,10 @@ class EnvConfig():
         self.cli_command = cli_command
         if autoload_env:
             load_dotenv(Path.cwd() / '.env', override=True)
+    
+    @property
+    def names(self):
+        return [x.name for x in self.keys]
 
     def load(self, skip_env=False):
         config = {}

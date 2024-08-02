@@ -315,12 +315,38 @@ def check_idb(reset=False, quiet=True, local=False, skip_row_check=False):
     print(f"\n\nIDB check complete!\n\nUse load_dataset('idb') to load the dataset in your code.")
 
 
+import click
+
 @click.command('check-idb')
 @click.option('--reset', is_flag=True, help="Scrap any existing data and start fresh.")
 @click.option('--quiet', '-q', is_flag=True, help="Automatically accepts all prompts.")
 @click.option('--local', '-l', is_flag=True, help="Force the use of local core dataset.")
 def check_idb_command(reset, quiet, local):
     """
-    Downloads raw IDB data, preprocesses it, and adds it to index.idb_dataset.
+    Download, preprocess, and index FJC's Integrated Database (IDB) court records.
+
+    This command handles the Integrated Database (IDB) from the Federal Judicial Center (FJC),
+    which contains comprehensive data on federal court cases. The command performs the following steps:
+    1. Downloads the raw IDB data if not already present
+    2. Preprocesses the data to fit the required format
+    3. Adds the processed data to the index.idb_dataset
+
+    The IDB is a valuable resource for analyzing trends and patterns in federal court cases,
+    providing researchers and analysts with detailed information on case filings and outcomes.
+
+    Options:
+    --reset: If set, removes any existing IDB data and starts the process from scratch.
+             Use this option if you want to ensure you have the most up-to-date data.
+
+    --quiet, -q: Runs the command in quiet mode, automatically accepting all prompts.
+                 Useful for running in automated scripts or when you're sure about the process.
+
+    --local, -l: Forces the use of the local core dataset instead of fetching from a remote source.
+                 This can be useful for offline work or when you want to use a specific local version.
+
+    Example usage:
+    da check-idb  # Normal operation
+    da check-idb --reset  # Start fresh with new data
+    da check-idb --quiet --local  # Use local data, accept all prompts automatically
     """
     check_idb(reset, quiet, local)

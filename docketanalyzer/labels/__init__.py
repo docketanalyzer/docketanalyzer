@@ -16,8 +16,6 @@ class LabelRegistry(Registry):
 label_registry = LabelRegistry()
 label_registry.find()
 
-label_registry.import_registered()
-
 
 def load_labels(*args, **kwargs):
     return {x.name: x(*args, **kwargs) for x in label_registry.all()}

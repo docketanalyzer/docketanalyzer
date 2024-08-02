@@ -158,16 +158,14 @@ class DocketIndex:
     def make_batch(self, docket_ids):
         return DocketBatch(docket_ids, self)
 
-    def add_from_html(self, html, court, append_if_exists=False, add_to_dataset=True):
-        docket_parsed = self.juri.parse(html, court)
-        docket_id = f"{docket_parsed['court_id']}__{docket_parsed['docket_number'].replace(':', '_')}"
+    def add_from_html(self, html, docket_id=None, court=None, skip_duplicates=True, add_to_dataset=True):
+        if docket_id is None:
+            if court is None:
+                raise ValueError("Either docket_id or court must be provided.")
+            docket_parsed = self.juri.parse(html, court)
+            docket_id = f"{docket_parsed['court_id']}__{docket_parsed['docket_number'].replace(':', '_')}"
         manager = self[docket_id]
-        if not manager.dir.exists():
-            manager.dir.mkdir(parents=True)
-        if append_if_exists or not manager.docket_html_paths:
-            manager.add_docket_html(html)
-            if add_to_dataset:
-                self.dataset.add(pd.DataFrame({'docket_id': [docket_id]}))
+        manager.add_docket_html(html, skip_duplicates=skip_duplicates, add_to_dataset=add_to_dataset)
         return manager
 
     def check_docket_dirs(self):
@@ -251,10 +249,17 @@ class DocketBatch:
                 raise ValueError(f"Invalid value '{x}'.")
 
         data = pd.DataFrame(data)
-        data = data.rename(columns={'court_id': 'court', 'nature_of_suit': 'nature_suit'})
+        data = data.drop(columns=['ordered_by'])
+        data = data.rename(columns={
+            'court_id': 'court', 
+            'nature_of_suit': 'nature_suit',
+            'assigned_to_str': 'assigned_judge',
+            'referred_to_str': 'referred_judge',
+        })
+
         data['court'].apply(lambda x: validate(x, choices['DistrictCourt']))
         data['case_type'] = data['docket_number'].apply(lambda x: x.split('-')[1])
-        data['case_type'] = data['case_type'].apply(lambda x: x if x in values['CaseType'] else 'other')
+        data['case_type'] = data['case_type'].apply(lambda x: x if x in choices['CaseType'] else 'other')
         data['nature_suit'] = data['nature_suit'].apply(lambda x: None if not x else '_' + x.split()[0].strip())
         data['nature_suit'].apply(lambda x: None if pd.isnull(x) else validate(x, choices['NatureSuit']))
         data['jury_demand'] = data['jury_demand'].apply(lambda x: None if not x else values['JuryDemand'][x])
@@ -315,7 +320,7 @@ class DocketBatch:
                 raise ValueError(f"Column '{col}' not in counsel columns.")
         return parties, counsel
 
-    def get_entries(self, add_shuffle_number=False):
+    def get_entries(self, add_predictions=False, add_shuffle_number=False):
         data = []
         for manager in self:
             docket_json = manager.docket_json
@@ -330,10 +335,11 @@ class DocketBatch:
         if not len(data):
             return None
         data = pd.concat(data)
+        data = data.rename(columns={'document_number': 'entry_number'})
         data['entry_id'] = data.apply(lambda x: f"{x['docket_id']}__{x['row_number']}", axis=1)
         data['date_filed'] = pd.to_datetime(data['date_filed'], errors='coerce')
         data['pacer_doc_id'] = data['pacer_doc_id'].astype(pd.Int64Dtype())
-        data['document_number'] = data['document_number'].astype(pd.Int64Dtype())
+        data['entry_number'] = data['entry_number'].astype(pd.Int64Dtype())
         data['pacer_seq_no'] = data['pacer_seq_no'].astype(pd.Int64Dtype())
         data['date_entered'] = pd.to_datetime(data['date_entered'], errors='coerce')
 
@@ -341,11 +347,38 @@ class DocketBatch:
         for col in data.columns:
             if cols is not None and col not in cols:
                 raise ValueError(f"Column '{col}' not in entry columns.")
+        
+        if add_predictions:
+            predictions = self.index.label_prediction_dataset.filter(entry_id__in=data['entry_id']).pandas()
+            predictions = predictions.groupby('entry_id')['label'].apply(list)
+            predictions = predictions.reset_index()
+            predictions.columns = ['entry_id', 'labels']
+            data = data.merge(predictions, on='entry_id', how='left')
+            data['labels'] = data['labels'].apply(lambda x: [] if not isinstance(x, list) else x)
         return data
 
     @property
     def entries(self):
         return self.get_entries()
+
+    @property
+    def docs(self):
+        data = []
+        for manager in self:
+            for path in manager.pdf_paths:
+                entry_number, attachment_number = manager.parse_document_path(path)
+                data.append({
+                    'docket_id': manager.docket_id,
+                    'entry_number': entry_number,
+                    'attachment_number': attachment_number,
+                })
+        if not len(data):
+            return None
+        data = pd.DataFrame(data)
+        data['doc_id'] = data.apply(lambda x: f"{x['docket_id']}__{x['entry_number']}_{x['attachment_number'] or 0}", axis=1)
+        data['entry_number'] = data['entry_number'].astype(pd.Int64Dtype())
+        data['attachment_number'] = data['attachment_number'].astype(pd.Int64Dtype())
+        return data
 
     def __iter__(self):
         for docket_id in self.docket_ids:

@@ -14,6 +14,7 @@ class Task:
     data_cols = []
     workers = None
     inactive = False
+    custom = True
 
     def __init__(self, dataset=None, selected_ids=None, **kwargs):
         if dataset is None:

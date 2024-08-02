@@ -6,7 +6,7 @@ class LabelPredictions(DocketTask):
     name = None
     batch_size = 20000
     workers = None
-    depends_on = ['add-entries']
+    depends_on = ['parse-dockets']
     label_name = None
 
     def post_reset(self, selected_ids):

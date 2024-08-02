@@ -285,7 +285,7 @@ class CoreDataset:
             with conn.begin():
                 conn.execute(DDL(f'DROP TABLE IF EXISTS {self.name}'))
 
-    def add(self, data, verbose=True):
+    def add(self, data, deduplicate=False, verbose=True):
         pk = self.pk
         columns = self.columns
 
@@ -308,10 +308,11 @@ class CoreDataset:
                 print(f"Warning: We are removing the following columns as they are not in the existing data: {dropped_cols}")
             data = data[columns]
 
-        total_records = len(self)
-        if total_records:
-            ids = self.all().values_list(pk, flat=True)
-            data = data[~data[pk].isin(ids)]
+        if deduplicate:
+            total_records = len(self)
+            if total_records:
+                ids = self.all().values_list(pk, flat=True)
+                data = data[~data[pk].isin(ids)]
 
         if len(data):
             try:

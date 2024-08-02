@@ -13,8 +13,6 @@ class PipelineRegistry(Registry):
 pipeline_registry = PipelineRegistry()
 pipeline_registry.find()
 
-pipeline_registry.import_registered()
-
 
 def pipeline(name, **kwargs):
     for pipeline_class in pipeline_registry.all():
