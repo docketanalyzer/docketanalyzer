@@ -27,5 +27,6 @@ toolz
 torch
 tqdm
 transformers
+twine
 uuid
 wget
