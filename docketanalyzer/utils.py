@@ -141,7 +141,6 @@ def lazy_load(import_path, object_name):
         @classmethod
         def cls_object(cls):
             if 'object' not in cls.cache:
-                print('loaded', cls.object_name)
                 module = __import__(cls.import_path, fromlist=[cls.object_name])
                 cls.cache['object'] = getattr(module, cls.object_name)
             return cls.cache['object']
@@ -166,7 +165,6 @@ def lazy_load(import_path, object_name):
     
     LazyLoad.import_path = import_path
     LazyLoad.object_name = object_name
-    print('created', object_name)
     return LazyLoad()
 
 
