@@ -4,7 +4,7 @@ import docketanalyzer.utils as utils
 from docketanalyzer.core.registry import Registry
 import docketanalyzer.choices as choices
 
-from docketanalyzer.utils import LazyLoad
+from docketanalyzer.utils import lazy_load
 
 imports = {
     'core.chat': ['Chat', 'ChatThread'],
@@ -19,15 +19,15 @@ imports = {
     'core.embeddings': ['Embeddings', 'EmbeddingSample', 'create_embeddings', 'load_embeddings'],
     'pipelines': ['Pipeline', 'pipeline'],
     'routines': ['Routine', 'training_routine'],
-    'labels': ['Label', 'load_labels', 'load_label', 'register_label'],
-    'tasks': ['Task', 'DocketTask', 'load_tasks', 'load_task', 'register_task'],
+    'labels': ['Label', 'LabelRegistry', 'load_labels', 'load_label', 'register_label'],
+    'tasks': ['Task', 'DocketTask', 'TaskRegistry', 'load_tasks', 'load_task', 'register_task'],
 }
 
 
 __all__ = ['EnvConfig', 'ConfigKey', 'utils', 'Registry', 'choices']
 for module, names in imports.items():
     for name in names:
-        globals()[name] = LazyLoad(f'docketanalyzer.{module}', name)
+        globals()[name] = lazy_load(f'docketanalyzer.{module}', name)
         __all__.append(name)
 
 
@@ -41,6 +41,7 @@ if not BUILD_MODE:
             cli.add_command(command)
         __all__.append('dev')
     except ImportError as e:
+        raise e
         pass
 
 

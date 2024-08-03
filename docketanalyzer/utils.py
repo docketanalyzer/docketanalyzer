@@ -124,25 +124,50 @@ class timeit:
         print(f"{self.tag} took {execution_time:.4f} seconds")
 
 
-class LazyLoad:
-    def __init__(self, import_path, object_name):
-        self.import_path = import_path
-        self.object_name = object_name
-        self._object = None
+def lazy_load(import_path, object_name):
+    class LazyLoad():
+        cache = {}
+        import_path = None
+        object_name = None
 
-    def __call__(self, *args, **kwargs):
-        if self._object is None:
-            self._load()
-        return self._object(*args, **kwargs)
+        def __new__(cls, *args, **kwargs):
+            if len(args) == 3 and isinstance(args[1], tuple):
+                child_name, (lazy_parent,), child_attrs = args
+                parent_cls = cls.cls_object()
+                new_cls = type(child_name, (parent_cls,), child_attrs)
+                return new_cls
+            return super().__new__(cls)
+        
+        @classmethod
+        def cls_object(cls):
+            if 'object' not in cls.cache:
+                print('loaded', cls.object_name)
+                module = __import__(cls.import_path, fromlist=[cls.object_name])
+                cls.cache['object'] = getattr(module, cls.object_name)
+            return cls.cache['object']
 
-    def __getattr__(self, name):
-        if self._object is None:
-            self._load()
-        return getattr(self._object, name)
+        @property
+        def object(self):
+            return type(self).cls_object()
+            
+        def __call__(self, *args, **kwargs):
+            return self.object(*args, **kwargs)
 
-    def _load(self):
-        module = __import__(self.import_path, fromlist=[self.object_name])
-        self._object = getattr(module, self.object_name)
+        def __getattr__(self, name):
+            return getattr(self.object, name)
+        
+        @classmethod
+        def __instancecheck__(cls, instance):
+            return isinstance(instance, cls.cls_object())
+
+        @classmethod
+        def __subclasscheck__(cls, subclass):
+            return issubclass(subclass, cls.cls_object())
+    
+    LazyLoad.import_path = import_path
+    LazyLoad.object_name = object_name
+    print('created', object_name)
+    return LazyLoad()
 
 
 # Extraction Utilities
