@@ -2,6 +2,7 @@ from datetime import datetime, date
 from dateutil.parser._parser import ParserError
 import os
 import signal
+import subprocess
 import numpy as np
 import pandas as pd
 from pandas._libs.tslibs.np_datetime import OutOfBoundsDatetime
@@ -169,6 +170,32 @@ def lazy_load(import_path, object_name):
     LazyObject.import_path = import_path
     LazyObject.object_name = object_name
     return LazyObject()
+
+
+def bash(cmd):
+    out = subprocess.run(cmd, capture_output=True, text=True)
+    return out.stdout.strip()
+
+
+def rotate_ip():
+    """
+    Requires PIA VPN to be installed and running.
+    """
+    current_region = bash(['piactl', 'get', 'region'])
+    regions = bash(['piactl', 'get', 'regions']).split('\n')
+    regions = [
+        x for x in regions
+        if x not in ['auto', current_region] and
+        not x.startswith('dedicated')
+    ]
+    np.random.shuffle(regions)
+    bash(['piactl', 'set', 'region', regions[0]])
+    bash(['piactl', 'connect'])
+    while 1:
+        time.sleep(1)
+        status = bash(['piactl', 'get', 'connectionstate'])
+        if status == 'Connected':
+            break
 
 
 # Extraction Utilities
