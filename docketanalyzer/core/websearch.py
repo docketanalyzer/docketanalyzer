@@ -112,9 +112,15 @@ class WebSearch:
     def start(self):
         if not self.running:
             self.config_dir.mkdir(parents=True, exist_ok=True)
-            (self.config_dir / 'limiter.toml').write_text(limiter_content)
-            (self.config_dir / 'uwsgi.ini').write_text(uwsgi_content)
-            (self.config_dir / 'settings.yml').write_text(settings_content)
+            limiter_path = self.config_dir / 'limiter.toml'
+            if not limiter_path.exists():
+                limiter_path.write_text(limiter_content)
+            uwsgi_path = self.config_dir / 'uwsgi.ini'
+            if not uwsgi_path.exists():
+                uwsgi_path.write_text(uwsgi_content)
+            settings_path = self.config_dir / 'settings.yml'
+            if not settings_path.exists():
+                settings_path.write_text(settings_content)
             docker_cmd = f"docker run -d --name searxng -p {self.port}:8080 -v {self.config_dir}:/etc/searxng --restart always searxng/searxng:latest"
             os.system(docker_cmd)
             while 1:
