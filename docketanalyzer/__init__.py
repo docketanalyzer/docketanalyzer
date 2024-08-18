@@ -41,8 +41,7 @@ if not BUILD_MODE:
         for command in command_registry.all():
             cli.add_command(command)
         __all__.append('dev')
-    except ImportError as e:
-        raise e
+    except (ImportError, ModuleNotFoundError):
         pass
 
 
