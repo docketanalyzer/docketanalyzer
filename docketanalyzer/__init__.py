@@ -13,6 +13,7 @@ imports = {
     'core.s3': ['S3Utility'],
     'core.juri': ['JuriscraperUtility'],
     'core.ocr': ['extract_pages'],
+    'core.websearch': ['WebSearch'],
     'core.core_dataset': ['CoreDataset', 'load_dataset'],
     'core.docket_manager': ['DocketManager'],
     'core.docket_index': ['Index', 'DocketIndex', 'DocketBatch', 'load_docket_index'],

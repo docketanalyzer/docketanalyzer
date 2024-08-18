@@ -210,6 +210,12 @@ keys = [
         group='selenium',
     ),
     ConfigKey(
+        name='WEB_SEARCH_PORT',
+        key_type='int',
+        default=8080,
+        group='websearch',
+    ),
+    ConfigKey(
         name='PYPI_TOKEN',
         key_type='str',
         description='\nConfigure PyPI\n',
