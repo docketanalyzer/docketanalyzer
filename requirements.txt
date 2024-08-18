@@ -1,8 +1,10 @@
+accelerate
 anthropic
 awscli
 boto3
 bs4
 click
+cohere
 datasets
 django
 django-allauth
@@ -26,11 +28,14 @@ juriscraper
 marko[toc]
 openai
 pandas
+pdfplumber
 psycopg2-binary
 pydantic
 PyJWT
 pymemcache
+pytesseract
 python-dotenv
+python-magic
 regex
 requests
 scikit-learn

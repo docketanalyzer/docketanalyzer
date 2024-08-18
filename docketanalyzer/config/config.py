@@ -96,6 +96,20 @@ keys = [
         group='openai',
     ),
     ConfigKey(
+        name='COHERE_API_KEY',
+        key_type='str',
+        description='\nConfigure Cohere\n',
+        default=None,
+        mask=True,
+        group='cohere',
+    ),
+    ConfigKey(
+        name='COHERE_DEFAULT_CHAT_MODEL',
+        key_type='str',
+        default='command-r-plus',
+        group='cohere',
+    ),
+    ConfigKey(
         name='TOGETHER_API_KEY',
         key_type='str',
         description='\nConfigure Together AI\n',

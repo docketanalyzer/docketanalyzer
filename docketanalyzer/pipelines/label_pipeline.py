@@ -40,3 +40,41 @@ class LabelPipeline(Pipeline):
         if not output_scores:
             preds = [p['label'] for p in preds]
         return preds
+
+
+
+class MultilabelPipeline(Pipeline):
+    name = 'multilabel'
+    model_name = None
+    model_class = AutoModelForSequenceClassification
+    pipeline_name = 'text-classification'
+    pipeline_defaults = {
+        'function_to_apply': 'sigmoid',
+    }
+    forward_defaults = {
+        'truncation': True,
+        'max_length': 256,
+    }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+    
+    def load_model(self):
+        model = super().load_model()
+        if model.device.type == 'cuda':
+            model.half()
+        return model
+
+    def get_excluded_pred(self, **kwargs):
+        return {'label': 'False', 'score': 1.0}
+
+    def __call__(self, texts, batch_size=1, show_progress=True, **kwargs):
+        preds = self.predict(
+            texts, batch_size=batch_size, show_progress=show_progress, 
+            top_k=None, **kwargs,
+        )
+        preds = [
+            [x['label'] for x in pred if x['score'] > 0.5]
+            for pred in preds
+        ]
+        return preds

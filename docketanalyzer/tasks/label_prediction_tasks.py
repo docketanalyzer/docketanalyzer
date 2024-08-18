@@ -5,7 +5,6 @@ from .task import DocketTask
 class LabelPredictions(DocketTask):
     name = None
     batch_size = 20000
-    workers = None
     depends_on = ['parse-dockets']
     label_name = None
 
@@ -27,14 +26,14 @@ class LabelPredictions(DocketTask):
             self.index.label_prediction_dataset.filter(docket_id__in=docket_ids, label=self.label.name).delete()
         except AttributeError:
             pass
-        entries = self.index.make_batch([x.docket_id for x in list(batch)]).get_entries()
+        entries = self.index.make_batch(docket_ids).get_entries()
         if self.label.parent_labels is not None:
             parent_label_names = [x.name for x in self.label.parent_labels]
             keep_entries = self.index.label_prediction_dataset.filter(docket_id__in=docket_ids, label__in=parent_label_names)
             keep_entries = list(keep_entries.pandas('entry_id')['entry_id'].unique())
             entries = entries[entries['entry_id'].isin(keep_entries)]
         entries['label'] = self.label.name
-        entries['value'] = self.label.model(entries['description'], batch_size=8)
+        entries['value'] = self.label.model(entries['description'].tolist(), batch_size=8)
         entries = entries[entries['value']]
         entries['pred_id'] = entries['entry_id'] + '__' + self.label.slug
         entries = entries[['pred_id', 'entry_id', 'docket_id', 'label']]

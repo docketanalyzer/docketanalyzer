@@ -24,6 +24,8 @@ OPENAI_API_KEY = config['OPENAI_API_KEY']
 OPENAI_ORG_ID = config['OPENAI_ORG_ID']
 OPENAI_DEFAULT_CHAT_MODEL = config['OPENAI_DEFAULT_CHAT_MODEL']
 OPENAI_DEFAULT_EMBEDDING_MODEL = config['OPENAI_DEFAULT_EMBEDDING_MODEL']
+COHERE_API_KEY = config['COHERE_API_KEY']
+COHERE_DEFAULT_CHAT_MODEL = config['COHERE_DEFAULT_CHAT_MODEL']
 TOGETHER_API_KEY = config['TOGETHER_API_KEY']
 TOGETHER_DEFAULT_CHAT_MODEL = config['TOGETHER_DEFAULT_CHAT_MODEL']
 POSTGRES_HOST = config['POSTGRES_HOST']
@@ -125,7 +127,7 @@ class timeit:
 
 
 def lazy_load(import_path, object_name):
-    class LazyLoad():
+    class LazyObject():
         cache = {}
         import_path = None
         object_name = None
@@ -163,9 +165,9 @@ def lazy_load(import_path, object_name):
         def __subclasscheck__(cls, subclass):
             return issubclass(subclass, cls.cls_object())
     
-    LazyLoad.import_path = import_path
-    LazyLoad.object_name = object_name
-    return LazyLoad()
+    LazyObject.import_path = import_path
+    LazyObject.object_name = object_name
+    return LazyObject()
 
 
 # Extraction Utilities

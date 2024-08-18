@@ -33,6 +33,12 @@ class DocketIndex:
         if 'party_dataset' not in self.cache:
             self.cache['party_dataset'] = load_dataset('parties', pk='party_id', local=self.local)
         return self.cache['party_dataset']
+    
+    @property
+    def party_entity_dataset(self):
+        if 'party_entity_dataset' not in self.cache:
+            self.cache['party_entity_dataset'] = load_dataset('party_entities', pk='clean_name', local=self.local)
+        return self.cache['party_entity_dataset']
 
     @property
     def counsel_dataset(self):
@@ -83,6 +89,12 @@ class DocketIndex:
         return self.cache['label_eval_dataset']
 
     @property
+    def span_prediction_dataset(self):
+        if 'span_prediction_dataset' not in self.cache:
+            self.cache['span_prediction_dataset'] = load_dataset('span_predictions', pk='pred_id', local=self.local)
+        return self.cache['span_prediction_dataset']
+
+    @property
     def s3(self):
         if 's3' not in self.cache:
             from docketanalyzer import S3Utility
@@ -95,13 +107,6 @@ class DocketIndex:
             from docketanalyzer import JuriscraperUtility
             self.cache['juri'] = JuriscraperUtility()
         return self.cache['juri']
-
-    @property
-    def ocr(self):
-        if 'ocr' not in self.cache:
-            from docketanalyzer import OCRUtility
-            self.cache['ocr'] = OCRUtility()
-        return self.cache['ocr']
     
     @property
     def labels(self):
@@ -189,7 +194,7 @@ class DocketIndex:
                 self.dataset.add(pd.DataFrame(batch))
         self.dataset.config['last_checked'] = str(datetime.now())
 
-    def sync(self, path='', delete=False, exact_timestamps=True, exclude=None, push=True, confirm=False):
+    def sync(self, path='', delete=False, exact_timestamps=True, exclude=None, push=True, confirm=False, **args):
         path = Path(path)
         try:
             path = path.relative_to(self.data_dir)
@@ -207,17 +212,18 @@ class DocketIndex:
             from_path=path, to_path=path, delete=delete,
             exact_timestamps=exact_timestamps,
             confirm=confirm, exclude=exclude,
+            **args
         )
         if push:
             self.s3.push(**args)
         else:
             self.s3.pull(**args)
     
-    def push(self, path=None, delete=False, exact_timestamps=True, exclude=None, confirm=False):
-        self.sync(path, delete, exact_timestamps, exclude, push=True, confirm=confirm)
+    def push(self, path=None, delete=False, exact_timestamps=True, exclude=None, confirm=False, **args):
+        self.sync(path, delete, exact_timestamps, exclude, push=True, confirm=confirm, **args)
 
-    def pull(self, path=None, delete=False, exact_timestamps=True, exclude=None, confirm=False):
-        self.sync(path, delete, exact_timestamps, exclude, push=False, confirm=confirm)
+    def pull(self, path=None, delete=False, exact_timestamps=True, exclude=None, confirm=False, **args):
+        self.sync(path, delete, exact_timestamps, exclude, push=False, confirm=confirm, **args)
 
     def __getitem__(self, docket_id):
         return DocketManager(docket_id, data_dir=self.data_dir, index=self)

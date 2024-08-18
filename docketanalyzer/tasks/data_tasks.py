@@ -1,4 +1,7 @@
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, as_completed
+import multiprocessing
+import os
+import magic
 import threading
 import numpy as np
 import pandas as pd
@@ -155,7 +158,6 @@ class AddPartiesAndCounsel(DocketTask):
     """
     name = 'add-parties-and-counsel'
     batch_size = 20000
-    workers = None
     depends_on = ['parse-dockets']
 
     def post_reset(self, selected_ids):
@@ -184,18 +186,42 @@ class AddPartiesAndCounsel(DocketTask):
             self.index.counsel_dataset.add(counsel)
 
 
+def process_document(manager, entry_number, attachment_number, overwrite, max_pages, threads_per_worker):
+    os.environ['OMP_THREAD_LIMIT'] = str(threads_per_worker)
+    return manager.extract_document_text(
+        entry_number, attachment_number, 
+        overwrite=overwrite, max_pages=max_pages,
+    )
+
+
 class OCRDocuments(DocketTask):
     """
-    OCR any case documents.
+    Extract text from case documents.
     """
     name = 'ocr-documents'
-    batch_size = 20000
+    batch_size = 10000
     depends_on = ['parse-dockets']
     overwrite = False
+    workers = max(1, int(multiprocessing.cpu_count() * 0.8))
+    threads_per_worker = 1
+    max_pages = 100
 
-    def process_row(self, row):
-        manager = self.index[row.docket_id]
-        for pdf_path in manager.pdf_paths:
-            entry_number, attachment_number = manager.parse_document_path(pdf_path)
-            manager.ocr_document(entry_number, attachment_number, overwrite=self.overwrite)
-   
+    def prepare(self):
+        self.mime = magic.Magic(mime=True)
+
+    def process(self, batch):
+        with ProcessPoolExecutor(max_workers=self.workers) as executor:
+            futures = []
+            for row in batch:
+                manager = self.index[row.docket_id]
+                for pdf_path in manager.pdf_paths:
+                    mime_type = self.mime.from_file(pdf_path)
+                    if mime_type == 'application/pdf':
+                        entry_number, attachment_number = manager.parse_document_path(pdf_path)
+                        futures.append(executor.submit(
+                            process_document, manager, entry_number, attachment_number, 
+                            self.overwrite, self.max_pages, self.threads_per_worker,
+                        ))
+            for future in tqdm(as_completed(futures), total=len(futures), desc="Processing documents"):
+                ocr_path = future.result()
+                #print(f"Processed {ocr_path}")

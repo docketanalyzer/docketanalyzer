@@ -1,4 +1,4 @@
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from django.db.models import F, Q
 from django.utils import timezone
 import pandas as pd
@@ -12,7 +12,6 @@ class Task:
     dataset_args = {}
     depends_on = []
     data_cols = []
-    workers = None
     inactive = False
     custom = True
 
@@ -119,20 +118,9 @@ class Task:
             done = False
             total = 0
             self.prepare()
-            if self.workers is None:
-                for batch in query.batch(self.batch_size):
-                    total += len(batch)
-                    self.run_batch(batch)
-            else:
-                with ThreadPoolExecutor(max_workers=self.workers) as executor:
-                    futures = []
-                    for batch in query.batch(self.batch_size):
-                        total += len(batch)
-                        futures.append(executor.submit(self.run_batch, batch))
-
-                    for future in tqdm(as_completed(futures), total=len(futures)):
-                        pass
-
+            for batch in query.batch(self.batch_size):
+                total += len(batch)
+                self.run_batch(batch)
         return done
 
     def prepare(self):

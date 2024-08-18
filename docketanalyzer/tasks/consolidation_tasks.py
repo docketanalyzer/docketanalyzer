@@ -9,7 +9,6 @@ class ConsolidateSearchDocket(DocketTask):
     """
     name = 'consolidate-search'
     batch_size = 20000
-    workers = None
     depends_on = [
         'parse-dockets', 'find-idb-entries', 
         'label-predict-answer', 'label-predict-complaint',

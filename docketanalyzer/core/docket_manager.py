@@ -51,10 +51,6 @@ class DocketManager():
         return self.index.juri
 
     @property
-    def ocr(self):
-        return self.index.ocr
-
-    @property
     def dir(self):
         return self.data_dir / 'dockets' / self.docket_id
 
@@ -136,29 +132,47 @@ class DocketManager():
         attachment_number = attachment_number if attachment_number else None
         return entry_number, attachment_number
 
-    def document_get_name(self, entry_number, attachment_number=None):
-        return f'{entry_number}_{attachment_number or 0}'
+    def get_document_name(self, entry_number, attachment_number=None):
+        attachment_number = 0 if pd.isnull(attachment_number) else attachment_number
+        return f'{int(entry_number)}_{int(attachment_number)}'
 
     def get_document_path(self, entry_number, attachment_number=None, ocr=False):
-        name = self.document_get_name(entry_number, attachment_number)
+        name = self.get_document_name(entry_number, attachment_number)
         if ocr:
             return self.dir / f'doc.ocr.{name}.json'
         return self.dir / f'doc.pdf.{name}.pdf'
     
-    def ocr_document(self, entry_number, attachment_number=None, overwrite=False):
+    def extract_document_text(self, entry_number, attachment_number=None, overwrite=False, max_pages=None):
+        from docketanalyzer import extract_pages
         pdf_path = self.get_document_path(entry_number, attachment_number)
         ocr_path = self.get_document_path(entry_number, attachment_number, ocr=True)
-        if overwrite or not ocr_path.exists():
-            ocr_text = self.ocr.extract_text(pdf_path)
-            ocr_path.write_text(json.dumps(ocr_text, indent=2, default=json_default))
+        do_ocr = overwrite or not ocr_path.exists()
+        if not do_ocr and ocr_path.exists():
+            old_max_pages = json.loads(ocr_path.read_text()).get('max_pages', None)
+            if old_max_pages is not None and (max_pages is None or old_max_pages < max_pages):
+                do_ocr = True
+        if do_ocr:
+            pages = extract_pages(pdf_path, max_pages=max_pages)
+            if pages is not None:
+                data = {'pages': pages}
+                if max_pages is not None:
+                    data['max_pages'] = max_pages
+                ocr_path.write_text(json.dumps(data, indent=2, default=json_default))
+        return ocr_path
 
     def push(self, name=None, delete=False, exact_timestamps=True, exclude=None, confirm=False):
-        path = self.dir if name is None else self.dir / name
-        self.index.push(path, delete, exact_timestamps, exclude, confirm=confirm)
+        args = {}
+        if name is not None:
+            args['include'] = name
+            exclude = '*'
+        self.index.push(path, delete, exact_timestamps, exclude, confirm=confirm, **args)
 
     def pull(self, name=None, delete=False, exact_timestamps=True, exclude=None, confirm=False):
-        path = self.dir if name is None else self.dir / name
-        self.index.pull(path, delete, exact_timestamps, exclude, confirm=confirm)
+        args = {}
+        if name is not None:
+            args['include'] = name
+            exclude = '*'
+        self.index.pull(self.dir, delete, exact_timestamps, exclude, confirm=confirm, **args)
 
     @property
     def tasks(self):

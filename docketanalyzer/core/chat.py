@@ -1,5 +1,6 @@
 from copy import deepcopy
 from anthropic import Anthropic
+from cohere import Client as CohereClient
 from groq import Groq
 import instructor
 from openai import OpenAI
@@ -13,6 +14,7 @@ from docketanalyzer.utils import (
     GROQ_API_KEY, GROQ_DEFAULT_CHAT_MODEL,
     OPENAI_API_KEY, OPENAI_ORG_ID,
     OPENAI_DEFAULT_CHAT_MODEL, OPENAI_DEFAULT_EMBEDDING_MODEL,
+    COHERE_API_KEY, COHERE_DEFAULT_CHAT_MODEL,
     TOGETHER_API_KEY, TOGETHER_DEFAULT_CHAT_MODEL,
 )
 
@@ -27,6 +29,8 @@ class Chat:
                 api_key = OPENAI_API_KEY
             elif mode == 'groq':
                 api_key = GROQ_API_KEY
+            elif mode == 'cohere':
+                api_key = COHERE_API_KEY
             elif mode == 'together':
                 api_key = TOGETHER_API_KEY
         self.api_key = api_key
@@ -49,6 +53,11 @@ class Chat:
                 api_key=self.api_key,
             ), mode=instructor.Mode.JSON)
             self.default_model = GROQ_DEFAULT_CHAT_MODEL
+        elif mode == 'cohere':
+            self.client = instructor.from_cohere(CohereClient(
+                api_key=self.api_key,
+            ))
+            self.default_model = COHERE_DEFAULT_CHAT_MODEL
         elif mode == 'together':
             if base_url is None:
                 base_url = 'https://api.together.xyz/v1'
@@ -79,8 +88,8 @@ class Chat:
 
     def chat(
         self, messages, system=None, model=None,
-        response_model=None, temperature=0.0000000001, seed=42,
-        cache_dir=None, verbose=False, **kwargs
+        response_model=None, temperature=0.00000000000001, seed=42,
+        cache_dir=None, verbose=False, return_response=False, **kwargs
     ):
         if model is None:
             model = self.default_model
@@ -113,13 +122,16 @@ class Chat:
 
         if response is None:
             response = self.client.chat.completions.create(**args)
-            if response_model is None:
-                if self.mode == 'anthropic':
-                    response = response.content[0].text
+            if not return_response:
+                if response_model is None:
+                    if self.mode == 'anthropic':
+                        response = response.content[0].text
+                    elif self.mode == 'cohere':
+                        response = response.text
+                    else:
+                        response = response.choices[0].message.content
                 else:
-                    response = response.choices[0].message.content
-            else:
-                response = response.dict()
+                    response = response.dict()
             if cache_path is not None:
                 cache_path.parent.mkdir(parents=True, exist_ok=True)
                 cache_path.write_text(json.dumps({'response': response}, indent=2))

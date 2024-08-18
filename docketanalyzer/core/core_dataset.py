@@ -285,7 +285,7 @@ class CoreDataset:
             with conn.begin():
                 conn.execute(DDL(f'DROP TABLE IF EXISTS {self.name}'))
 
-    def add(self, data, deduplicate=False, verbose=True):
+    def add(self, data, deduplicate=False, verbose=True, dtype={}):
         pk = self.pk
         columns = self.columns
 
@@ -328,27 +328,27 @@ class CoreDataset:
                 f.seek(0)
                 self.django_model.objects.from_csv(f)
             else:
+                dtype = {pk: String(128), 'id': Integer()} | dtype
                 if start_id != 0:
-                    data.to_sql(self.name, self.engine, if_exists='append', index=False, dtype={
-                        pk: String(128), 'id': Integer(),
-                    })
+                    data.to_sql(self.name, self.engine, if_exists='append', index=False, dtype=dtype)
                 else:
-                    data.to_sql('temp', self.engine, if_exists='replace', index=False, dtype={
-                        pk: String(128), 'id': Integer(),
-                    })
+                    data.to_sql('temp', self.engine, if_exists='replace', index=False, dtype=dtype)
                     metadata = MetaData()
                     schema = Table('temp', metadata, autoload_with=self.engine)
                     with self.engine.connect() as conn:
                         with conn.begin():
                             table_meta = MetaData()
                             table = Table(self.name, table_meta,
-                                Column(pk, String(128), primary_key=True),
+                                Column(pk, dtype.get(pk), primary_key=True),
                                 *[Column(col.name, col.type) for col in schema.columns if col.name != pk],
                                 extend_existing=True
                             )
                             table.drop(bind=self.engine, checkfirst=True)
                             table.create(bind=self.engine)
-                            col_names = ', '.join([col.name for col in schema.columns])
+                            if self.psql:
+                                col_names = ', '.join([f'"{col.name}"' for col in schema.columns])
+                            else:
+                                col_names = ', '.join([f'[{col.name}]' for col in schema.columns])
                             sql = f'INSERT INTO {self.name} ({col_names}) SELECT {col_names} FROM temp'
                             conn.execute(DDL(sql))
                             sql = 'DROP TABLE temp'
