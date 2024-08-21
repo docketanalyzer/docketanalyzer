@@ -22,6 +22,7 @@ imports = {
     'routines': ['Routine', 'training_routine'],
     'labels': ['Label', 'LabelRegistry', 'load_labels', 'load_label', 'register_label'],
     'tasks': ['Task', 'DocketTask', 'TaskRegistry', 'load_tasks', 'load_task', 'register_task'],
+    'cli': ['cli'],
 }
 
 

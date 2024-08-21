@@ -3,6 +3,7 @@ from dateutil.parser._parser import ParserError
 import os
 import signal
 import subprocess
+import time
 import numpy as np
 import pandas as pd
 from pandas._libs.tslibs.np_datetime import OutOfBoundsDatetime
@@ -234,7 +235,7 @@ def extract_entered_date(text):
 
 
 def get_clean_name(name):
-    return re.sub(r"[,.;@#?!&$]+\ *", " ", name.lower()).strip()
+    return re.sub(r"[,.;@#?!&$]+\ *", " ", name.lower()).strip().replace('/', '_')
 
 
 def mask_text_with_spans(text, spans, mapper=None):

@@ -178,6 +178,7 @@ class Routine:
 
         trainer_class = self.get_trainer_class()
         args = self.trainer_args_hook(args)
+        print(args)
         trainer = trainer_class(**args)
         trainer.routine = self
         return self.trainer_hook(trainer)

@@ -26,7 +26,7 @@ from docketanalyzer.utils import DATA_DIR, notabs
 pd.options.mode.chained_assignment = None
 
 
-local_dir = DATA_DIR / 'local'
+local_dir = DATA_DIR / 'local' / 'idb'
 
 fjc_district_codes = {"00": "med", "47": "ohnd", "01": "mad", "48": "ohsd", "02": "nhd", "49": "tned", "03": "rid", "50": "tnmd", "04": "prd", "51": "tnwd", "05": "ctd", "52": "ilnd", "06": "nynd", "53": "ilcd", "07": "nyed", "54": "ilsd", "08": "nysd", "55": "innd", "09": "nywd", "56": "insd", "10": "vtd", "57": "wied", "11": "ded", "58": "wiwd", "12": "njd", "60": "ared", "13": "paed", "61": "arwd", "14": "pamd", "62": "iand", "15": "pawd", "63": "iasd", "16": "mdd", "64": "mnd", "17": "nced", "65": "moed", "18": "ncmd", "66": "mowd", "19": "ncwd", "67": "ned", "20": "scd", "68": "ndd", "22": "vaed", "69": "sdd", "23": "vawd", "7-": "akd", "24": "wvnd", "70": "azd", "25": "wvsd", "71": "cand", "26": "alnd", "72": "caed", "27": "almd", "73": "cacd", "28": "alsd", "74": "casd", "29": "flnd", "75": "hid", "3A": "flmd", "76": "idd", "3C": "flsd", "77": "mtd", "3E": "gand", "78": "nvd", "3G": "gamd", "79": "ord", "3J": "gasd", "80": "waed", "3L": "laed", "81": "wawd", "3N": "lamd", "82": "cod", "36": "lawd", "83": "ksd", "37": "msnd", "84": "nmd", "38": "mssd", "85": "oknd", "39": "txnd", "86": "oked", "40": "txed", "87": "okwd", "41": "txsd", "88": "utd", "42": "txwd", "89": "wyd", "43": "kyed", "90": "dcd", "44": "kywd", "91": "vid", "45": "mied", "93": "gud", "46": "miwd", "94": "nmid"}
 
@@ -194,22 +194,22 @@ def get_last_idb_update():
 
 def download_idb_data(dataset):
     print('\nDownloading the latest IDB data...')
-    url = 'https://www.fjc.gov/sites/default/files/idb/textfiles/cv88on_0.zip'
+    url = 'https://www.fjc.gov/sites/default/files/idb/textfiles/cv88on.zip'
     download_path = local_dir / 'raw.zip'
     wget.download(url, out=str(download_path))
     print('\nExtracting the data...')
     with zipfile.ZipFile(download_path, 'r') as f:
         f.extractall(local_dir)
     path = local_dir / 'cv88on.txt'
-    path.rename(local_dir / 'idb_raw.txt')
+    path.rename(local_dir / 'raw.txt')
     download_path.unlink()
     dataset.config['last_download_date'] = str(datetime.now())
-    print(f"\nDownload complete! The raw data is located at: {local_dir / 'idb_raw.txt'}")
+    print(f"\nDownload complete! The raw data is located at: {local_dir / 'raw.txt'}")
 
 
 def load_raw_idb_data(dataset, **kwargs):
     return pd.read_csv(
-        local_dir / 'idb_raw.txt',
+        local_dir / 'raw.txt',
         sep='\t', encoding='ISO-8859-1',
         dtype={'DOCKET': str, 'OFFICE': str, 'DISTRICT': str},
         **kwargs
@@ -262,7 +262,7 @@ def check_idb(reset=False, quiet=True, local=False, skip_row_check=False):
         dataset = load_dataset('idb', pk='idb_row', local=local)
 
     has_new_data = False
-    local_path = local_dir / 'idb_raw.txt'
+    local_path = local_dir / 'raw.txt'
     local_dir.mkdir(parents=True, exist_ok=True)
     last_download_date = dataset.config.get('last_download_date')
     if last_download_date is None or not local_path.exists():

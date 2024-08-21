@@ -42,6 +42,7 @@ scikit-learn
 sentencepiece
 simplejson
 sqlalchemy
+tensorboard
 tiktoken
 toolz
 torch
