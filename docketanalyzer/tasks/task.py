@@ -27,27 +27,27 @@ class Task:
 
     def init_columns(self):
         columns = self.dataset.columns
-        if self.last_updated_col not in columns:
-            self.dataset.add_column(self.last_updated_col, 'datetime')
+        if self.status_col not in columns:
+            self.dataset.add_column(self.status_col, 'datetime')
         for depends_on in self.depends_on:
-            status_col = self.get_last_updated_col(depends_on)
+            status_col = self.get_status_col(depends_on)
             if status_col not in columns:
                 self.dataset.add_column(status_col, 'datetime')
         for col in self.data_cols:
             if col[0] not in columns:
                 self.dataset.add_column(*col)
 
-    def get_last_updated_col(self, name):
+    def get_status_col(self, name):
         return f"status_{name.replace('-', '_').replace(' ', '_')}_last_updated"
 
     @property
-    def last_updated_col(self):
-        return self.get_last_updated_col(self.name)
+    def status_col(self):
+        return self.get_status_col(self.name)
 
     @property
     def progress(self):
         total = self.q.count()
-        complete = self.dataset.filter(**{f"{self.last_updated_col}__isnull": False}).count()
+        complete = self.dataset.filter(**{f"{self.status_col}__isnull": False}).count()
         pct = 0 if not total else complete / total
         return total, complete, pct
 
@@ -70,11 +70,11 @@ class Task:
         if selected_ids is not None:
             self.selected_ids = selected_ids
         if self.selected_ids:
-            self.q.update(**{self.last_updated_col: None})
+            self.q.update(**{self.status_col: None})
         else:
             print(f"Deleting task data: {self.name}")
-            if self.last_updated_col in self.dataset.columns:
-                self.dataset.drop_column(self.last_updated_col)
+            if self.status_col in self.dataset.columns:
+                self.dataset.drop_column(self.status_col)
             if data:
                 for col in self.data_cols:
                     if col[0] in self.dataset.columns:
@@ -92,7 +92,7 @@ class Task:
         self.process(batch)
         self.dataset.filter(
             **{self.dataset.pk + '__in': batch_ids}
-        ).update(**{self.last_updated_col: timezone.now()})
+        ).update(**{self.status_col: timezone.now()})
 
     def run(self, selected_ids=None):
         if selected_ids is not None:
@@ -100,16 +100,16 @@ class Task:
 
         print(f"Running {self.name}")
         for depends_on in self.depends_on:
-            status_col = self.get_last_updated_col(depends_on)
+            status_col = self.get_status_col(depends_on)
             self.dataset.filter(
-                Q(**{f"{self.last_updated_col}__lte": F(status_col)}) |
+                Q(**{f"{self.status_col}__lte": F(status_col)}) |
                 Q(**{f"{status_col}__isnull": True})
             ).update(
-                **{self.last_updated_col: None}
+                **{self.status_col: None}
             )
-        query = self.q.filter(**{f"{self.last_updated_col}__isnull": True})
+        query = self.q.filter(**{f"{self.status_col}__isnull": True})
         for depends_on in self.depends_on:
-            status_col = self.get_last_updated_col(depends_on)
+            status_col = self.get_status_col(depends_on)
             query = query.filter(
                 **{f"{status_col}__isnull": False}
             )

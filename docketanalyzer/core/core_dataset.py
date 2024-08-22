@@ -156,7 +156,7 @@ class CoreDataset:
         try:
             table = Table(self.name, metadata, autoload_with=self.engine)
             return [column.name for column in table.columns]
-        except NoSuchTableError:
+        except NoSuchTableError as e:
             return None
 
     def connect(self):

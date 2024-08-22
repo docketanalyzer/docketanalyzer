@@ -18,7 +18,7 @@ imports = {
     'core.docket_manager': ['DocketManager'],
     'core.docket_index': ['Index', 'DocketIndex', 'DocketBatch', 'load_docket_index'],
     'core.embeddings': ['Embeddings', 'EmbeddingSample', 'create_embeddings', 'load_embeddings'],
-    'pipelines': ['Pipeline', 'pipeline', 'parallel_inference'],
+    'pipelines': ['Pipeline', 'pipeline', 'RemotePipeline', 'remote_pipeline', 'parallel_inference'],
     'routines': ['Routine', 'training_routine'],
     'labels': ['Label', 'LabelRegistry', 'load_labels', 'load_label', 'register_label'],
     'tasks': ['Task', 'DocketTask', 'TaskRegistry', 'load_tasks', 'load_task', 'register_task'],

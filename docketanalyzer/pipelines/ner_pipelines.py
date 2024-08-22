@@ -1,3 +1,4 @@
+import torch
 from transformers import AutoModelForTokenClassification
 from .pipeline import Pipeline
 
@@ -5,34 +6,54 @@ from .pipeline import Pipeline
 class NerPipeline(Pipeline):
     name = 'ner'
     model_class = AutoModelForTokenClassification
-    pipeline_name = 'token-classification'
-    pipeline_defaults = {
-        'aggregation_strategy': 'simple',
+    tokenize_args = {
+        'max_length': 768,
+        'return_offsets_mapping': True,
     }
-    forward_defaults = {}
-    max_length = 768
 
-    def __init__(self, max_length=None, **kwargs):
-        super().__init__(**kwargs)
-        self.pipe.tokenizer.model_max_length = max_length or self.max_length
+    @property
+    def id2label(self):
+        if 'id2label' not in self.cache:
+            self.cache['id2label'] = self.model.config.id2label
+        return self.cache['id2label']
 
-    def __call__(self, texts, batch_size=1, show_progress=True, output_scores=False, **kwargs):
+    def filtered_prediction(self):
+        return []
+    
+    def post_process_preditions(self, texts, preds):
+        for i in range(len(preds)):
+            for span in preds[i]:
+                span['text'] = texts[i][span['start']:span['end']]
+        return preds
+
+    def predict_batch(self, inputs):
+        offset_mapping = inputs.pop('offset_mapping')
+        inputs = {k: v.to(self.device) for k, v in inputs.items()}
         preds = []
-        for i, pred in enumerate(self.predict(texts, batch_size=batch_size, show_progress=show_progress, **kwargs)):
-            ps = []
-            for p in pred:
-                span = {
-                    'label': p['entity_group'],
-                    'start': p['start'],
-                    'end': p['end'],
-                    'text': p['word'].strip(),
-                }
-                if texts[i][span['start']] == ' ':
-                    span['start'] += 1
-                if texts[i][span['end'] - 1] == ' ':
-                    span['end'] -= 1
-                if output_scores:
-                    span['score'] = p['score']
-                ps.append(span)
-            preds.append(ps)
+        with torch.no_grad():
+            labels = self.model(**inputs).logits.argmax(-1).detach().cpu().numpy()
+            for i in range(labels.shape[0]):
+                spans = []
+                last_span = None
+                for t in range(1, labels.shape[1]):
+                    bio_label = self.id2label[labels[i, t]].split('-')
+                    label = bio_label[-1]
+                    bio = bio_label[0]
+                    if bio == 'I':
+                        if (last_span is None or label != last_span['label']):
+                            bio = 'B'
+                        else:
+                            last_span['end'] = offset_mapping[i, t][1].item()
+                    if last_span is not None and bio in ['B', 'O']:
+                        spans.append(last_span)
+                        last_span = None
+                    if bio == 'B':
+                        last_span = {
+                            'start': offset_mapping[i, t][0].item(),
+                            'end': offset_mapping[i, t][1].item(),
+                            'label': label,
+                        }
+                if last_span is not None:
+                    spans.append(last_span)
+                preds.append(spans)
         return preds

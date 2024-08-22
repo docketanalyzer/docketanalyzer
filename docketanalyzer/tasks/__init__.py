@@ -33,7 +33,3 @@ def load_task(name):
 
 def register_task(task_class):
     task_registry.register(task_class.__name__, task_class)
-
-
-for label in load_labels().values():
-    register_task(label.prediction_task_class)

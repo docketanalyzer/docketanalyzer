@@ -4,6 +4,7 @@ import math
 import multiprocessing
 from docketanalyzer import Registry
 from .pipeline import Pipeline
+from .remote_pipeline import RemotePipeline, remote_pipeline
 
 
 class PipelineRegistry(Registry):
@@ -31,11 +32,23 @@ def process_inference_batch(texts, pipeline_name, pipeline_args, batch_size=8):
 
 
 def parallel_inference(texts, pipeline_name, pipeline_args, workers=2, batch_size=8):
-    worker_batch_size = math.ceil(len(texts) / workers)
-    worker_batches = [texts[i:i+worker_batch_size] for i in range(0, len(texts), worker_batch_size)]
+    import torch
+    auto_device = 'device' not in pipeline_args
+    if auto_device:
+        auto_device = list(range(torch.cuda.device_count())) * workers
+    group_size = math.ceil(len(texts) / workers)
+    groups = [texts[i:i+group_size] for i in range(0, len(texts), group_size)]
     try:
         with ProcessPoolExecutor(max_workers=workers) as executor:
-            futures = [executor.submit(process_inference_batch, batch, pipeline_name, pipeline_args, batch_size) for batch in worker_batches]
+            futures = []
+            for i, group in enumerate(groups):
+                if auto_device:
+                    pipeline_args['device'] = auto_device[i]
+                    print(pipeline_args)
+                futures.append(executor.submit(
+                    process_inference_batch, group,
+                    pipeline_name, pipeline_args.copy(), batch_size,
+                ))
             results = [future.result() for future in futures]
         return [item for sublist in results for item in sublist]
     except BrokenProcessPool as e:

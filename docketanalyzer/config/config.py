@@ -124,6 +124,21 @@ keys = [
         group='together',
     ),
     ConfigKey(
+        name='RUNPOD_API_KEY',
+        key_type='str',
+        description='\nConfigure Runpod\n',
+        default=None,
+        mask=True,
+        group='runpod',
+    ),
+    ConfigKey(
+        name='REMOTE_INFERENCE_ENDPOINT_ID',
+        key_type='str',
+        default=None,
+        mask=True,
+        group='runpod',
+    ),
+    ConfigKey(
         name='POSTGRES_HOST',
         key_type='str',
         description='\nConfigure Postgres\n',

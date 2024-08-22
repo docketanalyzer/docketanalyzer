@@ -43,6 +43,7 @@ def tasks(name, custom_only, skip, run, reset):
     da tasks mytask --run --reset  # Run 'mytask' after resetting its progress
     """
     index = load_docket_index()
+
     tasks = list(index.ordered_tasks)
     skip = [] if skip is None else skip.split(',')
     for task in tasks:

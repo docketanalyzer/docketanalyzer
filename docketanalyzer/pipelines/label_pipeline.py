@@ -2,7 +2,7 @@ import torch
 from transformers import AutoModelForSequenceClassification
 from .pipeline import Pipeline
 
-
+"""
 class LabelPipeline(Pipeline):
     name = 'label'
     model_name = None
@@ -78,3 +78,4 @@ class MultilabelPipeline(Pipeline):
             for pred in preds
         ]
         return preds
+"""

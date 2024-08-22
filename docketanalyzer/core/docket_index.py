@@ -342,6 +342,7 @@ class DocketBatch:
             return None
         data = pd.concat(data)
         data = data.rename(columns={'document_number': 'entry_number'})
+        data['description'] = data['description'].apply(lambda x: x if pd.isnull(x) else x[:20000])
         data['entry_id'] = data.apply(lambda x: f"{x['docket_id']}__{x['row_number']}", axis=1)
         data['date_filed'] = pd.to_datetime(data['date_filed'], errors='coerce')
         data['pacer_doc_id'] = data['pacer_doc_id'].astype(pd.Int64Dtype())

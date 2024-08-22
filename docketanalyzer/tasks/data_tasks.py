@@ -202,7 +202,7 @@ class OCRDocuments(DocketTask):
     batch_size = 10000
     depends_on = ['parse-dockets']
     overwrite = False
-    workers = max(1, int(multiprocessing.cpu_count() * 0.8))
+    workers = max(1, int(multiprocessing.cpu_count() * 0.9))
     threads_per_worker = 1
     max_pages = 100
 
