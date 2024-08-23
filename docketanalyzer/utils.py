@@ -54,6 +54,9 @@ if HF_TOKEN is not None:
     os.environ['HF_TOKEN'] = HF_TOKEN
 
 
+PACKAGE_DATA_DIR = Path(__file__).parent / 'data'
+
+
 # Other Utilities
 def configure(vars):
     setting2name = {
@@ -133,50 +136,6 @@ class timeit:
         end = datetime.now()
         execution_time = (end - self.start).total_seconds()
         print(f"{self.tag} took {execution_time:.4f} seconds")
-
-
-def lazy_load(import_path, object_name):
-    class LazyObject():
-        cache = {}
-        import_path = None
-        object_name = None
-
-        def __new__(cls, *args, **kwargs):
-            if len(args) == 3 and isinstance(args[1], tuple):
-                child_name, (lazy_parent,), child_attrs = args
-                parent_cls = cls.cls_object()
-                new_cls = type(child_name, (parent_cls,), child_attrs)
-                return new_cls
-            return super().__new__(cls)
-        
-        @classmethod
-        def cls_object(cls):
-            if 'object' not in cls.cache:
-                module = __import__(cls.import_path, fromlist=[cls.object_name])
-                cls.cache['object'] = getattr(module, cls.object_name)
-            return cls.cache['object']
-
-        @property
-        def object(self):
-            return type(self).cls_object()
-            
-        def __call__(self, *args, **kwargs):
-            return self.object(*args, **kwargs)
-
-        def __getattr__(self, name):
-            return getattr(self.object, name)
-        
-        @classmethod
-        def __instancecheck__(cls, instance):
-            return isinstance(instance, cls.cls_object())
-
-        @classmethod
-        def __subclasscheck__(cls, subclass):
-            return issubclass(subclass, cls.cls_object())
-    
-    LazyObject.import_path = import_path
-    LazyObject.object_name = object_name
-    return LazyObject()
 
 
 def bash(cmd):

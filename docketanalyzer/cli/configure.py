@@ -1,11 +1,14 @@
 import click
 import docketanalyzer
 
+
 def get_config_groups():
     return list(set([x.group for x in docketanalyzer.utils.config.keys if x.group]))
 
+
 config_groups = get_config_groups()
 config_groups_str = ', '.join(config_groups)
+
 
 class ConfigGroup(click.ParamType):
     name = "group"
@@ -14,6 +17,7 @@ class ConfigGroup(click.ParamType):
         if value not in config_groups and value is not None:
             self.fail(f"'{value}' is not a valid group. Choose from: {config_groups_str}", param, ctx)
         return value
+
 
 @click.command()
 @click.argument('group', type=ConfigGroup(), default=None, required=False)

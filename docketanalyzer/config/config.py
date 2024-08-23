@@ -1,5 +1,6 @@
 from pathlib import Path
-from docketanalyzer.config.env_config import EnvConfig, ConfigKey
+from docketanalyzer import available_extensions
+from docketanalyzer.config.package_config import PackageConfig, ConfigKey
 
 
 keys = [
@@ -47,12 +48,14 @@ keys = [
         default=None,
         mask=True,
         group='anthropic',
+        required_extensions=['chat'],
     ),
     ConfigKey(
         name='ANTHROPIC_DEFAULT_CHAT_MODEL',
         key_type='str',
         default='claude-3-5-sonnet-20240620',
         group='anthropic',
+        required_extensions=['chat'],
     ),
     ConfigKey(
         name='GROQ_API_KEY',
@@ -61,12 +64,14 @@ keys = [
         default=None,
         mask=True,
         group='groq',
+        required_extensions=['chat'],
     ),
     ConfigKey(
         name='GROQ_DEFAULT_CHAT_MODEL',
         key_type='str',
         default='Llama3-70b-8192',
         group='groq',
+        required_extensions=['chat'],
     ),
     ConfigKey(
         name='OPENAI_API_KEY',
@@ -75,6 +80,7 @@ keys = [
         default=None,
         mask=True,
         group='openai',
+        required_extensions=['chat'],
     ),
     ConfigKey(
         name='OPENAI_ORG_ID',
@@ -82,18 +88,21 @@ keys = [
         default=None,
         mask=True,
         group='openai',
+        required_extensions=['chat'],
     ),
     ConfigKey(
         name='OPENAI_DEFAULT_CHAT_MODEL',
         key_type='str',
         default='gpt-4o',
         group='openai',
+        required_extensions=['chat'],
     ),
     ConfigKey(
         name='OPENAI_DEFAULT_EMBEDDING_MODEL',
         key_type='str',
         default='text-embedding-3-large',
         group='openai',
+        required_extensions=['chat'],
     ),
     ConfigKey(
         name='COHERE_API_KEY',
@@ -102,12 +111,14 @@ keys = [
         default=None,
         mask=True,
         group='cohere',
+        required_extensions=['chat'],
     ),
     ConfigKey(
         name='COHERE_DEFAULT_CHAT_MODEL',
         key_type='str',
         default='command-r-plus',
         group='cohere',
+        required_extensions=['chat'],
     ),
     ConfigKey(
         name='TOGETHER_API_KEY',
@@ -116,12 +127,14 @@ keys = [
         default=None,
         mask=True,
         group='together',
+        required_extensions=['chat'],
     ),
     ConfigKey(
         name='TOGETHER_DEFAULT_CHAT_MODEL',
         key_type='str',
         default='meta-llama/Llama-3-70b-chat-hf',
         group='together',
+        required_extensions=['chat'],
     ),
     ConfigKey(
         name='RUNPOD_API_KEY',
@@ -130,6 +143,7 @@ keys = [
         default=None,
         mask=True,
         group='runpod',
+        required_extensions=['pipelines'],
     ),
     ConfigKey(
         name='REMOTE_INFERENCE_ENDPOINT_ID',
@@ -137,6 +151,7 @@ keys = [
         default=None,
         mask=True,
         group='runpod',
+        required_extensions=['pipelines'],
     ),
     ConfigKey(
         name='POSTGRES_HOST',
@@ -144,18 +159,21 @@ keys = [
         description='\nConfigure Postgres\n',
         default=None,
         group='postgres',
+        required_extensions=['core'],
     ),
     ConfigKey(
         name='POSTGRES_PORT',
         key_type='int',
         default=5432,
         group='postgres',
+        required_extensions=['core'],
     ),
     ConfigKey(
         name='POSTGRES_USERNAME',
         key_type='str',
         default='admin',
         group='postgres',
+        required_extensions=['core'],
     ),
     ConfigKey(
         name='POSTGRES_PASSWORD',
@@ -163,12 +181,14 @@ keys = [
         default=None,
         mask=True,
         group='postgres',
+        required_extensions=['core'],
     ),
     ConfigKey(
         name='POSTGRES_DB',
         key_type='str',
         default='docketanalyzer',
         group='postgres',
+        required_extensions=['core'],
     ),
     ConfigKey(
         name='ELASTIC_URL',
@@ -177,6 +197,7 @@ keys = [
         default=None,
         mask=True,
         group='elastic',
+        required_extensions=['core'],
     ),
     ConfigKey(
         name='AWS_ACCESS_KEY_ID',
@@ -185,6 +206,7 @@ keys = [
         default=None,
         mask=True,
         group='s3',
+        required_extensions=['core'],
     ),
     ConfigKey(
         name='AWS_SECRET_ACCESS_KEY',
@@ -192,24 +214,28 @@ keys = [
         default=None,
         mask=True,
         group='s3',
+        required_extensions=['core'],
     ),
     ConfigKey(
         name='AWS_S3_BUCKET_NAME',
         key_type='str',
         default=None,
         group='s3',
+        required_extensions=['core'],
     ),
     ConfigKey(
         name='AWS_S3_ENDPOINT_URL',
         key_type='str',
         default=None,
         group='s3',
+        required_extensions=['core'],
     ),
     ConfigKey(
         name='AWS_S3_REGION_NAME',
         key_type='str',
         default=None,
         group='s3',
+        required_extensions=['core'],
     ),
     ConfigKey(
         name='SELENIUM_HOST',
@@ -217,18 +243,21 @@ keys = [
         description='\nConfigure Selenium\n',
         default='http://localhost',
         group='selenium',
+        required_extensions=['core'],
     ),
     ConfigKey(
         name='SELENIUM_PORT',
         key_type='int',
         default=4444,
         group='selenium',
+        required_extensions=['core'],
     ),
     ConfigKey(
         name='WEB_SEARCH_PORT',
         key_type='int',
         default=8080,
         group='websearch',
+        required_extensions=['core'],
     ),
     ConfigKey(
         name='PYPI_TOKEN',
@@ -237,12 +266,14 @@ keys = [
         default=None,
         mask=True,
         group='pypi',
+        required_extensions=['dev'],
     ),
 ]
 
 
-config = EnvConfig(
+config = PackageConfig(
     path=Path.home() / '.cache' / 'docketanalyzer' / 'config.json',
     config_keys=keys,
     cli_command='da configure',
+    available_extensions=available_extensions,
 )

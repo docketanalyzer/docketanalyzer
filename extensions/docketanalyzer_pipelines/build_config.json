@@ -1,0 +1,19 @@
+{
+  "name": "docketanalyzer-pipelines",
+  "version": "0.0.8",
+  "description": "Inference pipelines and training routines extension for Docket Analyzer",
+  "url": "https://github.com/docketanalyzer/docketanalyzer",
+  "author": "Nathan Dahlberg",
+  "package_name": "docketanalyzer_pipelines",
+  "include_package_data": false,
+  "install_requires": [
+    "accelerate",
+    "datasets",
+    "docketanalyzer",
+    "scikit-learn",
+    "sentencepiece",
+    "tensorboard",
+    "torch",
+    "transformers"
+  ]
+}

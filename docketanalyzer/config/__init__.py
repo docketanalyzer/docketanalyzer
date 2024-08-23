@@ -1,1 +1,1 @@
-from docketanalyzer.config.config import config, EnvConfig, ConfigKey
+from docketanalyzer.config.config import config, PackageConfig, ConfigKey
