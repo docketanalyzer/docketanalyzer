@@ -1,9 +1,15 @@
+awscli
+bs4
 click
+elasticsearch
 pandas
 pathlib
+peewee
+psycopg2-binary
 python-dotenv
 regex
 requests
 simplejson
 toolz
 tqdm
+twine

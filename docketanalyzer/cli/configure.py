@@ -3,7 +3,7 @@ import docketanalyzer
 
 
 def get_config_groups():
-    return list(set([x.group for x in docketanalyzer.utils.config.keys if x.group]))
+    return list(set([x.group for x in docketanalyzer.config.keys if x.group]))
 
 
 config_groups = get_config_groups()
@@ -41,7 +41,7 @@ def configure(group, reset):
     da configure mygroup  # Configure settings for 'mygroup'
     da configure --reset  # Reset all settings to default and reconfigure
     """
-    docketanalyzer.utils.config.update(reset=reset, group=group)
+    docketanalyzer.config.update(reset=reset, group=group)
 
 
 configure.__doc__ = configure.__doc__.format(groups=config_groups_str)

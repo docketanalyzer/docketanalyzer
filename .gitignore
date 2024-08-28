@@ -1,6 +1,6 @@
-extensions/docketanalyzer_dev
-build/*
-dist/*
+dev
+build
+dist
 
 
 # Created by https://www.toptal.com/developers/gitignore/api/django,osx,linux

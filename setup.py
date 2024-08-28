@@ -1,5 +1,4 @@
 import distutils.command.build
-from importlib.metadata import version as get_package_version
 import os
 from setuptools import setup, find_packages
 
@@ -29,15 +28,41 @@ class BuildCommand(distutils.command.build.build):
         self.build_base = build_dir
 
 
-extensions = ['chat', 'core', 'ocr', 'pipelines']
+extras_require = {
+    'chat': [
+        "anthropic",
+        "cohere",
+        "docketanalyzer",
+        "groq",
+        "instructor",
+        "openai",
+        "tiktoken",
+        "uuid",
+    ],
+    'flp': [
+        "juriscraper",
+    ],
+    'ocr': [
+        "pdfplumber",
+        "pytesseract",
+        "python-magic",
+    ],
+    'pipelines': [
+        "accelerate",
+        "datasets",
+        "docketanalyzer",
+        "scikit-learn",
+        "sentencepiece",
+        "tensorboard",
+        "torch",
+        "transformers",
+    ],
+}
+extras_require['all'] = list(set(sum(extras_require.values(), [])))
 
-extras_require = {'all': []}
-for extension in extensions:
-    package_name = f"docketanalyzer_{extension}"
-    package_version = get_package_version(package_name)
-    requirement = f"docketanalyzer-{extension}>={package_version}"
-    extras_require[extension] = [requirement]
-    extras_require['all'].append(requirement)
+
+packages = find_packages(PACKAGE_DIR)
+packages = [x for x in packages if x.startswith('docketanalyzer')]
 
 
 setup(
@@ -46,8 +71,8 @@ setup(
     description='',
     url='https://github.com/docketanalyzer/docketanalyzer',
     author='Nathan Dahlberg',
-    packages=find_packages(PACKAGE_DIR),
-    package_data={"docketanalyzer": ["data/*"]},
+    packages=packages,
+    package_data={"docketanalyzer": ["package_data/*"]},
     include_package_data=True,
     install_requires=get_requirements('requirements.txt'),
     extras_require=extras_require,

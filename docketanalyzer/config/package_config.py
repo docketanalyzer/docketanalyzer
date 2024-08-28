@@ -33,6 +33,8 @@ class PackageConfig():
         self.path = Path(path).resolve()
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.keys = config_keys
+        for key in self.keys:
+            key.config = self
         self.cli_command = cli_command
         self.available_extensions = available_extensions
         if autoload_env:
@@ -41,6 +43,14 @@ class PackageConfig():
     @property
     def names(self):
         return [x.name for x in self.keys]
+
+    @property
+    def alias_map(self):
+        alias_map = {}
+        for key in self.keys:
+            for alias in key.alias_names:
+                alias_map[alias] = key.name
+        return alias_map
 
     def load(self, skip_env=False):
         config = {}
@@ -104,9 +114,10 @@ class PackageConfig():
         except KeyboardInterrupt:
             print('\nExiting without saving.')
             return
-
+    
     def __getitem__(self, key_name):
         config = self.load()
+        key_name = self.alias_map.get(key_name, key_name)
         value = config.get(key_name, None)
         if value is None:
             keys = [x for x in self.keys if x.name == key_name]
@@ -127,9 +138,11 @@ class PackageConfig():
 class ConfigKey():
     def __init__(self,
         name, group=None, key_type='str', description=None,
-        default='_', mask=False, required_extensions=None
+        default='_', mask=False, required_extensions=None,
+        alias_names=[], config=None
     ):
         self.name = name
+        self.alias_names = alias_names
         self.group = group
         if key_type not in KEY_TYPES:
             raise ValueError('key_type must be one of %s' % ','.join(list(KEY_TYPES.keys())))
@@ -138,6 +151,13 @@ class ConfigKey():
         self.default = default
         self.mask = mask
         self.required_extensions = required_extensions
+        self.config = config
 
     def convert(self, value):
         return KEY_TYPES[self.key_type](value)
+    
+    def create(self, namespace):
+        namespace[self.name] = self.config[self.name]
+        for alias in self.alias_names:
+            namespace[alias] = self.config[self.name]
+        return namespace
