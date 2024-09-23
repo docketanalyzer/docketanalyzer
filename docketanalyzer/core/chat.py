@@ -2,25 +2,22 @@ from copy import deepcopy
 from anthropic import Anthropic
 from cohere import Client as CohereClient
 from groq import Groq
-import instructor
 from openai import OpenAI
 from pathlib import Path
 import simplejson as json
 import tiktoken
-import uuid
 from docketanalyzer import (
-    notabs,
+    notabs, generate_hash,
     ANTHROPIC_API_KEY, ANTHROPIC_DEFAULT_CHAT_MODEL,
     GROQ_API_KEY, GROQ_DEFAULT_CHAT_MODEL,
-    OPENAI_API_KEY, OPENAI_ORG_ID,
-    OPENAI_DEFAULT_CHAT_MODEL, OPENAI_DEFAULT_EMBEDDING_MODEL,
+    OPENAI_API_KEY, OPENAI_DEFAULT_CHAT_MODEL, OPENAI_DEFAULT_EMBEDDING_MODEL,
     COHERE_API_KEY, COHERE_DEFAULT_CHAT_MODEL,
     TOGETHER_API_KEY, TOGETHER_DEFAULT_CHAT_MODEL,
 )
 
 
 class Chat:
-    def __init__(self, api_key=None, organization=OPENAI_ORG_ID, base_url=None, mode='anthropic', model=None):
+    def __init__(self, api_key=None, base_url=None, mode='anthropic', model=None):
         self.mode = mode
         if api_key is None:
             if mode == 'anthropic':
@@ -34,42 +31,32 @@ class Chat:
             elif mode == 'together':
                 api_key = TOGETHER_API_KEY
         self.api_key = api_key
-        self.organization = organization
 
         if mode == 'anthropic':
-            self.client = instructor.from_anthropic(Anthropic(
-                api_key=self.api_key,
-            ))
+            self.client = Anthropic(api_key=self.api_key)
             self.default_model = ANTHROPIC_DEFAULT_CHAT_MODEL
+
         elif mode == 'openai':
-            self.client = instructor.patch(OpenAI(
-                base_url=base_url,
-                api_key=self.api_key,
-                organization=self.organization,
-            ))
+            self.client = OpenAI(base_url=base_url, api_key=self.api_key)
             self.default_model = OPENAI_DEFAULT_CHAT_MODEL
+
         elif mode == 'groq':
-            self.client = instructor.from_groq(Groq(
-                api_key=self.api_key,
-            ), mode=instructor.Mode.JSON)
+            self.client = Groq(api_key=self.api_key)
             self.default_model = GROQ_DEFAULT_CHAT_MODEL
+
         elif mode == 'cohere':
-            self.client = instructor.from_cohere(CohereClient(
-                api_key=self.api_key,
-            ))
+            self.client = CohereClient(api_key=self.api_key)
             self.default_model = COHERE_DEFAULT_CHAT_MODEL
+
         elif mode == 'together':
-            if base_url is None:
-                base_url = 'https://api.together.xyz/v1'
-            self.client = instructor.patch(OpenAI(
-                base_url=base_url,
-                api_key=self.api_key,
-            ))
+            self.client = OpenAI(base_url='https://api.together.xyz/v1', api_key=self.api_key)
             self.default_model = TOGETHER_DEFAULT_CHAT_MODEL
+
         else:
-            raise ValueError("Invalid mode. Must be one of: 'openai', 'groq'")
+            raise ValueError("Invalid mode. Must be one of: 'anthropic', 'cohere', 'groq', 'openai', 'together'")
         if model is not None:
             self.default_model = model
+        self.r = None
         self.cache = {}
 
     def embed(self, texts, model=OPENAI_DEFAULT_EMBEDDING_MODEL):
@@ -84,12 +71,12 @@ class Chat:
         args['mode'] = self.mode
         if args.get('response_model'):
             args['response_model'] = args['response_model'].schema()
-        return str(uuid.uuid5(uuid.NAMESPACE_DNS, json.dumps(args, sort_keys=True, default=str)))
+        return str(generate_hash(args))
 
     def chat(
         self, messages, system=None, model=None,
-        response_model=None, temperature=0.00000000000001, seed=42,
-        cache_dir=None, verbose=False, return_response=False, **kwargs
+        temperature=0.00000000000001, seed=42,
+        cache_dir=None, verbose=False, **kwargs
     ):
         if model is None:
             model = self.default_model
@@ -103,7 +90,6 @@ class Chat:
             'messages': messages,
             'temperature': temperature,
             'seed': seed,
-            'response_model': response_model,
             **kwargs
         }
 
@@ -121,17 +107,13 @@ class Chat:
                 response = json.loads(cache_path.read_text())['response']
 
         if response is None:
-            response = self.client.chat.completions.create(**args)
-            if not return_response:
-                if response_model is None:
-                    if self.mode == 'anthropic':
-                        response = response.content[0].text
-                    elif self.mode == 'cohere':
-                        response = response.text
-                    else:
-                        response = response.choices[0].message.content
-                else:
-                    response = response.dict()
+            self.r = self.client.chat.completions.create(**args)
+            if self.mode == 'anthropic':
+                response = self.r.content[0].text
+            elif self.mode == 'cohere':
+                response = self.r.text
+            else:
+                response = self.r.choices[0].message.content
             if cache_path is not None:
                 cache_path.parent.mkdir(parents=True, exist_ok=True)
                 cache_path.write_text(json.dumps({'response': response}, indent=2))

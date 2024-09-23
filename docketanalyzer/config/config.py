@@ -1,5 +1,5 @@
 from pathlib import Path
-from docketanalyzer import package_data
+from docketanalyzer import dev_available
 from .package_config import PackageConfig, ConfigKey
 
 
@@ -79,13 +79,6 @@ keys = [
         group='openai',
     ),
     ConfigKey(
-        name='OPENAI_ORG_ID',
-        key_type='str',
-        default=None,
-        mask=True,
-        group='openai',
-    ),
-    ConfigKey(
         name='OPENAI_DEFAULT_CHAT_MODEL',
         key_type='str',
         default='gpt-4o',
@@ -141,35 +134,11 @@ keys = [
         group='runpod',
     ),
     ConfigKey(
-        name='POSTGRES_HOST',
+        name='POSTGRES_URL',
         key_type='str',
         description='\nConfigure Postgres\n',
         default=None,
-        group='postgres',
-    ),
-    ConfigKey(
-        name='POSTGRES_PORT',
-        key_type='int',
-        default=5432,
-        group='postgres',
-    ),
-    ConfigKey(
-        name='POSTGRES_USERNAME',
-        key_type='str',
-        default='admin',
-        group='postgres',
-    ),
-    ConfigKey(
-        name='POSTGRES_PASSWORD',
-        key_type='str',
-        default=None,
         mask=True,
-        group='postgres',
-    ),
-    ConfigKey(
-        name='POSTGRES_DB',
-        key_type='str',
-        default='docketanalyzer',
         group='postgres',
     ),
     ConfigKey(
@@ -227,12 +196,50 @@ keys = [
         group='websearch',
     ),
     ConfigKey(
-        name='PYPI_TOKEN',
+        name='BASE_URL',
         key_type='str',
-        description='\nConfigure PyPI\n',
+        description='\nConfigure Dev\n',
+        default='http://localhost:5001',
+        group='dev',
+        required_extensions=['dev'],
+    ),
+    ConfigKey(
+        name='USE_CACHE',
+        key_type='int',
+        default=1,
+        group='dev',
+        required_extensions=['dev'],
+    ),
+    ConfigKey(
+        name='POSTMARK_API_KEY',
+        key_type='str',
         default=None,
         mask=True,
-        group='pypi',
+        group='dev',
+        required_extensions=['dev'],
+    ),
+    ConfigKey(
+        name='GOOGLE_CLIENT_ID',
+        key_type='str',
+        default=None,
+        mask=True,
+        group='dev',
+        required_extensions=['dev'],
+    ),
+    ConfigKey(
+        name='GOOGLE_CLIENT_SECRET',
+        key_type='str',
+        default=None,
+        mask=True,
+        group='dev',
+        required_extensions=['dev'],
+    ),
+    ConfigKey(
+        name='PYPI_TOKEN',
+        key_type='str',
+        default=None,
+        mask=True,
+        group='dev',
         required_extensions=['dev'],
     ),
 ]
@@ -242,5 +249,5 @@ config = PackageConfig(
     path=Path.home() / '.cache' / 'docketanalyzer' / 'config.json',
     config_keys=keys,
     cli_command='da configure',
-    available_extensions=package_data('extensions').load(),
+    available_extensions=['dev'] if dev_available() else [],
 )

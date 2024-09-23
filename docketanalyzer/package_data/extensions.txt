@@ -1,5 +1,0 @@
-ocr
-chat
-flp
-pipelines
-dev

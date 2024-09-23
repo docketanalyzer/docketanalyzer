@@ -1,5 +1,5 @@
 """
-OCR methods lifted from FreeLaw's doctor.
+This is all lifted from FreeLaw's doctor. We just needed to preserve pages.
 https://github.com/freelawproject/doctor/tree/main
 """
 import re
@@ -421,7 +421,7 @@ def extract_text_handled(page):
     return ''
     
 
-def extract_pages(path, allow_ocr=True, max_pages=None):
+def extract_pages(path, allow_ocr=True, max_pages=None, strip_margin=True):
     try:
         with pdfplumber.open(path) as pdf:
             pages = []
@@ -433,7 +433,7 @@ def extract_pages(path, allow_ocr=True, max_pages=None):
                 page_data = {'text': extract_text_handled(page), 'page': i + 1}
                 page_data['ocr_needed'] = page_needs_ocr_handled(page, page_data['text'])
                 if allow_ocr and page_data['ocr_needed']:
-                    page_data['text'] = extract_with_ocr_handled(page, True)
+                    page_data['text'] = extract_with_ocr_handled(page, strip_margin)
                 pages.append(page_data)
         return pages
     except Exception as e:

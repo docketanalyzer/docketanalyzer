@@ -11,6 +11,4 @@ class PartyEntityType(Choice):
     individual = "Individual"
     company = "Company"
     government = "Government"
-    url = "URL"
-    property = "Property"
-    other = "Other"
+    other = "Unclassified (other)"

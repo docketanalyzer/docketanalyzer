@@ -195,6 +195,12 @@ def process_chunk(idb_dir, chunk, start_row=0):
 
 
 class IDB:
+    DATE_COLUMNS = [
+        'filing_date', 'terminating_date', 'fdateuse_raw', 
+        'transdat_raw', 'tdateuse_raw', 'djoined_raw', 
+        'pretrial_raw', 'tribegan_raw', 'trialend_raw',
+    ]
+
     def __init__(self, skip_db=False):
         self.dir = DATA_DIR / 'data' / 'idb'
         self.data_path = self.dir / 'data.csv'
@@ -268,13 +274,13 @@ class IDB:
         data['court'] = chunk['DISTRICT'].apply(lambda x: FJC_DISTRICT_CODES[x.zfill(2)])
         data['filing_date'] = pd.to_datetime(chunk['FILEDATE']).dt.date
         data['terminating_date'] = pd.to_datetime(chunk['TERMDATE']).dt.date
-        data['ifp'] = chunk['IFP'].apply(lambda x: IDBIFP('Yes' if str(x) != '-8' else 'No').name)
-        data['mdl'] = chunk['MDLDOCK'].apply(lambda x: IDBMDL('Yes' if str(x) != '-8' else 'No').name)
-        data['class_action'] = chunk['CLASSACT'].apply(lambda x:  IDBClassAction('Yes' if str(x) != '-8' else 'No').name)
+        data['ifp'] = chunk['IFP'].apply(lambda x: IDBIFP('Yes' if str(x) != '-8' else 'No').value)
+        data['mdl'] = chunk['MDLDOCK'].apply(lambda x: IDBMDL('Yes' if str(x) != '-8' else 'No').value)
+        data['class_action'] = chunk['CLASSACT'].apply(lambda x:  IDBClassAction('Yes' if str(x) != '-8' else 'No').value)
         for field_name, field in IDB_FIELDS.items():
             data[field_name] = chunk[field['col']].apply(lambda x:
                 None if pd.isnull(x) or str(x) not in field['mapping'] else
-                field['cat'](field['mapping'][str(x)]).name
+                field['cat'](field['mapping'][str(x)]).value
             )
         for col in [
             'CIRCUIT', 'AMTREC', 'FDATEUSE', 'JURIS', 'TITL', 'SECTION', 'SUBSECT', 'RESIDENC', 
@@ -296,14 +302,10 @@ class IDB:
 
     def infer_dtypes(self):
         data = pd.read_csv(self.data_path, nrows=500000, low_memory=False)
-        dates = [
-            'filing_date', 'terminating_date', 'fdateuse_raw', 'transdat_raw', 'tdateuse_raw', 
-            'djoined_raw', 'pretrial_raw', 'tribegan_raw', 'trialend_raw',
-        ]
         dtype_map = {}
         for col in data.columns:
             dtype = data[col].dtype
-            if col in dates:
+            if col in self.DATE_COLUMNS:
                 dtype_map[col] = 'DateField'
             elif dtype in ['float64', 'object', 'int64']:
                 dtype_map[col] = 'CharField'
@@ -397,13 +399,16 @@ class IDB:
                 self.db.drop_table('idb', confirm=False)
             self.db.create_table('idb')
             self.db.t.idb.add_column('idb_row', 'CharField', unique=True)
-            for col, dtype in dtype_map.items():
+            for col, dtype in tqdm(dtype_map.items(), desc="Building Schema"):
                 self.db.t.idb.add_column(col, dtype)
 
             chunksize = 200000
             num_chunks = math.ceil(num_data_rows / chunksize)
             table = self.db.t.idb
-            for chunk in tqdm(pd.read_csv(self.data_path, chunksize=chunksize, low_memory=False), total=num_chunks):
+            for chunk in tqdm(
+                pd.read_csv(self.data_path, chunksize=chunksize, low_memory=False), 
+                total=num_chunks, desc="Pushing Data"
+            ):
                 for col, dtype in dtype_map.items():
                     if dtype == 'DateField':
                         chunk[col] = pd.to_datetime(chunk[col], errors='coerce').dt.date

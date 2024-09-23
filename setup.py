@@ -34,10 +34,8 @@ extras_require = {
         "cohere",
         "docketanalyzer",
         "groq",
-        "instructor",
         "openai",
         "tiktoken",
-        "uuid",
     ],
     'flp': [
         "juriscraper",

@@ -16,7 +16,7 @@ class NatureSuit(Choice):
     )
     _130 = (
             '130 Miller Act',
-            {'section': 'Contract', 'description': 'Action based on performance and payment bonds agreed to by contractors on federal construction projects as required under the Miller Act, 40 USC Â§3131-3134.'},
+            {'section': 'Contract', 'description': 'Action based on performance and payment bonds agreed to by contractors on federal construction projects as required under the Miller Act, 40 USC § 3131-3134.'},
     )
     _140 = (
             '140 Negotiable Instrument',
@@ -92,7 +92,7 @@ class NatureSuit(Choice):
     )
     _330 = (
             '330 Federalemployers Liability',
-            {'section': 'Torts/Personal Injury', 'description': 'Action for personal injury or wrongful death brought by a railroad employee or his survivors under the Federal Employersâ\x80\x99 Liability Act (FELA), 45 USC Â§51, et. seq.'},
+            {'section': 'Torts/Personal Injury', 'description': 'Action for personal injury or wrongful death brought by a railroad employee or his survivors under the Federal Employersâ\x80\x99 Liability Act (FELA), 45 USC § 51, et. seq.'},
     )
     _340 = (
             '340 Marine',
@@ -140,11 +140,11 @@ class NatureSuit(Choice):
     )
     _375 = (
             '375 False Claims Act',
-            {'section': 'Other Statutes', 'description': 'Action filed by private individuals alleging fraud against the U.S. Government under 31 USC Â§3729.'},
+            {'section': 'Other Statutes', 'description': 'Action filed by private individuals alleging fraud against the U.S. Government under 31 USC § 3729.'},
     )
     _376 = (
             '376 376 Qui Tam (31 U.S.C. 3729(A))',
-            {'section': 'Other Statutes', 'description': 'Action brought under the False Claims Act by private persons (also known as "whistleblowers") on their own behalf and on behalf of the United States to recover damages against another person or entity that acted fraudulently in receiving payments or property from, or avoiding debts owed to, the United States Government, 31 USC Â§3730.'},
+            {'section': 'Other Statutes', 'description': 'Action brought under the False Claims Act by private persons (also known as "whistleblowers") on their own behalf and on behalf of the United States to recover damages against another person or entity that acted fraudulently in receiving payments or property from, or avoiding debts owed to, the United States Government, 31 USC § 3730.'},
     )
     _380 = (
             '380 Other Personal Property Damage',
@@ -156,19 +156,19 @@ class NatureSuit(Choice):
     )
     _400 = (
             '400 State Reapportionment',
-            {'section': 'Other Statutes', 'description': 'Action filed under the Reapportionment Act of 1929 Ch. 28, 46 Stat. 21, 2 USC Â§2a.'},
+            {'section': 'Other Statutes', 'description': 'Action filed under the Reapportionment Act of 1929 Ch. 28, 46 Stat. 21, 2 USC § 2a.'},
     )
     _410 = (
             '410 Antitrust',
-            {'section': 'Other Statutes', 'description': 'Action brought under the Clayton Act 15 USC Â§12 - 27 alleging undue restriction of trade and commerce by designated methods that limit free competition in the market place amongst consumers such as anti-competitive price discrimination, corporate mergers, interlocking directorates or tying and exclusive dealing contracts.'},
+            {'section': 'Other Statutes', 'description': 'Action brought under the Clayton Act 15 USC § 12 - 27 alleging undue restriction of trade and commerce by designated methods that limit free competition in the market place amongst consumers such as anti-competitive price discrimination, corporate mergers, interlocking directorates or tying and exclusive dealing contracts.'},
     )
     _422 = (
             '422 Appeal 28 Usc 158',
-            {'section': 'Bankruptcy', 'description': 'All appeals of previous bankruptcy decisions filed under 28 USC Â§158.'},
+            {'section': 'Bankruptcy', 'description': 'All appeals of previous bankruptcy decisions filed under 28 USC § 158.'},
     )
     _423 = (
             '423 Withdrawal 28 Usc 157',
-            {'section': 'Bankruptcy', 'description': 'Action held in bankruptcy court requesting withdrawal under the provisions of 28 USC Â§157.'},
+            {'section': 'Bankruptcy', 'description': 'Action held in bankruptcy court requesting withdrawal under the provisions of 28 USC § 157.'},
     )
     _430 = (
             '430 Banks And Banking',
@@ -180,7 +180,7 @@ class NatureSuit(Choice):
     )
     _441 = (
             '441 Voting',
-            {'section': 'Civil Rights', 'description': 'Action filed under Civil Rights Act, 52 USC Â§10101, and Voting Rights Act, 52 USC Â§10301.'},
+            {'section': 'Civil Rights', 'description': 'Action filed under Civil Rights Act, 52 USC § 10101, and Voting Rights Act, 52 USC § 10301.'},
     )
     _442 = (
             '442 Employment',
@@ -188,7 +188,7 @@ class NatureSuit(Choice):
     )
     _443 = (
             '443 Housing/Accommodations',
-            {'section': 'Civil Rights', 'description': 'Action filed under the Fair Housing Act (Title VII), 42 USC Â§3601 & 3602.'},
+            {'section': 'Civil Rights', 'description': 'Action filed under the Fair Housing Act (Title VII), 42 USC § 3601 & 3602.'},
     )
     _444 = (
             '444 Welfare',
@@ -196,15 +196,15 @@ class NatureSuit(Choice):
     )
     _445 = (
             '445 Amer W/Disabilities-Employment',
-            {'section': 'Civil Rights', 'description': 'Action of discrimination against an employee with disabilities of any type in the work place, filed under 42 USC Â§12117.'},
+            {'section': 'Civil Rights', 'description': 'Action of discrimination against an employee with disabilities of any type in the work place, filed under 42 USC § 12117.'},
     )
     _446 = (
             '446 Amer W/Disabilities - Other',
-            {'section': 'Civil Rights', 'description': 'Action of discrimination against an individual with disabilities in areas other than employment, filed under 42 USC Â§12133 (exclusion or discrimination in provision of services, programs or activities of a public entity) or 42 USC Â§12188 (public accommodations).'},
+            {'section': 'Civil Rights', 'description': 'Action of discrimination against an individual with disabilities in areas other than employment, filed under 42 USC § 12133 (exclusion or discrimination in provision of services, programs or activities of a public entity) or 42 USC § 12188 (public accommodations).'},
     )
     _448 = (
             '448 Education',
-            {'section': 'Civil Rights', 'description': 'Action filed under the Individuals with Disabilities Educations Act, 20 USC Â§1401 and Title IX of the Education Amendment of 1972, 20 USC Â§1681 et seq.'},
+            {'section': 'Civil Rights', 'description': 'Action filed under the Individuals with Disabilities Educations Act, 20 USC § 1401 and Title IX of the Education Amendment of 1972, 20 USC § 1681 et seq.'},
     )
     _450 = (
             '450 Commerce',
@@ -216,11 +216,11 @@ class NatureSuit(Choice):
     )
     _462 = (
             '462 Naturalization Application',
-            {'section': 'Immigration', 'description': 'Action seeking review of denial of an application for naturalization [8 USC Â§1447(b)] or alleging failure to make a determination regarding an application for naturalization [8 USC Â§1421(c)].'},
+            {'section': 'Immigration', 'description': 'Action seeking review of denial of an application for naturalization [8 USC § 1447(b)] or alleging failure to make a determination regarding an application for naturalization [8 USC § 1421(c)].'},
     )
     _463 = (
             '463 Habeas Corpus - Alien Detainee',
-            {'section': 'Prisoner Petitions - Habeas Corpus', 'description': 'Immigration habeas petition under 28 USC Â§2241. All cases filed with this nature of suit code are restricted to case participants and public terminals. Petition is filed by an alien detainee.'},
+            {'section': 'Prisoner Petitions - Habeas Corpus', 'description': 'Immigration habeas petition under 28 USC § 2241. All cases filed with this nature of suit code are restricted to case participants and public terminals. Petition is filed by an alien detainee.'},
     )
     _465 = (
             '465 Other Immigration Actions',
@@ -232,23 +232,23 @@ class NatureSuit(Choice):
     )
     _480 = (
             '480 Consumer Credit',
-            {'section': 'Other Statutes', 'description': 'Action filed under the Fair Credit Reporting Act, 15 USC 1681n or 15 USC 1681o, and the Fair Debt Collection Practices Act, 15 USC Â§1692k.'},
+            {'section': 'Other Statutes', 'description': 'Action filed under the Fair Credit Reporting Act, 15 USC 1681n or 15 USC 1681o, and the Fair Debt Collection Practices Act, 15 USC § 1692k.'},
     )
     _485 = (
             '485 Telephone Consumer Protection Act (Tcpa)',
-            {'section': 'Other Statutes', 'description': 'Action filed under the Telephone Consumer Protection Act 47 USC Â§227.'},
+            {'section': 'Other Statutes', 'description': 'Action filed under the Telephone Consumer Protection Act 47 USC § 227.'},
     )
     _490 = (
             '490 Cable/Sat Tv',
-            {'section': 'Other Statutes', 'description': 'Action filed involving unauthorized reception of cable/satellite TV service under 47 USC Â§553 (unauthorized reception of cable/satellite TV), or 47 USC Â§605 (e)(3) (unauthorized use or publication of a communication).'},
+            {'section': 'Other Statutes', 'description': 'Action filed involving unauthorized reception of cable/satellite TV service under 47 USC § 553 (unauthorized reception of cable/satellite TV), or 47 USC § 605 (e)(3) (unauthorized use or publication of a communication).'},
     )
     _510 = (
             '510 Motions To Vacate Sentence',
-            {'section': 'Prisoner Petitions - Habeas Corpus', 'description': 'Action by a prisoner to vacate or modify a sentence imposed in federal court, other than a death sentence, under 28 USC Â§2255.'},
+            {'section': 'Prisoner Petitions - Habeas Corpus', 'description': 'Action by a prisoner to vacate or modify a sentence imposed in federal court, other than a death sentence, under 28 USC § 2255.'},
     )
     _530 = (
             '530 General',
-            {'section': 'Prisoner Petitions - Habeas Corpus', 'description': 'Action by a federal or state prisoner currently in custody challenging the legality of confinement or other punishment. This includes claims alleging illegalities that occurred in trial (for example, ineffective assistance of counsel), sentencing (including fines and restitution orders), or disciplinary proceedings in prison (for example, loss of good time credits). Habeas petition under 28 USC Â§2254 or prisoner habeas under 28 USC Â§2241.'},
+            {'section': 'Prisoner Petitions - Habeas Corpus', 'description': 'Action by a federal or state prisoner currently in custody challenging the legality of confinement or other punishment. This includes claims alleging illegalities that occurred in trial (for example, ineffective assistance of counsel), sentencing (including fines and restitution orders), or disciplinary proceedings in prison (for example, loss of good time credits). Habeas petition under 28 USC § 2254 or prisoner habeas under 28 USC § 2241.'},
     )
     _535 = (
             '535 Death Penalty',
@@ -300,7 +300,7 @@ class NatureSuit(Choice):
     )
     _710 = (
             '710 Fair Labor Standards Act',
-            {'section': 'Labor', 'description': 'Action relating to non-union workplace related disputes filed under the Fair Labor Standards Act, 29 USC Â§201 including but not limited to wage discrimination, paid leave, minimum wage and overtime pay.'},
+            {'section': 'Labor', 'description': 'Action relating to non-union workplace related disputes filed under the Fair Labor Standards Act, 29 USC § 201 including but not limited to wage discrimination, paid leave, minimum wage and overtime pay.'},
     )
     _720 = (
             '720 Labor/Management Relations',
@@ -312,11 +312,11 @@ class NatureSuit(Choice):
     )
     _740 = (
             '740 Railway Labor Act',
-            {'section': 'Labor', 'description': 'Action relating to disputes filed under the Railway Labor Act, 45 USC Â§151 including labor disputes, individual claims, and response to sanctions.'},
+            {'section': 'Labor', 'description': 'Action relating to disputes filed under the Railway Labor Act, 45 USC § 151 including labor disputes, individual claims, and response to sanctions.'},
     )
     _751 = (
             '751 Family And Medical Leave Act',
-            {'section': 'Labor', 'description': 'Action filed under the Family Medical Leave Act, 29 USC Â§2601.'},
+            {'section': 'Labor', 'description': 'Action filed under the Family Medical Leave Act, 29 USC § 2601.'},
     )
     _790 = (
             '790 Other Labor Litigation',
@@ -324,7 +324,7 @@ class NatureSuit(Choice):
     )
     _791 = (
             '791 Employee Retirement Income Security Act',
-            {'section': 'Labor', 'description': 'Action filed under the Employee Retirement Income Security Act, 29 USC Â§1132 by individuals and labor organizations.'},
+            {'section': 'Labor', 'description': 'Action filed under the Employee Retirement Income Security Act, 29 USC § 1132 by individuals and labor organizations.'},
     )
     _810 = (
             '810 Selective Service',
@@ -368,7 +368,7 @@ class NatureSuit(Choice):
     )
     _865 = (
             '865 Rsi (405(G))',
-            {'section': 'Social Security', 'description': 'Action filed with regard to social security benefits provided for Retirement, Survivor Insurance under 42 USC Â§405.'},
+            {'section': 'Social Security', 'description': 'Action filed with regard to social security benefits provided for Retirement, Survivor Insurance under 42 USC § 405.'},
     )
     _870 = (
             '870 Taxes (U.S. Plaintiff Or Defendant)',
@@ -416,7 +416,7 @@ class NatureSuit(Choice):
     )
     _899 = (
             '899 Administrative Procedure Act/Review Or Appeal Of Agency Decision',
-            {'section': 'Other Statutes', 'description': 'Action filed under the Administrative Procedures Act, 5 USC Â§701, or civil actions to review or appeal a federal agency decision.'},
+            {'section': 'Other Statutes', 'description': 'Action filed under the Administrative Procedures Act, 5 USC § 701, or civil actions to review or appeal a federal agency decision.'},
     )
     _900 = (
             '900 Appeal Of Fee Determination Under Equal Access To Justice Act',
@@ -424,7 +424,7 @@ class NatureSuit(Choice):
     )
     _950 = (
             '950 Constitutionality Of State Statutes',
-            {'section': 'Other Statutes', 'description': 'Action drawing into question the constitutionality of a federal or state statute filed under (Rule 5.1). Rule 5.1 implements 28 USC Â§2403.'},
+            {'section': 'Other Statutes', 'description': 'Action drawing into question the constitutionality of a federal or state statute filed under (Rule 5.1). Rule 5.1 implements 28 USC § 2403.'},
     )
     _990 = (
             '990 Other',

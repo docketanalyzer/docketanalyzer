@@ -134,10 +134,12 @@ class WebSearch:
                     raise Exception("Failed to start web search service in 30 seconds.")
         self.started = True
 
-    def search(self, query, format='json', **kwargs):
+    def search(self, query, format='json', return_response=False, **kwargs):
         if not self.started:
             self.start()
         r = requests.get(f'{self.url}/search', params={'q': query, 'format': format, **kwargs})
+        if return_response:
+            return r
         if format == 'json':
             return r.json()
         return r.text

@@ -1,6 +1,7 @@
 import csv
 from datetime import datetime
 from io import StringIO
+from urllib.parse import urlparse
 import pandas as pd
 import peewee
 from peewee import (
@@ -14,8 +15,7 @@ from playhouse.shortcuts import model_to_dict
 from toolz import partition_all
 from tqdm import tqdm
 from docketanalyzer import (
-    POSTGRES_DB, POSTGRES_HOST, POSTGRES_PORT, 
-    POSTGRES_PASSWORD, POSTGRES_USERNAME, 
+    POSTGRES_URL,
     require_confirmation_wrapper, require_confirmation, notabs,
 )
 
@@ -95,7 +95,10 @@ class CustomModelSelect(ModelSelect, CustomQueryMixin):
 class CustomModelQueryMixin:
     @classmethod
     def select(cls, *fields):
-        return CustomModelSelect(cls, fields)
+        is_default = not fields
+        if not fields:
+            fields = cls._meta.sorted_fields
+        return CustomModelSelect(cls, fields, is_default=is_default)
 
     @classmethod
     def sample(cls, n):
@@ -139,7 +142,7 @@ class CustomModel(CustomModelQueryMixin, Model):
         cls.reload()
 
     @classmethod
-    def add_column(cls, column_name, column_type, null=True, overwrite=False, exists_ok=True, **kwargs):
+    def add_column(cls, column_name, column_type, null=None, overwrite=False, exists_ok=True, **kwargs):
         table_name = cls._meta.table_name
         table_meta = cls.db_manager.meta[table_name]
         migrator = PostgresqlMigrator(cls._meta.database)
@@ -149,6 +152,9 @@ class CustomModel(CustomModelQueryMixin, Model):
             if not overwrite:
                 return
             cls.drop_column(column_name)
+
+        if null is None:
+            null = True if 'default' not in kwargs else False
         kwargs['null'] = null
         migrate(
             migrator.add_column(table_name, column_name, getattr(peewee, column_type)(**kwargs))
@@ -198,10 +204,13 @@ class Tables:
         return name in self.db.meta
 
     def __getitem__(self, name):
-        if name not in self.db.meta:
-            raise KeyError(f'Table {name} does not exist. Use db.create_table to create it.')
-        elif name not in self.tables:
-            self.tables[name] = self.db.load_table_class(name)
+        if name not in self.tables:
+            if name in self.db.registered_models:
+                self.tables[name] = self.db.registered_models[name]
+            else:
+                if name not in self.db.meta:
+                    raise KeyError(f'Table {name} does not exist. Use db.create_table to create it.')
+                self.tables[name] = self.db.load_table_class(name)
         return self.tables[name]
     
     def __getattr__(self, name):
@@ -212,23 +221,25 @@ class Tables:
 
 
 class Database:
-    def __init__(
-        self, db_name=POSTGRES_DB, host=POSTGRES_HOST, port=POSTGRES_PORT, 
-        user=POSTGRES_USERNAME, password=POSTGRES_PASSWORD,
-    ):
-        self.connection_args = {
-            'db_name': db_name, 'host': host, 'port': port,
-            'user': user, 'password': password,
-        }
+    def __init__(self, connection=POSTGRES_URL, registered_models=[]):
+        self.connection = connection
         self.db = None
         self.connect()
+        self.registered_models = {}
+        for model in registered_models:
+            self.register_model(model)
         self.t = Tables(self)
         self.cache = {}
     
     def connect(self):
-        connection_args = self.connection_args.copy()
-        db_name = connection_args.pop('db_name')
-        self.db = PostgresqlExtDatabase(db_name, **connection_args)
+        url = urlparse(self.connection)
+        self.db = PostgresqlExtDatabase(
+            database=url.path[1:],
+            user=url.username,
+            password=url.password,
+            host=url.hostname,
+            port=url.port
+        )
 
     @property
     def meta(self):
@@ -251,7 +262,15 @@ class Database:
     
     def reload(self):
         self.close()
-        self.__init__(**self.connection_args)
+        self.__init__(
+            connection=self.connection, 
+            registered_models=list(self.registered_models.values())
+        )
+
+    def register_model(self, model):
+        self.registered_models[model._meta.table_name] = model
+        model.db_manager = self
+        model._meta.database = self.db
 
     def load_table_class(self, name, new=False):
         if not new and name not in self.meta:
@@ -307,6 +326,5 @@ class Database:
         self.db.close()
 
 
-def connect(database=POSTGRES_DB, host=POSTGRES_HOST, port=POSTGRES_PORT, user=POSTGRES_USERNAME, password=POSTGRES_PASSWORD):
-    return Database(database, host, port, user, password)
-
+def connect(connection=POSTGRES_URL):
+    return Database(connection)

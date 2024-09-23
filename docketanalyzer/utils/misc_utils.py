@@ -1,21 +1,41 @@
-from datetime import datetime
+from datetime import datetime, date, UTC
+from dateutil.parser._parser import ParserError
 from functools import wraps
+import hashlib
 import inspect
 import multiprocessing
-import os
+import secrets
 import signal
+import string
 import subprocess
 import time
 import numpy as np
 import pandas as pd
+from pandas._libs.tslibs.np_datetime import OutOfBoundsDatetime
 from pathlib import Path
 import requests
+import simplejson as json
 from tqdm import tqdm
 
 
 def bash(cmd):
     out = subprocess.run(cmd, capture_output=True, text=True)
     return out.stdout.strip()
+
+
+def generate_hash(data, secret=None, length=None):
+    data = json.dumps(data, sort_keys=True, default=json_default)
+    if secret:
+        data += secret
+    hash = hashlib.sha256(data.encode()).hexdigest()
+    if length:
+        hash = hash[:length]
+    return hash
+
+
+def generate_code(length=16):
+    abc = string.ascii_uppercase + string.digits
+    return ''.join(secrets.choice(abc) for _ in range(length))
 
 
 class timeout:
@@ -79,9 +99,7 @@ def pd_save_or_append(data, path, **kwargs):
 
 
 def rotate_ip():
-    """
-    Requires PIA VPN to be installed and running.
-    """
+    """Requires PIA VPN to be installed and running."""
     current_region = bash(['piactl', 'get', 'region'])
     regions = bash(['piactl', 'get', 'regions']).split('\n')
     regions = [
@@ -134,3 +152,36 @@ def require_confirmation_wrapper(message="Are you sure you want to proceed?", di
                 return None
         return wrapper
     return decorator
+
+
+def datetime_utcnow():
+    return datetime.now(UTC)
+
+
+def list_to_array(embeddings):
+    return np.array([np.array(e) for e in embeddings]).astype('float32')
+
+
+def to_date(x):
+    if x:
+        try:
+            return pd.to_datetime(x).date()
+        except (ParserError, OutOfBoundsDatetime):
+            pass
+
+
+def to_int(x):
+    if x is not None:
+        try:
+            return int(x)
+        except ValueError:
+            pass
+
+
+def json_default(obj):
+    if isinstance(obj, (datetime, date)):
+        return obj.isoformat()
+
+
+def dev_available():
+    return (Path(__file__).parents[2] / 'dev' / 'docketanalyzer').exists()

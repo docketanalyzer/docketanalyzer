@@ -2,7 +2,6 @@ from .choice import Choice
 
 
 class DistrictCourt(Choice):
-    dcd = "District of Columbia"
     almd = "Alabama, Middle District"
     alnd = "Alabama, Northern District"
     alsd = "Alabama, Southern District"
@@ -17,6 +16,7 @@ class DistrictCourt(Choice):
     cod = "Colorado, District"
     ctd = "Connecticut, District"
     ded = "Delaware, District"
+    dcd = "District of Columbia"
     flmd = "Florida, Middle District"
     flnd = "Florida, Northern District"
     flsd = "Florida, Southern District"

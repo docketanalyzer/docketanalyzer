@@ -3,7 +3,7 @@ from docketanalyzer._version import __version__
 from docketanalyzer.utils import *
 
 
-import warnings # until instructor is updated
+import warnings
 warnings.filterwarnings("ignore", category=UserWarning, message="Valid config keys have changed in V2:")
 
 
@@ -13,7 +13,7 @@ sys.modules[f"docketanalyzer.choices"] = choices
 
 modules = {
     'docketanalyzer.core.chat': {'names': ['Chat', 'ChatThread', 'hello'], 'extras': 'chat'},
-    'docketanalyzer.core.database': {'names': ['Database', 'connect']},
+    'docketanalyzer.core.database': {'names': ['Database', 'CustomModel', 'connect']},
     'docketanalyzer.core.elastic': {'names': ['load_elastic']},
     'docketanalyzer.core.flp': {'names': ['JuriscraperUtility'], 'extras': 'flp'},
     'docketanalyzer.core.object': {'names': ['ObjectIndex', 'ObjectManager', 'ObjectBatch']},
@@ -40,6 +40,6 @@ from docketanalyzer.cli import cli
 __all__ = list(set(sum([x['names'] for x in modules.values()], [])))
 
 
-if (Path(__file__).parents[1] / 'dev' / 'docketanalyzer').exists():
+if dev_available():
     from dev import patch
     patch(globals())

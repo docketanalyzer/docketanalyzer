@@ -98,6 +98,7 @@ class DocketManager(ObjectManager):
         'entry_labels',
         'entry_spans',
         'docs',
+        'idb_rows',
     ]
 
     @property
@@ -129,6 +130,10 @@ class DocketManager(ObjectManager):
     def search_json(self):
         if self.search_json_path.exists():
             return json.loads(self.search_json_path.read_text())
+
+    @property
+    def label_paths(self):
+        return list(self.dir.glob('labels.*.csv'))
 
     @property
     def span_paths(self):
@@ -176,7 +181,7 @@ class DocketManager(ObjectManager):
     @property
     def all_docs(self):
         data = []
-        entries = self.get_entries().dropna(subset=['entry_number'])
+        entries = self.get_entries(process_text=True).dropna(subset=['entry_number'])
         for row in entries.to_dict('records'):
             data.append(Document(self, row['entry_number'], None))
             for attachment_section in row['attachments']:
