@@ -1,4 +1,4 @@
-from datetime import datetime, date, UTC
+from datetime import datetime, date as datetime_date
 from dateutil.parser._parser import ParserError
 from functools import wraps
 import hashlib
@@ -155,6 +155,7 @@ def require_confirmation_wrapper(message="Are you sure you want to proceed?", di
 
 
 def datetime_utcnow():
+    from datetime import UTC
     return datetime.now(UTC)
 
 
@@ -179,7 +180,7 @@ def to_int(x):
 
 
 def json_default(obj):
-    if isinstance(obj, (datetime, date)):
+    if isinstance(obj, (datetime, datetime_date)):
         return obj.isoformat()
 
 

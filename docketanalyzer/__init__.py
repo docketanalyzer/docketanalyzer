@@ -22,7 +22,6 @@ modules = {
     'docketanalyzer.core.websearch': {'names': ['WebSearch']},
     'docketanalyzer.core.task': {'names': ['Task', 'DocketTask', 'load_tasks', 'load_task', 'register_task', 'task_registry']},
     'docketanalyzer.pipelines': {'names': ['Pipeline', 'pipeline'], 'extras': 'pipelines'},
-    'docketanalyzer.pipelines.parallel_inference': {'names': ['parallel_inference'], 'extras': 'pipelines'},
     'docketanalyzer.pipelines.remote_pipeline': {'names': ['remote_pipeline'], 'extras': 'pipelines'},
     'docketanalyzer.routines': {'names': ['training_routine'], 'extras': 'pipelines'},
     'docketanalyzer.data.docket_index': {'names': ['DocketIndex', 'load_docket_index']},

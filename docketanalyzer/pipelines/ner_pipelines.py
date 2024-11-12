@@ -20,7 +20,7 @@ class NerPipeline(Pipeline):
     def filtered_prediction(self):
         return []
     
-    def post_process_preditions(self, texts, preds):
+    def post_process_predictions(self, texts, preds):
         for i in range(len(preds)):
             for span in preds[i]:
                 span['text'] = texts[i][span['start']:span['end']].strip()

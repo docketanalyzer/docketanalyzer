@@ -6,7 +6,8 @@ from docketanalyzer import load_docket_index
 @click.option('--skip', '-s', default=None, help='Comma-separated list of tasks to skip.')
 @click.option('--run', '-r', is_flag=True, help='Run the task.')
 @click.option('--reset', is_flag=True, help='Reset the task progress (only applied if a single task is selected).')
-def tasks(name, skip, run, reset):
+@click.option('--quiet', '-y', is_flag=True, help='Reset the task progress (only applied if a single task is selected).')
+def tasks(name, skip, run, reset, quiet):
     """
     List or run registered tasks across the default docket index.
 
@@ -48,7 +49,7 @@ def tasks(name, skip, run, reset):
                 print(task.name)
                 print(task.progress_str)
                 if name is not None and reset:
-                    task.reset()
+                    task.reset(quiet=quiet)
                 if run:
                     task.run()
                 else:

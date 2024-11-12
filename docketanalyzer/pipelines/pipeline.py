@@ -1,3 +1,4 @@
+from datasets import Dataset
 import torch
 from tqdm import tqdm
 from transformers import AutoModel, AutoTokenizer, pipeline
@@ -62,7 +63,7 @@ class Pipeline:
     def pre_process_texts(self, texts):
         return texts
 
-    def post_process_preditions(self, texts, preds):
+    def post_process_predictions(self, texts, preds):
         return preds
 
     def __call__(self, texts, batch_size=1, smart_batch=True, verbose=True, **kwargs):
@@ -96,5 +97,58 @@ class Pipeline:
         resorted_preds = [self.filtered_prediction(**kwargs)] * len(texts)
         for i, j in enumerate(sorted_indices):
             resorted_preds[j] = preds[i]
-        resorted_preds = self.post_process_preditions(texts, resorted_preds, **kwargs)
+        resorted_preds = self.post_process_predictions(texts, resorted_preds, **kwargs)
+        return resorted_preds
+
+
+    def new_call(self, texts, batch_size=1, smart_batch=True, verbose=True, max_length=None, **kwargs):
+        from docketanalyzer import timeit
+        texts = self.pre_process_texts(texts)
+        
+        max_length = max_length or self.tokenize_args.get('max_length', self.model.config.max_position_embeddings)
+        dataset = Dataset.from_dict({'text': texts}, streaming=True)
+
+        def tokenize_function(inputs):
+            return self.tokenizer(
+                inputs['text'], max_length=max_length, 
+                truncation=True, padding=True,
+                return_tensors='pt'
+            )
+
+        dataset = dataset.map(tokenize_function, batched=True, batch_size=batch_size)
+        dataset = dataset.remove_columns(['text'])
+        dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size)
+        print(dataloader)
+
+
+        text_indices = list(range(len(texts)))
+        filtered_text_indices = [i for i in text_indices if self.minimal_condition(texts[i])]
+        sorted_indices = sorted(filtered_text_indices, key=lambda i: -len(texts[i]))
+        sorted_texts = [texts[i] for i in sorted_indices]
+        if not smart_batch:
+            batches = [sorted_texts[i:i+batch_size] for i in range(0, len(sorted_texts), batch_size)]
+            tokenized_batches = [self.tokenize_batch(batch) for batch in batches]
+        else:
+            progress = tqdm(total=len(sorted_texts), disable=not verbose, desc='Tokenizing')
+            max_length = self.tokenize_args.get('max_length', self.model.config.max_position_embeddings)
+            max_batch_tokens = batch_size * max_length
+            current_position = 0
+            tokenized_batches = []
+            while current_position < len(sorted_texts):
+                batch = sorted_texts[current_position:current_position+batch_size]
+                current_position += batch_size
+                tokenized_batch = self.tokenize_batch(batch)
+                tokenized_batches.append(tokenized_batch)
+                max_length = tokenized_batch['input_ids'].shape[-1]
+                extra_space = (max_batch_tokens - max_length * batch_size) // max_length
+                progress.update(batch_size)
+                if extra_space > 0:
+                    batch_size += extra_space
+        preds = []
+        for tokenized_batch in tqdm(tokenized_batches, disable=not verbose, desc='Predicting'):
+            preds.extend(self.predict_batch(tokenized_batch, **kwargs))
+        resorted_preds = [self.filtered_prediction(**kwargs)] * len(texts)
+        for i, j in enumerate(sorted_indices):
+            resorted_preds[j] = preds[i]
+        resorted_preds = self.post_process_predictions(texts, resorted_preds, **kwargs)
         return resorted_preds

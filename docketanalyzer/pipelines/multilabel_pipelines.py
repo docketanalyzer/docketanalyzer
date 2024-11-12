@@ -23,7 +23,7 @@ class MultilabelPipeline(Pipeline):
         else:
             return []
 
-    def post_process_preditions(self, texts, preds, return_scores=False):
+    def post_process_predictions(self, texts, preds, return_scores=False):
         if not return_scores:
             for i in range(len(preds)):
                 preds[i] = [p['label'] for p in preds[i] if p['score'] > self.threshold]

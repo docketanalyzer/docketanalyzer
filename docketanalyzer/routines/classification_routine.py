@@ -17,13 +17,20 @@ class ClassificationRoutine(Routine):
         )
         model.config.label2id = {self.label_names[i]: i for i in range(len(self.label_names))}
         model.config.id2label = {i: self.label_names[i] for i in range(len(self.label_names))}
+        if not model.config.pad_token_id:
+            model.config.pad_token_id = model.config.eos_token_id
         return model
 
     def tokenize_hook(self, examples, inputs):
-        inputs['labels'] = torch.tensor([
-            [0, 1] if example_label else [1, 0]
-            for example_label in examples['label']
-        ])
+        if 0:
+            inputs['labels'] = torch.tensor([
+                [0, 1] if example_label else [1, 0]
+                for example_label in examples['label']
+            ])
+        else:
+            inputs['labels'] = torch.tensor([
+                int(example_label) for example_label in examples['label']
+            ])
         return inputs
 
     @property

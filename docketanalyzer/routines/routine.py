@@ -87,6 +87,8 @@ class Routine:
 
     def load_tokenizer(self):
         tokenizer = AutoTokenizer.from_pretrained(self.base_model)
+        if not tokenizer.pad_token:
+            tokenizer.pad_token = tokenizer.eos_token
         return tokenizer
 
     @property
@@ -193,9 +195,11 @@ class Routine:
         self.init()
         self.trainer.train()
         if eval_data is not None:
+            results = self.trainer.evaluate()
             (self.run_dir / 'eval_results.json').write_text(
-                json.dumps(self.trainer.evaluate(), indent=4)
+                json.dumps(results, indent=4)
             )
+            print(results)
         self.tokenizer.save_pretrained(self.run_dir)
         self.trainer.save_model(self.run_dir)
         self.trainer.push_to_hub()

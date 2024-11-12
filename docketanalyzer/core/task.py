@@ -62,12 +62,12 @@ class Task:
         if selected_ids is not None:
             self.selected_ids = selected_ids
 
-    def reset(self, selected_ids=None):
+    def reset(self, selected_ids=None, quiet=False):
         self.set_selected_ids(selected_ids)
         if self.selected_ids:
             self.table.update({self.status_col: None}).where(self.q._where).execute()
         else:
-            self.table.drop_column(self.status_col_name)
+            self.table.drop_column(self.status_col_name, confirm=not quiet)
             self.table.add_column(self.status_col_name, 'DateTimeField')
         self.post_reset()
 
