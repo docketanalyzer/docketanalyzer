@@ -53,7 +53,7 @@ keys = [
     ConfigKey(
         name='ANTHROPIC_DEFAULT_CHAT_MODEL',
         key_type='str',
-        default='claude-3-5-sonnet-20240620',
+        default='claude-3-5-sonnet-latest',
         group='anthropic',
     ),
     ConfigKey(
@@ -81,7 +81,7 @@ keys = [
     ConfigKey(
         name='OPENAI_DEFAULT_CHAT_MODEL',
         key_type='str',
-        default='gpt-4o',
+        default='gpt-4o-mini',
         group='openai',
     ),
     ConfigKey(

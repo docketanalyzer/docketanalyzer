@@ -4,6 +4,7 @@ import time
 from pathlib import Path
 from pydantic import BaseModel
 import simplejson as json
+from docketanalyzer import generate_hash
 
 
 class BaseTool(BaseModel):
@@ -183,7 +184,7 @@ class Agent:
         return gradio_messages
 
     @classmethod
-    def demo_path(cls):
+    def get_demo_path(cls):
         if cls.has_demo:
             file_path = inspect.getfile(cls)
             return Path(file_path)

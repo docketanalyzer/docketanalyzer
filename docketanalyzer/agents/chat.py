@@ -19,7 +19,7 @@ from docketanalyzer import (
 
 
 class ChatStream:
-    def __init__(self, stream, mode='anthropic'):
+    def __init__(self, stream, mode='openai'):
         self.stream = stream
         self.mode = mode
         self.messages = []
@@ -29,6 +29,7 @@ class ChatStream:
         for chunk in self.stream:
             self.stop_reason = None
             if self.mode == 'anthropic':
+                raise Exception("Need to finish this.")
                 if chunk.type == 'message_delta' and chunk.delta.stop_reason:
                     self.stop_reason = chunk.delta.stop_reason
                 if chunk.type == 'message_start':
@@ -59,7 +60,7 @@ class ChatStream:
 
 
 class Chat:
-    def __init__(self, api_key=None, base_url=None, mode='anthropic', model=None):
+    def __init__(self, api_key=None, base_url=None, mode='openai', model=None):
         self.mode = mode
         if api_key is None:
             if mode == 'anthropic':
