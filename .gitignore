@@ -2,7 +2,7 @@ docketanalyzer/data/choices/labels.py
 dev
 build
 dist
-
+*.gradio
 
 # Created by https://www.toptal.com/developers/gitignore/api/django,osx,linux
 # Edit at https://www.toptal.com/developers/gitignore?templates=django,osx,linux
