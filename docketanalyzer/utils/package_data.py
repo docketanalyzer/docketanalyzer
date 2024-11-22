@@ -1,3 +1,4 @@
+import pandas as pd
 from pathlib import Path
 from .registry import Registry
 
@@ -14,7 +15,7 @@ class PackageData:
         return PACKAGE_DATA_DIR / self.data_path
     
     def load(self):
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 class PackageDataRegistry(Registry):
@@ -42,11 +43,10 @@ def package_data(name=None):
     return PackageData()
 
 
-class Extensions(PackageData):
-    name = 'extensions'
-    data_path = 'extensions.txt'
+class SALIData(PackageData):
+    name = 'sali'
+    data_path = 'sali.csv'
 
     def load(self):
         if self.path.exists():
-            return [x.strip() for x in self.path.read_text().split('\n')]
-        return []
+            return pd.read_csv(self.path)

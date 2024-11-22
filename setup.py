@@ -29,26 +29,9 @@ class BuildCommand(distutils.command.build.build):
 
 
 extras_require = {
-    'chat': [
-        "anthropic",
-        "cohere",
-        "docketanalyzer",
-        "groq",
-        "openai",
-        "tiktoken",
-    ],
-    'flp': [
-        "juriscraper",
-    ],
-    'ocr': [
-        "pdfplumber",
-        "pytesseract",
-        "python-magic",
-    ],
-    'pipelines': [
+    'ml': [
         "accelerate",
         "datasets",
-        "docketanalyzer",
         "scikit-learn",
         "sentencepiece",
         "tensorboard",

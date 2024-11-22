@@ -88,17 +88,17 @@ class CustomQueryMixin:
             progress.close()
 
 
-class CustomModelSelect(ModelSelect, CustomQueryMixin):
+class DatabaseModelSelect(ModelSelect, CustomQueryMixin):
     pass
 
 
-class CustomModelQueryMixin:
+class DatabaseModelQueryMixin:
     @classmethod
     def select(cls, *fields):
         is_default = not fields
         if not fields:
             fields = cls._meta.sorted_fields
-        return CustomModelSelect(cls, fields, is_default=is_default)
+        return DatabaseModelSelect(cls, fields, is_default=is_default)
 
     @classmethod
     def sample(cls, n):
@@ -124,7 +124,7 @@ class CustomModelQueryMixin:
         return model_to_dict(self)
 
 
-class CustomModel(CustomModelQueryMixin, Model):
+class DatabaseModel(DatabaseModelQueryMixin, Model):
     db_manager = None
 
     @classmethod
@@ -297,7 +297,7 @@ class Database:
                 for k, v in rename.items():
                     column_args[v] = column_args.pop(k)
                 attrs[column_name] = column.field_class(**column_args)
-        TableClass = type(name, (CustomModel,), attrs)
+        TableClass = type(name, (DatabaseModel,), attrs)
         TableClass.db_manager = self
         return TableClass
 

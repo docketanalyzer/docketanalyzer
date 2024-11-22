@@ -5,10 +5,11 @@ from docketanalyzer import ObjectManager, json_default, to_int
 
 
 class Document:
-    def __init__(self, manager, entry_number, attachment_number=None):
+    def __init__(self, manager, entry_number, attachment_number=None, description=None):
         self.manager = manager
         self.entry_number = to_int(entry_number)
         self.attachment_number = to_int(attachment_number)
+        self.description = description
 
     @property
     def name(self):
@@ -184,9 +185,11 @@ class DocketManager(ObjectManager):
         entries = self.get_entries(process_text=True).dropna(subset=['entry_number'])
         for row in entries.to_dict('records'):
             data.append(Document(self, row['entry_number'], None))
-            for attachment_section in row['attachments']:
-                for attachment in attachment_section['attachments']:
-                    data.append(Document(self, row['entry_number'], attachment['attachment_number']))
+            for attachment in row['attachments']:
+                data.append(Document(
+                    self, row['entry_number'], attachment['attachment_number'], 
+                    description=attachment['attachment_description']
+                ))
         return data
 
     def document(self, entry_number, attachment_number=None):

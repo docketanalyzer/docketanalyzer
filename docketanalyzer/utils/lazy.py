@@ -13,7 +13,6 @@ def lazy_load(import_path, object_name, extras=None):
             if len(args) == 3 and isinstance(args[1], tuple):
                 child_name, (_,), child_attrs = args
                 parent_cls = cls.cls_object()
-                #new_cls = type(child_name, (parent_cls,), child_attrs)
                 parent_metaclass = type(parent_cls)
                 new_cls = parent_metaclass(child_name, (parent_cls,), child_attrs)
                 return new_cls

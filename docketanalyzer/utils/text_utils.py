@@ -82,3 +82,9 @@ def merge_spans(spans):
         if not any(check_span_overlap(span, s) for s in merged_spans):
             merged_spans.append(span)
     return merged_spans
+
+
+def escape_markdown(text):
+    """Escape special characters in Markdown."""
+    markdown_chars = r'([\*\_\{\}\[\]\(\)\#\+\-\.\!\|])'
+    return re.sub(markdown_chars, r'\\\1', text)
