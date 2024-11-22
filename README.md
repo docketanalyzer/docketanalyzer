@@ -123,8 +123,8 @@ We also include a few hooks you can override for adding event handlers `on_tool_
 
 
 ```python
-class DocumentAgent(Agent, WorkingMemoryMixin):
-    name = 'doc_agent'
+class SummarizationAgent(Agent, WorkingMemoryMixin):
+    name = 'summarization-agent'
     tools = [next_page]
     instructions= notabs("""
     We are summarizing long documents. We will do this in two stages:
@@ -230,7 +230,7 @@ Iterate through the agent's stream.
 
 
 ```python
-agent = DocumentAgent()
+agent = SummarizationAgent()
 for _ in agent(pages):
     pass
 ```
@@ -242,6 +242,59 @@ And now we can view the agent's final summary:
 from pprint import pprint
 
 print(len(agent.chat_model.tokenize(agent.summary)), "tokens")
+pprint(agent.summary)
+```
+
+</details>
+
+### Build Agents with Llama and other Open Source Models with VLLM
+
+<details>
+<summary>Show example</summary>
+
+#### 1. Extend the SummarizationAgent with custom chat_model_args
+
+We will extend the `SummarizationAgent` from the previous example.
+
+
+```python
+class VLLMSummarizationAgent(SummarizationAgent):
+    chat_model_args = dict(
+        mode='vllm', model='meta-llama/Llama-3.2-3B-Instruct',
+        base_url='YOUR_VLLM_HOST', api_key='YOUR_API_KEY'
+    )
+```
+
+#### 2. Start your vllm service
+
+Something like this. The important things are to include `--enable-auto-tool-choice`, `--tool-call-parser`, and `--chat-template`. See the vllm docs for models that support tool use. Currently these include Mistral, Hermes, and newer Llama models.
+
+```
+vllm serve \
+    --host 0.0.0.0 --port 8000 \
+    --model meta-llama/Llama-3.2-3B-Instruct \
+    --dtype bfloat16 --enforce-eager --gpu-memory-utilization 0.95 \
+    --api-key YOUR_API_KEY \
+    --max-model-len 32000 \
+    --enable-auto-tool-choice \
+    --tool-call-parser llama3_json \
+    --chat-template /vllm-workspace/examples/tool_chat_template_llama3.2_json.jinja
+```
+
+#### 3. Run the agent
+
+
+```python
+from pprint import pprint
+
+pdf_path = package_data('example-complaint').path
+pages = extract_pages(pdf_path)
+
+agent = VLLMSummarizationAgent()
+
+for _ in agent(pages):
+    pass
+
 pprint(agent.summary)
 ```
 
@@ -277,7 +330,7 @@ TODO
 
 ## ML Extensions
 
-Use the following to make sure you have all the needed requirements for the ML extensions:
+Use the following to install all the needed requirements for the ML extensions:
 
 ```
 pip install 'docketanalyzer[ml]'
@@ -297,3 +350,7 @@ TODO
 ```python
 !jupyter nbconvert --to markdown README.ipynb
 ```
+
+    [NbConvertApp] Converting notebook README.ipynb to markdown
+    [NbConvertApp] Writing 10943 bytes to README.md
+
