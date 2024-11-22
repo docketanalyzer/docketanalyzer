@@ -1,6 +1,6 @@
 # docketanalyzer
 
 ````
-pip install 'docketanalyzer[all]'
+pip install 'docketanalyzer'
 da configure
 ````
