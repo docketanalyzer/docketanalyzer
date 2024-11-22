@@ -63,6 +63,10 @@ class WorkingMemoryMixin:
         for tool in tools:
             tool.set_agent(self)
         self.tools += tools
+
+    def clear(self):
+        super().clear()
+        self.working_memory = []
     
     @property
     def working_memory_text(self):

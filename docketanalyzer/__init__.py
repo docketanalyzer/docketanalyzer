@@ -4,9 +4,7 @@ from docketanalyzer.config import *
 from docketanalyzer.core import *
 from docketanalyzer.agents import *
 from docketanalyzer.data import *
-from docketanalyzer.tasks import (
-    Task, DocketTask, load_tasks, load_task, register_task, task_registry,
-)
+from docketanalyzer.tasks import *
 from docketanalyzer.cli import cli
 
 

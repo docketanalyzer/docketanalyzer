@@ -1,10 +1,11 @@
 from copy import deepcopy
 import inspect
+import os
 import time
 from pathlib import Path
 from pydantic import BaseModel
 import simplejson as json
-from docketanalyzer import generate_hash
+from docketanalyzer import generate_hash, notabs
 
 
 class BaseTool(BaseModel):
@@ -25,7 +26,6 @@ class Agent:
     chat_model_args = dict(mode='openai', model='gpt-4o-mini')
     chat_args = dict()
     instructions = None
-    has_demo = False
 
     def __init__(self, cache_dir=None, messages=[], **kwargs):
         super().__init__(**kwargs)
@@ -83,8 +83,7 @@ class Agent:
         self.done = False
         if role is not None:
             self.messages.append(dict(role=role, content=text))
-            print(self.messages)
-            return None
+            return
         if text is not None:
             self.messages.append(dict(role='user', content=text))
         args = {**self.chat_args, **kwargs}
@@ -134,7 +133,6 @@ class Agent:
                     self.messages.append(dict(
                         role='tool', content=tool_output, user_content=user_output, tool_call_id=tool_call['id']
                     ))
-                    self.on_tool_result()
             if not self.done:
                 for streaming_message in self.chat(**kwargs):
                     yield streaming_message
@@ -143,11 +141,11 @@ class Agent:
     def on_tool_call(self, tool_name, arguments, tool_output, user_output):
         pass
 
-    def on_tool_result(self):
-        pass
-
     def on_new_message(self):
         pass
+
+    def __call__(self, *args, **kwargs):
+        return self.chat(*args, **kwargs)
 
     def get_gradio_messages(self, messages=None):
         if messages is None:
@@ -182,32 +180,3 @@ class Agent:
             if message.get('content') is not None:
                 gradio_messages.append(message)
         return gradio_messages
-
-    @classmethod
-    def get_demo_path(cls):
-        if cls.has_demo:
-            file_path = inspect.getfile(cls)
-            return Path(file_path)
-    
-
-if __name__ == '__main__':
-    import gradio as gr
-
-    agent = Agent()
-
-    def chat_fn(text):
-        for streaming_message in agent.chat(text):
-            yield gr.Chatbot(agent.get_gradio_messages())
-
-    with gr.Blocks() as demo:
-        chatbot = gr.Chatbot(type="messages", height=600)
-        msg_input = gr.Textbox(show_label=False, submit_btn=True)
-        msg = gr.Textbox(visible=False, interactive=False)
-
-        msg_input.submit(
-            lambda x: ("", x), [msg_input], [msg_input, msg],
-        ).then(chat_fn, [msg], [chatbot])
-
-    demo.launch()
-
-

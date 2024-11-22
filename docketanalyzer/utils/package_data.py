@@ -50,3 +50,12 @@ class SALIData(PackageData):
     def load(self):
         if self.path.exists():
             return pd.read_csv(self.path)
+
+
+class SALIData(PackageData):
+    name = 'example-complaint'
+    data_path = 'example-complaint.pdf'
+
+    def load(self):
+        if self.path.exists():
+            return self.path.read_bytes()

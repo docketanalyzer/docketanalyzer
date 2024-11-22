@@ -8,7 +8,7 @@ from pathlib import Path
 import simplejson as json
 import tiktoken
 from docketanalyzer import (
-    notabs, generate_hash,
+    generate_hash, notabs,
     ANTHROPIC_API_KEY, ANTHROPIC_DEFAULT_CHAT_MODEL,
     GROQ_API_KEY, GROQ_DEFAULT_CHAT_MODEL,
     OPENAI_API_KEY, OPENAI_DEFAULT_CHAT_MODEL, OPENAI_DEFAULT_EMBEDDING_MODEL,
@@ -98,18 +98,11 @@ class Chat:
             self.default_model = TOGETHER_DEFAULT_CHAT_MODEL
 
         else:
-            raise ValueError("Invalid mode. Must be one of: 'anthropic', 'cohere', 'groq', 'openai', 'together'")
+            raise ValueError("Invalid mode. Must be one of: 'anthropic', 'cohere', 'groq', 'openai', 'together', 'vllm'.")
         if model is not None:
             self.default_model = model
         self.r = None
         self.cache = {}
-
-    def embed(self, texts, model=OPENAI_DEFAULT_EMBEDDING_MODEL):
-        if self.mode != 'openai':
-            raise ValueError("Embeddings are only supported by OpenAI.")
-        texts = [x.replace("\n", " ") for x in texts]
-        results = self.client.embeddings.create(input=texts, model=model).data
-        return [x.embedding for x in results]
 
     def get_cache_id(self, args):
         args = deepcopy(args)
@@ -119,9 +112,8 @@ class Chat:
         return str(generate_hash(args))
 
     def chat(
-        self, messages, system=None, model=None,
-        temperature=0.00000000000001, seed=42,
-        cache_dir=None, verbose=False, stream=False, **kwargs
+        self, messages, system=None, model=None, temperature=0.00000000000001, 
+        seed=42, cache_dir=None, verbose=False, stream=False, **kwargs
     ):
         if stream and cache_dir is not None:
             raise ValueError("Cannot use stream and cache_dir together.")
@@ -132,19 +124,14 @@ class Chat:
         if system is not None:
             messages = [{'role': 'system', 'content': system}] + messages
 
-        args = {
-            'model': model,
-            'messages': messages,
-            'temperature': temperature,
-            'seed': seed,
-            'stream': stream,
-            **kwargs
-        }
+        args = dict(
+            messages=messages, model=model, temperature=temperature, 
+            seed=seed, stream=stream, **kwargs
+        )
 
         if self.mode == 'anthropic':
-            args['max_tokens'] = args.get('max_tokens', 4000)
+            args['max_tokens'] = args.get('max_tokens', 12000)
             del args['seed']
-
 
         response = None
         cache_path = None
@@ -192,6 +179,13 @@ class Chat:
             schema = schema['function']
             return dict(name=schema['name'], description=schema['description'], input_schema = schema['parameters'])
         return schema
+    
+    def embed(self, texts, model=OPENAI_DEFAULT_EMBEDDING_MODEL):
+        if self.mode != 'openai':
+            raise ValueError("Embeddings only supported for OpenAI.")
+        texts = [x.replace("\n", " ") for x in texts]
+        results = self.client.embeddings.create(input=texts, model=model).data
+        return [x.embedding for x in results]
 
     def get_tokenizer(self, model):
         key = f'tokenizer__{model}'

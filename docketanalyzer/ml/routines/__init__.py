@@ -12,6 +12,7 @@ class RoutineRegistry(Registry):
 
 routine_registry = RoutineRegistry()
 routine_registry.find()
+routine_registry.import_registered()
 
 
 def training_routine(name, **kwargs):

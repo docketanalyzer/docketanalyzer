@@ -12,6 +12,7 @@ class PipelineRegistry(Registry):
 
 pipeline_registry = PipelineRegistry()
 pipeline_registry.find()
+pipeline_registry.import_registered()
 
 
 def pipeline(name, **kwargs):
