@@ -53,7 +53,7 @@ class Agent:
     
     @property
     def tool_schemas(self):
-        return [self.chat_model.get_tool_schema(x) for x in self.tools]
+        return [self.chat.get_tool_schema(x) for x in self.tools]
     
     @property
     def last_tool_call_message(self):
@@ -62,7 +62,7 @@ class Agent:
                 return message
 
     @property
-    def chat_model(self):
+    def chat(self):
         from docketanalyzer import Chat
         return Chat(**self.chat_model_args)
 
@@ -79,7 +79,7 @@ class Agent:
     def streaming_messages(self):
         return self.messages + [self.streaming_message] if self.streaming_message else self.messages
 
-    def chat(self, text=None, role=None, **kwargs):
+    def step(self, text=None, role=None, **kwargs):
         self.done = False
         if role is not None:
             self.messages.append(dict(role=role, content=text))
@@ -101,7 +101,7 @@ class Agent:
             for streaming_message in self.on_stream_finish(**kwargs):
                 yield streaming_message
         else:
-            r = self.chat_model(self.chat_messages, **args)
+            r = self.chat(self.chat_messages, **args)
             for stream in r:
                 if self.done:
                     break
@@ -134,7 +134,7 @@ class Agent:
                         role='tool', content=tool_output, user_content=user_output, tool_call_id=tool_call['id']
                     ))
             if not self.done:
-                for streaming_message in self.chat(**kwargs):
+                for streaming_message in self.step(**kwargs):
                     yield streaming_message
         self.done = True
 
@@ -145,7 +145,7 @@ class Agent:
         pass
 
     def __call__(self, *args, **kwargs):
-        return self.chat(*args, **kwargs)
+        return self.step(*args, **kwargs)
 
     def get_gradio_messages(self, messages=None):
         if messages is None:

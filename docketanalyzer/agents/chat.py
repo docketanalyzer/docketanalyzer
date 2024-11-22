@@ -213,6 +213,9 @@ class Chat:
 
 
 class ChatThread:
+    """
+    DEPRECIATED: Delete after refactoring party entity extraction.
+    """
     def __init__(self, messages=[], chat_model=None, chat_args={}, data={}, parent=None, **kwargs):
         self.messages = deepcopy(messages)
         self.chat_model = chat_model if chat_model is not None else Chat(**kwargs)

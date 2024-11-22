@@ -117,7 +117,7 @@ class next_page(BaseTool):
 
 To use the `WorkingMemoryMixin` effectively, you should update your `agent.messages` to include your working memory state in `agent.working_memory_text`.
 
-For agents `__call__` is intended to be the main entrypoint for using an agent. By defauly `__call__` simply wraps `agent.chat`, however this should be overriden for more custom workflows.
+For agents `__call__` is intended to be the main entrypoint for using an agent. By defauly `__call__` simply wraps `agent.step`, however this should be overriden for more custom workflows.
 
 We also include a few hooks you can override for adding event handlers `on_tool_call` and `on_new_message`.
 
@@ -153,7 +153,7 @@ class SummarizationAgent(Agent, WorkingMemoryMixin):
 
     @property
     def working_memory_tokens(self):
-        return len(self.chat_model.tokenize(self.working_memory_text))
+        return len(self.chat.tokenize(self.working_memory_text))
 
     @property
     def state_message(self): # we will use this as the user message
@@ -165,7 +165,7 @@ class SummarizationAgent(Agent, WorkingMemoryMixin):
         </working_memory>
 
         Your working memory is currently using {working_memory_tokens}. 
-        Try to keep this below 8000 tokens by consolidating these notes.
+        Try to keep this below 4000 tokens by consolidating these notes.
 
         <pages>
         {pages}
@@ -193,9 +193,9 @@ class SummarizationAgent(Agent, WorkingMemoryMixin):
 
         Generate a narrative-driven summary about the document based on these notes.
         Go into as much detail as possible, and make sure to reference specific page numbers and quotes from the original text where available.
-        Aim for a final summary between 2000 and 4000 tokens.
+        Aim for a final summary between 500 and 2000 tokens.
         """)
-        self.summary = self.chat_model(prompt, **self.chat_args)
+        self.summary = self.chat(prompt, **self.chat_args)
         return self.summary
     
     def __call__(self, pages): # Custom entrypoint for processing iteratively self.pages_per_step pages at a time
@@ -204,7 +204,7 @@ class SummarizationAgent(Agent, WorkingMemoryMixin):
         for current_page in tqdm(list(range(0, len(self.pages), self.pages_per_step))):
             self.current_page = current_page
             self.messages = [] # at each step we reset the message history
-            for streaming_message in self.chat(self.state_message):
+            for streaming_message in self.step(self.state_message):
                 yield streaming_message
         self.summarize()
     
@@ -241,7 +241,7 @@ And now we can view the agent's final summary:
 ```python
 from pprint import pprint
 
-print(len(agent.chat_model.tokenize(agent.summary)), "tokens")
+print(len(agent.chat.tokenize(agent.summary)), "tokens")
 pprint(agent.summary)
 ```
 
@@ -352,5 +352,5 @@ TODO
 ```
 
     [NbConvertApp] Converting notebook README.ipynb to markdown
-    [NbConvertApp] Writing 10943 bytes to README.md
+    [NbConvertApp] Writing 52497 bytes to README.md
 
