@@ -253,7 +253,7 @@ TODO
 
 ## Document OCR
 
-We have a simple utility for OCR and extracting text from PDFs. This is mostly taken from Free Law Project's [Doctor](https://github.com/freelawproject/doctor). The main tweak is that ours preserves page breaks. 
+We have a simple utility for extracting text from PDFs. This is mostly taken from Free Law Project's [Doctor](https://github.com/freelawproject/doctor). The main tweak is that `extract_pages` preserves page breaks. 
 
 You should install `tesseract` on your system to leverage OCR.
 
@@ -297,8 +297,3 @@ TODO
 ```python
 !jupyter nbconvert --to markdown README.ipynb
 ```
-
-    [NbConvertApp] Converting notebook README.ipynb to markdown
-    [NbConvertApp] Writing 9365 bytes to README.md
-    
-
