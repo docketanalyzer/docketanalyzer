@@ -123,7 +123,7 @@ We also include a few hooks you can override for adding event handlers `on_tool_
 
 
 ```python
-class SummarizationAgent(Agent, WorkingMemoryMixin):
+class SummarizationAgent(WorkingMemoryMixin, Agent):
     name = 'summarization-agent'
     tools = [next_page]
     instructions= notabs("""
@@ -352,5 +352,5 @@ TODO
 ```
 
     [NbConvertApp] Converting notebook README.ipynb to markdown
-    [NbConvertApp] Writing 52497 bytes to README.md
+    [NbConvertApp] Writing 10918 bytes to README.md
 
