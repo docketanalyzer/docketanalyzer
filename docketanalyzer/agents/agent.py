@@ -27,17 +27,15 @@ class Agent:
     chat_args = dict()
     instructions = None
 
-    def __init__(self, cache_dir=None, messages=[], **kwargs):
+    def __init__(self, messages=[], cache_dir=None, **kwargs):
         super().__init__(**kwargs)
-        if cache_dir is not None: 
-            cache_dir = Path(cache_dir)
-            cache_dir.mkdir(parents=True, exist_ok=True)
-        self.cache_dir = cache_dir
         self.messages = messages
         self.streaming_message = None
         self.done = False
         self.pause = False
         self.cache = {}
+        if cache_dir is not None:
+            self.chat_args['cache_dir'] = cache_dir
         for tool in self.tools:
             tool.set_agent(self)
     
@@ -92,33 +90,21 @@ class Agent:
         if tools_schema:
             args['tools'] = args.get('tools', tools_schema)
 
-        cache_args = dict(messages=self.chat_messages, args=args, model_args=self.chat_model_args)
-        cache_hash = generate_hash(cache_args)
-        cache_path = None if not self.cache_dir else self.cache_dir / f'{cache_hash}.json'
-        if cache_path is not None and cache_path.exists():
-            new_message = json.loads(cache_path.read_text())['response']
-            self.messages.append(new_message)
-            for streaming_message in self.on_stream_finish(**kwargs):
-                yield streaming_message
-        else:
-            r = self.chat(self.chat_messages, **args)
-            for stream in r:
-                if self.done:
-                    break
-                while self.pause:
-                    time.sleep(0.1)
-                if len(stream.messages):
-                    self.streaming_message = stream.messages[0]
-                if stream.stop_reason:
-                    self.messages.append(stream.messages.pop(0))
-                    self.messages[-1]['stop_reason'] = stream.stop_reason
-                    if cache_path is not None:
-                        cache_args['response'] = self.messages[-1]
-                        cache_path.write_text(json.dumps(cache_args, indent=2))
-                    for streaming_message in self.on_stream_finish(**kwargs):
-                        yield streaming_message
-                else:
-                    yield self.streaming_message
+        stream = self.chat(self.chat_messages, **args)
+        for _ in stream:
+            if self.done or stream.stop_reason:
+                break
+            while self.pause:
+                time.sleep(0.1)
+            self.streaming_message = stream.response
+            yield self.streaming_message
+        response = stream.response
+        response['stop_reason'] = stream.stop_reason
+        self.streaming_message = None
+        self.messages.append(response)
+        for streaming_message in self.on_stream_finish(**kwargs):
+            yield streaming_message
+        yield deepcopy(response)
     
     def on_stream_finish(self, **kwargs):
         self.streaming_message = None
