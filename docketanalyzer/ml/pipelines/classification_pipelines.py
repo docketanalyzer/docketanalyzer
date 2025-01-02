@@ -43,7 +43,7 @@ class ClassificationPipeline(Pipeline):
                         'scores': {label_name: p[j].item() for j, label_name in self.id2label.items()}
                     } for p in preds
                 ]
-            return [self.id2label[p.argmax()] for p in preds]
+            return [self.id2label[p.argmax().item()] for p in preds]
             
 
     def __call__(self, examples, batch_size=1, return_scores=False):
