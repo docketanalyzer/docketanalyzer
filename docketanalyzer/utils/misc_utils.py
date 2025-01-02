@@ -85,7 +85,7 @@ def download_file(url, path, description='Downloading'):
 
 
 def cpu_workers(n):
-    if n < 1:
+    if n <= 1:
         n = multiprocessing.cpu_count() * n
     return int(n)
 

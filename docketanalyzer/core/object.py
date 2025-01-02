@@ -1,4 +1,6 @@
 from pathlib import Path
+import pandas as pd
+import peewee as pw
 from tqdm import tqdm
 from docketanalyzer import DATA_DIR
 from .database import connect
@@ -41,7 +43,12 @@ class ObjectManager:
         return self.index.table.where(self.index.table_id_col == self.id).first()
 
     def add_to_index(self):
-        self.table.insert({self.index.table_id_col_name: self.id}).execute()
+        try:
+            if self.index.cached_ids_path.exists():
+                self.index.cached_ids_path.unlink()
+            self.table.insert({self.index.table_id_col_name: self.id}).execute()
+        except pw.IntegrityError:
+            pass
 
     def push(self, name=None, **kwargs):
         if name is not None:
@@ -57,10 +64,10 @@ class ObjectManager:
     def batch(self):
         return self.index.make_batch([self.id])
 
-    def __getattr__(self, name):
-        if name in self.batch_attributes:
-            return getattr(self.batch, name)
-        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
+    def __getattribute__(self, name):
+        if name in object.__getattribute__(self, 'batch_attributes'):
+            return getattr(object.__getattribute__(self, 'batch'), name)
+        return object.__getattribute__(self, name)
     
 
 class ObjectBatch:
@@ -106,7 +113,7 @@ class ObjectIndex:
     def db(self):
         if 'db' not in self.cache:
             self.cache['db'] = connect(**self.db_connection)
-        return self.cache['db'] #asdf
+        return self.cache['db']
     
     @property
     def t(self):
@@ -134,6 +141,19 @@ class ObjectIndex:
         return getattr(self.table, self.table_id_col_name)
 
     @property
+    def cached_ids_path(self):
+        return self.dir / 'ids.csv'
+
+    def load_cached_ids(self, shuffle=False):
+        if not self.cached_ids_path.exists():
+            obj_ids = self.table.pandas(self.table_id_col_name)
+            obj_ids.to_csv(self.cached_ids_path, index=False)
+        obj_ids = pd.read_csv(self.cached_ids_path)[self.table_id_col_name]
+        if shuffle:
+            obj_ids = obj_ids.sample(frac=1)
+        return obj_ids.tolist()
+
+    @property
     def s3(self):
         if 's3' not in self.cache:
             from docketanalyzer import S3
@@ -153,5 +173,5 @@ class ObjectIndex:
         return self.manager_class(obj_id, index=self)
 
     def __iter__(self):
-        for obj_id in tqdm(self.table.pandas(self.table_id_col_name)[self.table_id_col_name]):
+        for obj_id in tqdm(self.load_cached_ids()):
             yield self[obj_id]

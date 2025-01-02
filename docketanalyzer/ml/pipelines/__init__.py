@@ -1,5 +1,6 @@
 from docketanalyzer import Registry
 from .pipeline import Pipeline
+from .remote_pipeline import RemotePipeline
 
 
 class PipelineRegistry(Registry):
@@ -15,7 +16,9 @@ pipeline_registry.find()
 pipeline_registry.import_registered()
 
 
-def pipeline(name, **kwargs):
+def pipeline(name, remote=False, **kwargs):
+    if remote:
+        return RemotePipeline(name, **kwargs)
     for pipeline_class in pipeline_registry.all():
         if pipeline_class.name == name:
             return pipeline_class(**kwargs)

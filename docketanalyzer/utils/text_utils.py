@@ -88,3 +88,12 @@ def escape_markdown(text):
     """Escape special characters in Markdown."""
     markdown_chars = r'([\*\_\{\}\[\]\(\)\#\+\-\.\!\|])'
     return re.sub(markdown_chars, r'\\\1', text)
+
+
+
+def make_simple_text(text):
+    attachments = extract_attachments(text)
+    entered_date = extract_entered_date(text)
+    text = mask_text_with_spans(text, attachments + entered_date, mapper=lambda text, span: ' ')
+    text = ' '.join(text.split())
+    return text

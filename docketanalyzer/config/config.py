@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from docketanalyzer import dev_available
 from .package_config import PackageConfig, ConfigKey
@@ -200,6 +201,28 @@ keys = [
         key_type='str',
         description='\nConfigure Dev\n',
         default='http://localhost:5001',
+        group='dev',
+        required_extensions=['dev'],
+    ),
+    ConfigKey(
+        name='APP_HOST',
+        key_type='str',
+        default='127.0.0.1',
+        group='dev',
+        required_extensions=['dev'],
+    ),
+    ConfigKey(
+        name='APP_PORT',
+        key_type='int',
+        default=5002,
+        group='dev',
+        required_extensions=['dev'],
+    ),
+    ConfigKey(
+        name='APP_SECRET_KEY',
+        key_type='str',
+        default=os.urandom(24),
+        mask=True,
         group='dev',
         required_extensions=['dev'],
     ),

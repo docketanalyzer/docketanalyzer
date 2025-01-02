@@ -119,9 +119,12 @@ class Chat:
             messages = [{'role': 'system', 'content': system}] + messages
 
         args = dict(
-            messages=messages, model=model, temperature=temperature, 
+            messages=messages, model=model,
             seed=seed, stream=stream, **kwargs
         )
+
+        if temperature is not None:
+            args['temperature'] = temperature
 
         if self.mode == 'anthropic':
             args['max_tokens'] = args.get('max_tokens', 12000)

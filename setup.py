@@ -32,6 +32,7 @@ extras_require = {
     'ml': [
         "accelerate",
         "datasets",
+        "flash-attn",
         "scikit-learn",
         "sentencepiece",
         "tensorboard",

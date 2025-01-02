@@ -1,3 +1,4 @@
+"""
 import torch
 from transformers import AutoModelForTokenClassification
 from .pipeline import Pipeline
@@ -62,3 +63,4 @@ class NerPipeline(Pipeline):
 class EntityPipeline(NerPipeline):
     name = 'ner-entities'
     model_name = 'docketanalyzer/ner-entities'
+"""

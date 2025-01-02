@@ -1,38 +1,41 @@
+import os
+os.environ['TOKENIZERS_PARALLELISM'] = 'false'
+from copy import deepcopy
+from contextlib import nullcontext
 from datasets import Dataset
 import torch
+from transformers import AutoTokenizer, AutoModel, DataCollatorWithPadding
 from tqdm import tqdm
-from transformers import AutoModel, AutoTokenizer, pipeline
+from docketanalyzer import cpu_workers
 
 
 class Pipeline:
     name = None
-    model_name = None
-    tokenizer_name = None
-    model_class = AutoModel
-    model_args = {}
-    tokenize_args = {}
+    model_class = None
+    default_model_name = None
+    default_tokenizer_name = None
+    default_model_args = dict()
+    default_tokenize_args = dict(truncation=True, max_length=512)
 
-    def __init__(self, model_name=None, tokenizer_name=None, device=None):
-        self.model_name = self.model_name if model_name is None else model_name
-        self.tokenizer_name = self.tokenizer_name if tokenizer_name is None else tokenizer_name
-        self.tokenizer_name = self.tokenizer_name if self.tokenizer_name is not None else self.model_name
-        self.device = device if device is not None else 0 if torch.cuda.is_available() else 'cpu'
+    def __init__(self, model_name=None, tokenizer_name=None, model_args=None, tokenize_args=None, num_workers=0, device=None, bf16=True, smart_sort=True):
+        self.model_name = model_name or deepcopy(self.default_model_name)
+        self.tokenizer_name = tokenizer_name or deepcopy(self.default_tokenizer_name) or self.model_name
+        self.model_args = model_args or deepcopy(self.default_model_args)
+        self.tokenize_args = tokenize_args or deepcopy(self.default_tokenize_args)
+        self.num_workers = num_workers
+        self.device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
+        self.bf16 = bf16
+        self.smart_sort = smart_sort
         self.cache = {}
-
-        tokenize_args = dict(padding=True, truncation=True, return_tensors='pt')
-        tokenize_args.update(self.tokenize_args)
-        self.tokenize_args = tokenize_args
         self.post_init()
-
+    
     def post_init(self):
         pass
 
     @property
     def model(self):
         if 'model' not in self.cache:
-            model = self.load_model()
-            model.to(self.device).eval()
-            self.cache['model'] = model
+            self.cache['model'] = self.load_model()
         return self.cache['model']
     
     @property
@@ -40,6 +43,15 @@ class Pipeline:
         if 'tokenizer' not in self.cache:
             self.cache['tokenizer'] = self.load_tokenizer()
         return self.cache['tokenizer']
+    
+    @property
+    def model_loaded(self):
+        return 'model' in self.cache
+
+    def clear_gpu(self):
+        if self.model_loaded:
+            del self.cache['model']
+            torch.cuda.empty_cache()
         
     def load_model(self):
         return self.model_class.from_pretrained(self.model_name, **self.model_args)
@@ -47,108 +59,71 @@ class Pipeline:
     def load_tokenizer(self):
         tokenizer = AutoTokenizer.from_pretrained(self.tokenizer_name)
         return tokenizer
-    
-    def filtered_prediction(self):
-        return None
-    
-    def minimal_condition(self, text):
-        return True
 
-    def tokenize_batch(self, batch):
-        return self.tokenizer(batch, **self.tokenize_args)
-    
-    def predict_batch(self, batch):
-        raise NotImplementedError
+    def tokenize(self, examples):
+        return self.tokenizer(examples['text'], **self.tokenize_args)
 
-    def pre_process_texts(self, texts):
-        return texts
+    def create_dataset(self, examples):
+        dataset = Dataset.from_dict(dict(text=examples, idx=list(range(len(examples)))), split='train')
+        dataset = dataset.map(self.tokenize, batched=True)
+        if self.smart_sort:
+            dataset = dataset.map(lambda x: {'length': [len(y) for y in x['input_ids']]}, batched=True)
+            dataset = dataset.sort("length", reverse=True)
+        dataset.set_format(type="torch", columns=["input_ids", "attention_mask", "idx"])
+        return dataset
 
-    def post_process_predictions(self, texts, preds):
+    def create_dataloader(self, dataset, batch_size=1):
+        dataloader = torch.utils.data.DataLoader(
+            dataset, batch_size=batch_size, shuffle=False,
+            pin_memory=True, num_workers=self.num_workers,
+            collate_fn=DataCollatorWithPadding(self.tokenizer, padding=True),
+        )
+        return dataloader
+
+    def pre_process_examples(self, examples, **kwargs):
+        return examples
+
+    def post_process_preds(self, examples, preds, **kwargs):
         return preds
 
-    def __call__(self, texts, batch_size=1, smart_batch=True, verbose=True, **kwargs):
-        texts = self.pre_process_texts(texts)
-        text_indices = list(range(len(texts)))
-        filtered_text_indices = [i for i in text_indices if self.minimal_condition(texts[i])]
-        sorted_indices = sorted(filtered_text_indices, key=lambda i: -len(texts[i]))
-        sorted_texts = [texts[i] for i in sorted_indices]
-        if not smart_batch:
-            batches = [sorted_texts[i:i+batch_size] for i in range(0, len(sorted_texts), batch_size)]
-            tokenized_batches = [self.tokenize_batch(batch) for batch in batches]
-        else:
-            progress = tqdm(total=len(sorted_texts), disable=not verbose, desc='Tokenizing')
-            max_length = self.tokenize_args.get('max_length', self.model.config.max_position_embeddings)
-            max_batch_tokens = batch_size * max_length
-            current_position = 0
-            tokenized_batches = []
-            while current_position < len(sorted_texts):
-                batch = sorted_texts[current_position:current_position+batch_size]
-                current_position += batch_size
-                tokenized_batch = self.tokenize_batch(batch)
-                tokenized_batches.append(tokenized_batch)
-                max_length = tokenized_batch['input_ids'].shape[-1]
-                extra_space = (max_batch_tokens - max_length * batch_size) // max_length
-                progress.update(batch_size)
-                if extra_space > 0:
-                    batch_size += extra_space
-        preds = []
-        for tokenized_batch in tqdm(tokenized_batches, disable=not verbose, desc='Predicting'):
-            preds.extend(self.predict_batch(tokenized_batch, **kwargs))
-        resorted_preds = [self.filtered_prediction(**kwargs)] * len(texts)
-        for i, j in enumerate(sorted_indices):
-            resorted_preds[j] = preds[i]
-        resorted_preds = self.post_process_predictions(texts, resorted_preds, **kwargs)
-        return resorted_preds
+    def init_preds(self, dataset, **kwargs):
+        raise NotImplementedError
 
+    def process_outputs(self, outputs, **kwargs):
+        raise NotImplementedError
+    
+    def predict(self, examples, batch_size=1, **kwargs):
+        examples = self.pre_process_examples(examples, **kwargs)
+        dataset = self.create_dataset(examples)
+        dataloader = self.create_dataloader(dataset, batch_size=batch_size)
 
-    def new_call(self, texts, batch_size=1, smart_batch=True, verbose=True, max_length=None, **kwargs):
-        from docketanalyzer import timeit
-        texts = self.pre_process_texts(texts)
-        
-        max_length = max_length or self.tokenize_args.get('max_length', self.model.config.max_position_embeddings)
-        dataset = Dataset.from_dict({'text': texts}, streaming=True)
+        preds = self.init_preds(dataset, **kwargs)
+        idxs = torch.empty(len(dataset), dtype=torch.long)
 
-        def tokenize_function(inputs):
-            return self.tokenizer(
-                inputs['text'], max_length=max_length, 
-                truncation=True, padding=True,
-                return_tensors='pt'
+        model = self.model
+
+        model.eval().to(self.device)
+        start_idx = 0
+        with torch.no_grad():
+            autocast_context = (
+                torch.autocast(self.device, dtype=torch.bfloat16) if self.bf16 and self.device == 'cuda' else nullcontext()
             )
+            with autocast_context:
+                for batch in tqdm(dataloader, desc="Predicting"):
+                    batch_len = batch["input_ids"].shape[0]
+                    idxs[start_idx:start_idx + batch_len] = batch["idx"]
+                    del batch["idx"]
+                    batch = {k: v.to(self.device, non_blocking=False) for k, v in batch.items()}
+                    outputs = model(**batch)
+                    preds[start_idx:start_idx + batch_len] = self.process_outputs(outputs, **kwargs).cpu()
+                    start_idx += batch_len
+                    del outputs
+                    torch.cuda.empty_cache()
 
-        dataset = dataset.map(tokenize_function, batched=True, batch_size=batch_size)
-        dataset = dataset.remove_columns(['text'])
-        dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size)
-        print(dataloader)
+        idxs = idxs.argsort()
+        preds = preds[idxs]
+        preds = self.post_process_preds(examples, preds, **kwargs)
+        return preds
 
-
-        text_indices = list(range(len(texts)))
-        filtered_text_indices = [i for i in text_indices if self.minimal_condition(texts[i])]
-        sorted_indices = sorted(filtered_text_indices, key=lambda i: -len(texts[i]))
-        sorted_texts = [texts[i] for i in sorted_indices]
-        if not smart_batch:
-            batches = [sorted_texts[i:i+batch_size] for i in range(0, len(sorted_texts), batch_size)]
-            tokenized_batches = [self.tokenize_batch(batch) for batch in batches]
-        else:
-            progress = tqdm(total=len(sorted_texts), disable=not verbose, desc='Tokenizing')
-            max_length = self.tokenize_args.get('max_length', self.model.config.max_position_embeddings)
-            max_batch_tokens = batch_size * max_length
-            current_position = 0
-            tokenized_batches = []
-            while current_position < len(sorted_texts):
-                batch = sorted_texts[current_position:current_position+batch_size]
-                current_position += batch_size
-                tokenized_batch = self.tokenize_batch(batch)
-                tokenized_batches.append(tokenized_batch)
-                max_length = tokenized_batch['input_ids'].shape[-1]
-                extra_space = (max_batch_tokens - max_length * batch_size) // max_length
-                progress.update(batch_size)
-                if extra_space > 0:
-                    batch_size += extra_space
-        preds = []
-        for tokenized_batch in tqdm(tokenized_batches, disable=not verbose, desc='Predicting'):
-            preds.extend(self.predict_batch(tokenized_batch, **kwargs))
-        resorted_preds = [self.filtered_prediction(**kwargs)] * len(texts)
-        for i, j in enumerate(sorted_indices):
-            resorted_preds[j] = preds[i]
-        resorted_preds = self.post_process_predictions(texts, resorted_preds, **kwargs)
-        return resorted_preds
+    def __call__(self, *args, **kwargs):
+        return self.predict(*args, **kwargs)

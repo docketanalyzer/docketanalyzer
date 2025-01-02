@@ -1,8 +1,9 @@
+"""
 import torch
 from transformers import AutoModelForTokenClassification
 from .pipeline import Pipeline
 
-"""
+
 class MultitaskPipeline(Pipeline):
     name = 'multitask'
     model_class = AutoModelForTokenClassification

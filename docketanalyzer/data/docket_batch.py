@@ -27,7 +27,6 @@ class DocketBatch(ObjectBatch):
                     raise ValueError(f"Invalid value '{x}'.")
 
             data = pd.DataFrame(data)
-            data = data.drop(columns=['ordered_by'])
             data = data.rename(columns={
                 'court_id': 'court', 
                 'nature_of_suit': 'nature_suit',
@@ -126,7 +125,7 @@ class DocketBatch(ObjectBatch):
         data['pacer_seq_no'] = data['pacer_seq_no'].astype(pd.Int64Dtype())
         data['date_entered'] = pd.to_datetime(data['date_entered'], errors='coerce')
 
-        if include_labels:
+        if include_labels or include_label_groups:
             labels = self.entry_labels
             if labels is not None:
                 labels = labels.drop(columns=['docket_id', 'row_number'])
@@ -246,19 +245,20 @@ class DocketBatch(ObjectBatch):
                 docs = manager.pdf_docs
             else:
                 docs = manager.all_docs
-            for doc in docs:
-                doc_data ={
-                    'docket_id': manager.docket_id,
-                    'entry_number': doc.entry_number,
-                    'attachment_number': doc.attachment_number,
-                    'name': doc.name,
-                    'pdf_available': doc.pdf_available,
-                    'ocr_available': doc.ocr_available,
-                }
-                if include_pages:
-                    doc_data['pages'] = doc.pages
-                    doc_data['num_pages'] = None if not doc_data['pages'] else doc_data['pages'][-1]['page']
-                data.append(doc_data)
+            if docs is not None:
+                for doc in docs:
+                    doc_data = {
+                        'docket_id': manager.docket_id,
+                        'entry_number': doc.entry_number,
+                        'attachment_number': doc.attachment_number,
+                        'name': doc.name,
+                        'pdf_available': doc.pdf_available,
+                        'ocr_available': doc.ocr_available,
+                    }
+                    if include_pages:
+                        doc_data['pages'] = doc.pages
+                        doc_data['num_pages'] = None if not doc_data['pages'] else doc_data['pages'][-1]['page']
+                    data.append(doc_data)
         if not len(data):
             return None
         data = pd.DataFrame(data)

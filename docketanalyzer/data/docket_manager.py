@@ -182,15 +182,17 @@ class DocketManager(ObjectManager):
     @property
     def all_docs(self):
         data = []
-        entries = self.get_entries(process_text=True).dropna(subset=['entry_number'])
-        for row in entries.to_dict('records'):
-            data.append(Document(self, row['entry_number'], None))
-            for attachment in row['attachments']:
-                data.append(Document(
-                    self, row['entry_number'], attachment['attachment_number'], 
-                    description=attachment['attachment_description']
-                ))
-        return data
+        entries = self.get_entries(process_text=True)
+        if entries is not None:
+            entries = entries.dropna(subset=['entry_number'])
+            for row in entries.to_dict('records'):
+                data.append(Document(self, row['entry_number'], None))
+                for attachment in row['attachments']:
+                    data.append(Document(
+                        self, row['entry_number'], attachment['attachment_number'], 
+                        description=attachment['attachment_description']
+                    ))
+            return data
 
     def document(self, entry_number, attachment_number=None):
         return Document(self, entry_number, attachment_number)
@@ -233,9 +235,9 @@ class DocketManager(ObjectManager):
                     show_parties_and_counsel=True,
                     show_terminated_parties=True,
                 )
-            self.add_docket_html(html)
-        else:
-            self.add_to_index()
+                self.add_docket_html(html)
+                return None
+        self.add_to_index()
 
     def parse_docket(self):
         juri = self.juri

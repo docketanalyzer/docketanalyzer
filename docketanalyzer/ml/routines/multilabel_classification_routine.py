@@ -5,7 +5,7 @@ from .routine import Routine
 
 
 class MultilabelTrainer(Trainer):
-    def compute_loss(self, model, inputs, return_outputs=False):
+    def compute_loss(self, model, inputs, return_outputs=False, **kwargs):
         labels = inputs.pop("labels")
         outputs = model(**inputs)
         logits = outputs.logits
@@ -25,7 +25,7 @@ class MultilabelClassificationRoutine(Routine):
 
     def load_model(self):
         model = AutoModelForSequenceClassification.from_pretrained(
-            self.base_model, num_labels=len(self.label_names),
+            self.base_model, num_labels=len(self.label_names), **self.model_args,
         )
         model.config.label2id = {self.label_names[i]: i for i in range(len(self.label_names))}
         model.config.id2label = {i: self.label_names[i] for i in range(len(self.label_names))}

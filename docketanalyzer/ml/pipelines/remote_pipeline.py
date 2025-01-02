@@ -112,7 +112,3 @@ class RemotePipeline:
             for job in sorted(jobs, key=lambda x: x['i']):
                 results.extend(job['status']['output']['results'])
             return results
-
-
-def remote_pipeline(name, **args):
-    return RemotePipeline(name, **args)

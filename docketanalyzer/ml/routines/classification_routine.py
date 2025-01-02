@@ -9,11 +9,13 @@ class ClassificationRoutine(Routine):
 
     @property
     def label_names(self):
-        return ["False", "True"]
+        if 'label_names' not in self.cache:
+            self.cache['label_names'] = self.run_args.get('labels', ["False", "True"])
+        return self.cache['label_names']
 
     def load_model(self):
         model = AutoModelForSequenceClassification.from_pretrained(
-            self.base_model, num_labels=2,
+            self.base_model, num_labels=len(self.label_names), **self.model_args,
         )
         model.config.label2id = {self.label_names[i]: i for i in range(len(self.label_names))}
         model.config.id2label = {i: self.label_names[i] for i in range(len(self.label_names))}
@@ -22,15 +24,10 @@ class ClassificationRoutine(Routine):
         return model
 
     def tokenize_hook(self, examples, inputs):
-        if 0:
-            inputs['labels'] = torch.tensor([
-                [0, 1] if example_label else [1, 0]
-                for example_label in examples['label']
-            ])
-        else:
-            inputs['labels'] = torch.tensor([
-                int(example_label) for example_label in examples['label']
-            ])
+        inputs['labels'] = torch.tensor([
+            example_label if isinstance(example_label, int) else self.label_names.index(example_label)
+            for example_label in examples['label']
+        ]).long()
         return inputs
 
     @property
@@ -38,7 +35,6 @@ class ClassificationRoutine(Routine):
         def f(eval_pred):
             logits, labels = eval_pred
             predictions = logits.argmax(axis=1).astype(int)
-            labels = labels[:, 1].astype(int)
-            score = f1_score(labels, predictions, average='binary')
+            score = f1_score(labels, predictions, average='binary' if len(self.label_names) == 2 else 'macro')
             return {'f1': score}
         return f

@@ -1,3 +1,4 @@
+"""
 import torch
 from transformers import AutoModelForSequenceClassification
 from .pipeline import Pipeline
@@ -6,9 +7,6 @@ from .pipeline import Pipeline
 class MultilabelPipeline(Pipeline):
     name = 'multilabel'
     model_class = AutoModelForSequenceClassification
-    tokenize_args = {
-        'max_length': 256,
-    }
     threshold = 0.5
 
     @property
@@ -76,3 +74,4 @@ class MotionTypePipeline(MultilabelPipeline):
 
     def minimal_condition(self, text):
         return 'motion' in text.lower()
+"""

@@ -1,8 +1,11 @@
 from datetime import datetime
+import gc
 import shutil
 from datasets import Dataset
+from huggingface_hub import create_repo, upload_folder
 from pathlib import Path
 import simplejson as json
+import torch
 from transformers import (
     AutoTokenizer,
     TrainingArguments,
@@ -21,6 +24,7 @@ class Routine:
         push_to_hub=None,
         run_args={},
         training_args={},
+        model_args={},
         data_dir=DATA_DIR / 'runs',
     ):
         self.run_name = run_name
@@ -28,6 +32,7 @@ class Routine:
         self.push_to_hub = push_to_hub
         self.run_args = run_args
         self.training_args = training_args
+        self.model_args = model_args
         self.data_dir = Path(data_dir)
 
         self.train_dataset = None
@@ -40,6 +45,7 @@ class Routine:
             'base_model': self.base_model,
             'run_args': self.run_args,
             'training_args': self.training_args,
+            'model_args': self.model_args,
             'run_name': self.run_name,
             'run_type': self.run_type,
         }
@@ -51,10 +57,18 @@ class Routine:
     @property
     def run_dir(self):
         return self.data_dir / self.run_name
+    
+    @property
+    def model_dir(self):
+        return self.run_dir / 'model'
 
     @property
     def config_path(self):
-        return self.run_dir / 'run_config.json'
+        return self.model_dir / 'run_config.json'
+    
+    @property
+    def eval_results_path(self):
+        return self.model_dir / 'eval_results.json'
 
     @property
     def model(self):
@@ -75,7 +89,7 @@ class Routine:
         return self.cache.get('trainer')
 
     def init(self):
-        self.run_dir.mkdir(parents=True, exist_ok=True)
+        self.model_dir.mkdir(parents=True, exist_ok=True)
         self.config_path.write_text(json.dumps(self.config, indent=4))
 
     def prepare_data(self, train_data, eval_data):
@@ -128,16 +142,11 @@ class Routine:
     def get_training_args(self):
         args = dict(
             output_dir=self.run_dir,
-            logging_dir=self.run_dir / 'logs',
+            logging_dir=self.model_dir / 'logs',
             logging_strategy='steps',
             logging_steps=2,
             remove_unused_columns=False,
         )
-        if self.push_to_hub is not None:
-            args['push_to_hub'] = True
-            args['hub_model_id'] = self.push_to_hub
-            args['hub_strategy'] = 'end'
-            args['hub_private_repo'] = True
         for k, v in self.training_args.items():
             args[k] = v
         return TrainingArguments(**args)
@@ -196,11 +205,21 @@ class Routine:
         self.trainer.train()
         if eval_data is not None:
             results = self.trainer.evaluate()
-            (self.run_dir / 'eval_results.json').write_text(
+            self.eval_results_path.write_text(
                 json.dumps(results, indent=4)
             )
             print(results)
-        self.tokenizer.save_pretrained(self.run_dir)
-        self.trainer.save_model(self.run_dir)
-        self.trainer.push_to_hub()
+        self.tokenizer.save_pretrained(self.model_dir)
+        self.trainer.save_model(self.model_dir)
+        del self.cache['model']
+        del self.cache['trainer']
+        gc.collect()
+        torch.cuda.empty_cache()
+        if self.push_to_hub:
+            create_repo(self.push_to_hub, private=True, exist_ok=True)
+            upload_folder(
+                repo_id=self.push_to_hub,
+                folder_path=str(self.model_dir.resolve()),
+            )
         (self.run_dir / 'complete.txt').write_text(str(datetime.now()))
+

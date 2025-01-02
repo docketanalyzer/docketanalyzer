@@ -1,3 +1,4 @@
+"""
 import torch
 from transformers import AutoModel
 from .pipeline import Pipeline
@@ -15,3 +16,4 @@ class EmbeddingPipeline(Pipeline):
         with torch.no_grad():
             outputs = self.model(**inputs)
             return outputs.last_hidden_state[:, 0].detach().cpu().numpy()
+"""

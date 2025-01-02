@@ -28,7 +28,7 @@ class TokenClassificationRoutine(Routine):
 
     def load_model(self):
         model = AutoModelForTokenClassification.from_pretrained(
-            self.base_model, num_labels=len(self.label_map),
+            self.base_model, num_labels=len(self.label_map), **self.model_args,
         )
         model.config.label2id = self.label_map
         model.config.id2label = {v: k for k, v in self.label_map.items()}

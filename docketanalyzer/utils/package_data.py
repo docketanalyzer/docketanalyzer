@@ -40,7 +40,6 @@ def package_data(name=None):
     print("Available package data:")
     for package_data in package_data_registry.all():
         print(f"  {package_data.name}")
-    return PackageData()
 
 
 class SALIData(PackageData):
@@ -52,7 +51,7 @@ class SALIData(PackageData):
             return pd.read_csv(self.path)
 
 
-class SALIData(PackageData):
+class ExampleComplaint(PackageData):
     name = 'example-complaint'
     data_path = 'example-complaint.pdf'
 

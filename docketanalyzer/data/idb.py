@@ -34,7 +34,7 @@ pd.options.mode.chained_assignment = None
 
 IDB_UPDATES_URL = 'https://www.fjc.gov/research/idb/civil-cases-filed-terminated-and-pending-sy-1988-present'
 
-IDB_DOWNLOAD_URL = 'https://www.fjc.gov/sites/default/files/idb/textfiles/cv88on.zip'
+IDB_DOWNLOAD_URL = 'https://www.fjc.gov/sites/default/files/idb/textfiles/cv88on_0.zip'
 
 IDB_FILE_NAME = 'cv88on.txt'
 
@@ -283,7 +283,7 @@ class IDB:
                 field['cat'](field['mapping'][str(x)]).value
             )
         for col in [
-            'CIRCUIT', 'AMTREC', 'FDATEUSE', 'JURIS', 'TITL', 'SECTION', 'SUBSECT', 'RESIDENC', 
+            'CIRCUIT', 'AMTREC', 'FDATEUSE', 'NOS', 'JURIS', 'TITL', 'SECTION', 'SUBSECT', 'RESIDENC', 
             'JURY', 'DEMANDED', 'FILEJUDG', 'FILEMAG', 'COUNTY', 'PLT', 'DEF', 
             'TRANSDAT', 'TRANSOFF', 'TRANSDOC', 'TRANSORG', 'TDATEUSE', 'TRCLACT', 'TERMJUDG', 'TERMMAG',
             'DJOINED', 'PRETRIAL', 'TRIBEGAN', 'TRIALEND', 'TAPEYEAR',

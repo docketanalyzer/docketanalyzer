@@ -29,6 +29,8 @@ class Agent:
 
     def __init__(self, messages=[], cache_dir=None, **kwargs):
         super().__init__(**kwargs)
+        self.tools = deepcopy(self.tools)
+        self.instructions = deepcopy(self.instructions)
         self.messages = messages
         self.streaming_message = None
         self.done = False
