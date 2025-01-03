@@ -31,9 +31,9 @@ class ClassificationPipeline(Pipeline):
     def post_process_preds(self, examples, preds, return_scores=False, **kwargs):
         if self.is_binary:
             scores = preds[:, 1]
-            labels = scores > self.threshold
+            labels = (scores > self.threshold).tolist()
             if return_scores:
-                return [{'label': l, 'score': s} for l, s in zip(labels.tolist(), scores.tolist())]
+                return [{'label': l, 'score': s} for l, s in zip(labels, scores.tolist())]
             return labels
         else:
             if return_scores:

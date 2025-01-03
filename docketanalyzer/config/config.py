@@ -135,6 +135,21 @@ keys = [
         group='runpod',
     ),
     ConfigKey(
+        name='REMOTE_ROUTINES_ENDPOINT_ID',
+        key_type='str',
+        default=None,
+        mask=True,
+        group='runpod',
+    ),
+    ConfigKey(
+        name='WANDB_API_KEY',
+        key_type='str',
+        description='\nConfigure Weights and Biases\n',
+        default=None,
+        mask=True,
+        group='wandb',
+    ),
+    ConfigKey(
         name='POSTGRES_URL',
         key_type='str',
         description='\nConfigure Postgres\n',

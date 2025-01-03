@@ -153,6 +153,14 @@ class ObjectIndex:
             obj_ids = obj_ids.sample(frac=1)
         return obj_ids.tolist()
 
+    def reset_cached_ids(self):
+        if self.cached_ids_path.exists():
+            self.cached_ids_path.unlink()
+    
+    @property
+    def cached_ids(self):
+        return self.load_cached_ids()
+
     @property
     def s3(self):
         if 's3' not in self.cache:

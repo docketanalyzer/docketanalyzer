@@ -75,7 +75,7 @@ class RemotePipeline:
         texts = ['A'] * n
         self(texts, group_size=1)
     
-    def __call__(self, texts, group_size=None, return_results=True, **args):
+    def __call__(self, texts, group_size=1000, return_results=True, **args):
         if group_size is None:
             r = requests.post(
                 self.base_url + 'runsync', 

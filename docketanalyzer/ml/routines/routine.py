@@ -1,9 +1,11 @@
 from datetime import datetime
 import gc
 import shutil
+import time
 from datasets import Dataset
 from huggingface_hub import create_repo, upload_folder
 from pathlib import Path
+import requests
 import simplejson as json
 import torch
 from transformers import (
@@ -11,7 +13,7 @@ from transformers import (
     TrainingArguments,
     Trainer,
 )
-from docketanalyzer import DATA_DIR
+from docketanalyzer import DATA_DIR, S3, RUNPOD_API_KEY, REMOTE_ROUTINES_ENDPOINT_ID
 
 
 class Routine:
@@ -42,17 +44,14 @@ class Routine:
     @property
     def config(self):
         return {
+            'run_name': self.run_name,
             'base_model': self.base_model,
+            'push_to_hub': self.push_to_hub,
             'run_args': self.run_args,
             'training_args': self.training_args,
             'model_args': self.model_args,
-            'run_name': self.run_name,
-            'run_type': self.run_type,
+            'routine': self.name,
         }
-
-    @property
-    def run_type(self):
-        return self.__class__.__name__
 
     @property
     def run_dir(self):
@@ -194,7 +193,9 @@ class Routine:
         trainer.routine = self
         return self.trainer_hook(trainer)
 
-    def train(self, train_data, eval_data=None, overwrite=False):
+    def train(self, train_data, eval_data=None, overwrite=False, remote=False):
+        if remote:
+            return self.train_remote(train_data, eval_data)
         if self.run_dir.exists():
             if overwrite:
                 shutil.rmtree(self.run_dir)
@@ -223,3 +224,31 @@ class Routine:
             )
         (self.run_dir / 'complete.txt').write_text(str(datetime.now()))
 
+    def train_remote(self, train_data, eval_data=None):
+        if self.run_dir.exists():
+            shutil.rmtree(self.run_dir)
+
+        self.init()
+        train_data.to_csv(self.run_dir / 'train.csv', index=False)
+        if eval_data is not None:
+            eval_data.to_csv(self.run_dir / 'eval.csv', index=False)
+        
+        s3 = S3()
+        s3.push(self.run_dir, delete=True, exact_timestamps=True)
+
+        data_dir = self.data_dir.relative_to(DATA_DIR)
+        inputs = dict(input=dict(run_name=self.run_name, data_dir=str(data_dir)))
+        headers = {'Authorization': f'Bearer {RUNPOD_API_KEY}'}
+        endpoint_url = f'https://api.runpod.ai/v2/{REMOTE_ROUTINES_ENDPOINT_ID}/'
+        status = requests.post(
+            endpoint_url + 'run', headers=headers, json=inputs,
+        ).json()
+        job_id = status['id']
+
+        while 1:
+            time.sleep(5)
+            status = requests.get(endpoint_url + 'status/' + job_id, headers=headers).json()
+            print(status)
+            if status['status'] == 'COMPLETED':
+                break
+        

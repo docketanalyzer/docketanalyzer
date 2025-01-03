@@ -138,6 +138,8 @@ class DocketBatch(ObjectBatch):
                 labels.columns = ['entry_id', 'labels']
                 data = data.merge(labels, on='entry_id', how='left')
                 data['labels'] = data['labels'].apply(lambda x: [] if not isinstance(x, list) else x)
+            else:
+                data['labels'] = [[]] * len(data)
 
         if include_spans:
             spans = self.entry_spans

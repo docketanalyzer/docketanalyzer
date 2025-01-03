@@ -46,7 +46,7 @@ def tasks(name, skip, run, reset, quiet):
     for task in tasks:
         if task.name not in skip:
             if name is None or task.name == name:
-                print(task.name)
+                print(task.name, '>', task.depends_on)
                 print(task.progress_str)
                 if name is not None and reset:
                     task.reset(quiet=quiet)

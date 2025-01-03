@@ -140,6 +140,28 @@ class DocketManager(ObjectManager):
     def span_paths(self):
         return list(self.dir.glob('spans.*.csv'))
 
+    @property
+    def labels_path(self):
+        return self.dir / 'labels.csv'
+
+    @property
+    def labels(self):
+        if self.labels_path.exists():
+            return pd.read_csv(self.labels_path)
+        return pd.DataFrame(columns=['label', 'row_number', 'group'])
+
+    def update_labels(self, label_name, row_numbers, group='labels'):
+        labels = self.labels
+        filter = (labels['label'] == label_name) & (labels['group'] == group)
+        old_rows = set(labels[filter]['row_number'])
+        if old_rows != set(row_numbers):
+            labels = labels[filter]
+            new_labels = pd.DataFrame([dict(row_number=row_number, label=label_name, group=group) for row_number in row_numbers])
+            labels = pd.concat([labels, new_labels])
+            labels.to_csv(self.labels_path, index=False)
+            return True
+        return False
+
     def parse_document_path(self, path):
         path = Path(path)
         name = path.name.split('.')[-2]
