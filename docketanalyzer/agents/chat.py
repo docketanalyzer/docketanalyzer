@@ -185,11 +185,11 @@ class Chat:
             return dict(name=schema['name'], description=schema['description'], input_schema = schema['parameters'])
         return schema
     
-    def embed(self, texts, model=OPENAI_DEFAULT_EMBEDDING_MODEL):
+    def embed(self, texts, model=OPENAI_DEFAULT_EMBEDDING_MODEL, dimensions=None):
         if self.mode != 'openai':
             raise ValueError("Embeddings only supported for OpenAI.")
         texts = [x.replace("\n", " ") for x in texts]
-        results = self.client.embeddings.create(input=texts, model=model).data
+        results = self.client.embeddings.create(input=texts, model=model, dimensions=dimensions).data
         return [x.embedding for x in results]
 
     def get_tokenizer(self, model):
@@ -215,94 +215,3 @@ class Chat:
 
     def __call__(self, *args, **kwargs):
         return self.chat(*args, **kwargs)
-
-
-class ChatThread:
-    """
-    DEPRECIATED: Delete after refactoring party entity extraction.
-    """
-    def __init__(self, messages=[], chat_model=None, chat_args={}, data={}, parent=None, **kwargs):
-        self.messages = deepcopy(messages)
-        self.chat_model = chat_model if chat_model is not None else Chat(**kwargs)
-        self.chat_args = chat_args
-        self.data = data
-        self.parent = parent
-        self.children = []
-
-    @property
-    def history(self):
-        history = self.messages
-        if self.parent is not None:
-            history = self.parent.history + history
-        return history
-
-    def __getitem__(self, key):
-        return self.data.get(key)
-
-    def __setitem__(self, key, value):
-        self.data[key] = value
-
-    def __call__(self, *args, **kwargs):
-        return self.chat(*args, **kwargs)
-
-    def chat(self, text, clean_text=True, role=None, **kwargs):
-        if not isinstance(text, str):
-            raise ValueError("Text must be a string.")
-        if clean_text:
-            text = notabs(text)
-        if role is not None:
-            self.messages.append({'role': role, 'content': text})
-            return None
-        self.messages.append({'role': 'user', 'content': text})
-        for k, v in self.chat_args.items():
-            if k not in kwargs:
-                kwargs[k] = v
-        response = self.chat_model(self.history, **kwargs)
-        self.messages.append({'role': 'assistant', 'content': response})
-        return response
-
-    def branch(self):
-        thread = ChatThread(
-            chat_model=self.chat_model,
-            chat_args=self.chat_args,
-            parent=self,
-            data=self.data
-        )
-        self.children.append(thread)
-        return thread
-
-    def copy(self):
-        return ChatThread(
-            messages=self.messages,
-            chat_model=self.chat_model,
-            chat_args=self.chat_args,
-            data=deepcopy(self.data),
-            parent=self.parent
-        )
-
-    @property
-    def response(self):
-        if len(self.messages) > 0:
-            return self.messages[-1]['content']
-
-    @property
-    def response_yes_no(self):
-        last_response = self.response
-        if last_response:
-            first_word = last_response.strip().split()[0].lower()
-            if len(first_word) < 5:
-                if first_word.startswith('yes'):
-                    return True
-                elif first_word.startswith('no'):
-                    return False
-        return None
-
-    @property
-    def response_json(self):
-        last_response = self.response
-        if last_response:
-            try:
-                return json.loads(last_response)
-            except:
-                return None
-        return None

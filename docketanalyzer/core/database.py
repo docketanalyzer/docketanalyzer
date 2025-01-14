@@ -208,7 +208,8 @@ class Tables:
             if name in self.db.registered_models:
                 self.tables[name] = self.db.registered_models[name]
             else:
-                print(f"Warning: Infering table schema for table {name}. This is slow! Better to explicitly register the table.")
+                if name not in ['dockets_index']:
+                    print(f"Warning: Inferring table schema for table {name}. This is slow! Better to explicitly register the table.")
                 if name not in self.db.meta:
                     raise KeyError(f'Table {name} does not exist. Use db.create_table to create it.')
                 self.tables[name] = self.db.load_table_class(name)

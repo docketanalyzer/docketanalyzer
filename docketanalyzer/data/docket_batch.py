@@ -101,7 +101,7 @@ class DocketBatch(ObjectBatch):
     def counsel(self):
         return self.parties_and_counsel[1]
 
-    def get_entries(self, include_labels=False, include_label_groups=False, include_spans=False, process_text=False, add_shuffle_number=False):
+    def get_entries(self, include_labels=False, include_spans=False, process_text=False, add_shuffle_number=False):
         data = []
         for manager in self:
             docket_json = manager.docket_json
@@ -115,6 +115,7 @@ class DocketBatch(ObjectBatch):
                     data.append(entries)
         if not len(data):
             return None
+        
         data = pd.concat(data)
         data = data.rename(columns={'document_number': 'entry_number'})
         data['description'] = data['description'].apply(lambda x: x if pd.isnull(x) else x[:20000])
@@ -125,32 +126,34 @@ class DocketBatch(ObjectBatch):
         data['pacer_seq_no'] = data['pacer_seq_no'].astype(pd.Int64Dtype())
         data['date_entered'] = pd.to_datetime(data['date_entered'], errors='coerce')
 
-        if include_labels or include_label_groups:
-            labels = self.entry_labels
-            if labels is not None:
-                labels = labels.drop(columns=['docket_id', 'row_number'])
-                if include_label_groups:
-                    labels = labels.groupby('entry_id').apply(lambda x: 
+        if include_labels:
+            labels = []
+            for manager in self:
+                label_data = manager.labels
+                if len(label_data):
+                    label_data['docket_id'] = manager.docket_id
+                    labels.append(label_data)
+            if len(labels):
+                labels = pd.concat(labels)
+                for group in labels['group'].unique():
+                    group_labels = labels[labels['group'] == group]
+                    group_labels = group_labels.groupby(['docket_id', 'row_number'])[['label']].agg(list).reset_index()
+                    group_labels = group_labels.rename(columns={'label': group})
+                    group_labels = group_labels.drop_duplicates(subset=['docket_id', 'row_number'])
+                    data = data.merge(group_labels, on=['docket_id', 'row_number'], how='left')
+                    data[group] = data[group].apply(lambda x: x if not pd.isnull(x) else [])
+
+        if 0:
+            if include_spans:
+                spans = self.entry_spans
+                if spans is not None:
+                    spans = spans.drop(columns=['docket_id', 'row_number', 'group'])
+                    spans = spans.groupby('entry_id', group_keys=False).apply(lambda x: 
                         x.drop(columns=['entry_id']).to_dict(orient='records')
                     ).reset_index()
-                else:
-                    labels = labels.groupby('entry_id')['label'].apply(list).reset_index()
-                labels.columns = ['entry_id', 'labels']
-                data = data.merge(labels, on='entry_id', how='left')
-                data['labels'] = data['labels'].apply(lambda x: [] if not isinstance(x, list) else x)
-            else:
-                data['labels'] = [[]] * len(data)
-
-        if include_spans:
-            spans = self.entry_spans
-            if spans is not None:
-                spans = spans.drop(columns=['docket_id', 'row_number', 'group'])
-                spans = spans.groupby('entry_id', group_keys=False).apply(lambda x: 
-                    x.drop(columns=['entry_id']).to_dict(orient='records')
-                ).reset_index()
-                spans.columns = ['entry_id', 'spans']
-                data = data.merge(spans, on='entry_id', how='left')
-                data['spans'] = data['spans'].apply(lambda x: [] if not isinstance(x, list) else x)
+                    spans.columns = ['entry_id', 'spans']
+                    data = data.merge(spans, on='entry_id', how='left')
+                    data['spans'] = data['spans'].apply(lambda x: [] if not isinstance(x, list) else x)
 
         if process_text:
             def consolidate_spans(spans, attachments, entered_date):
@@ -181,36 +184,17 @@ class DocketBatch(ObjectBatch):
                     text, merge_spans([x for x in spans if x['label'] not in ['detail', 'attachment']]),
                     mapper=lambda _, span: f"<{span['label']} {span['start']}>"
                 )
+            from docketanalyzer import timeit
 
             data['attachments'] = data['description'].apply(extract_attachments)
             data['entered_date'] = data['description'].apply(extract_entered_date)
-            if 'spans' not in data.columns:
-                data['spans'] = None
-            data['spans'] = data.apply(lambda x: consolidate_spans(x['spans'], deepcopy(x['attachments']), x['entered_date']), axis=1)
             data['simple_text'] = data.apply(lambda x: make_simple_text(x['description'], x['attachments'], x['entered_date']), axis=1)
-            data['masked_text'] = data.apply(lambda x: make_masked_text(x['description'], x['spans']), axis=1)
             data['attachments'] = data['attachments'].apply(lambda x: sum([y['attachments'] for y in x], []))
+            #if 'spans' not in data.columns:
+            #    data['spans'] = None
+            #data['spans'] = data.apply(lambda x: consolidate_spans(x['spans'], deepcopy(x['attachments']), x['entered_date']), axis=1)
+            #data['masked_text'] = data.apply(lambda x: make_masked_text(x['description'], x['spans']), axis=1)
         return data
-
-    @property
-    def entry_labels(self):
-        if 'entry_labels' not in self.cache:
-            data = []
-            for manager in self:
-                for path in manager.label_paths:
-                    label_data = pd.read_csv(path)
-                    label_data['docket_id'] = manager.docket_id
-                    label_data['group'] = path.name
-                    data.append(label_data)
-            if not len(data):
-                data = None
-            else:
-                data = pd.concat(data)
-                data['row_number'] = data['row_number'].astype(int)
-                data['entry_id'] = data.apply(lambda x: f"{x['docket_id']}__{x['row_number']}", axis=1)
-                data['group'] = data['group'].apply(lambda x: re.search(r'labels\.(.+?)\.csv', x).group(1))
-            self.cache['entry_labels'] = data
-        return self.cache['entry_labels']
 
     @property
     def entry_spans(self):

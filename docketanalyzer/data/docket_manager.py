@@ -156,8 +156,9 @@ class DocketManager(ObjectManager):
         old_rows = set(labels[filter]['row_number'])
         if old_rows != set(row_numbers):
             labels = labels[filter]
-            new_labels = pd.DataFrame([dict(row_number=row_number, label=label_name, group=group) for row_number in row_numbers])
-            labels = pd.concat([labels, new_labels])
+            if len(row_numbers):
+                new_labels = pd.DataFrame([dict(row_number=row_number, label=label_name, group=group) for row_number in row_numbers])
+                labels = pd.concat([labels, new_labels])
             labels.to_csv(self.labels_path, index=False)
             return True
         return False
