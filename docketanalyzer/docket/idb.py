@@ -24,9 +24,8 @@ from docketanalyzer.choices import (
     IDBStatusCode,
 )
 from docketanalyzer import (
-    DATA_DIR, notabs, connect, download_file,
-    require_confirmation_wrapper, json_default,
-    pd_save_or_append, cpu_workers
+    DATA_DIR, notabs, load_psql, download_file, 
+    json_default, pd_save_or_append, cpu_workers
 )
 
 pd.options.mode.chained_assignment = None
@@ -209,7 +208,7 @@ class IDB:
         self.status_path = self.dir / 'status.json'
         self.db = None
         if not skip_db:
-            self.db = connect()
+            self.db = load_psql()
         self.cache = {}
 
     @property
@@ -312,15 +311,17 @@ class IDB:
             else:
                 raise ValueError(f"Unknown dtype for column {col}: {dtype}")
         return dtype_map
-    
-    @require_confirmation_wrapper(
-        message=lambda args: notabs(f"""
-            Are you sure you want to reset your IDB data?
-            This will DELETE ANY LOCAL DATA and DROP THE DATABASE TABLE.
-        """),
-        disable=lambda args: not args.get('confirm', True),
-    )
+
     def reset(self, confirm=True):
+        if confirm:
+            response = input(notabs(f"""
+                Are you sure you want to reset your IDB data?
+                This will DELETE ANY LOCAL DATA and DROP THE DATABASE TABLE.
+
+                Are you sure you want to proceed? (y/n):
+            """)).lower()
+            if response != 'y':
+                raise Exception("Aborted")
         self.reset_status()
         if self.data_path.exists():
             self.data_path.unlink()

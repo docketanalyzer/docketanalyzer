@@ -54,7 +54,7 @@ setup(
     url='https://github.com/docketanalyzer/docketanalyzer',
     author='Nathan Dahlberg',
     packages=packages,
-    package_data={"docketanalyzer": ["package_data/*"]},
+    package_data={"docketanalyzer": ["data/*"]},
     include_package_data=True,
     install_requires=get_requirements('requirements.txt'),
     extras_require=extras_require,

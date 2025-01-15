@@ -3,7 +3,7 @@ import shutil
 import click
 from pathlib import Path
 import docketanalyzer
-from docketanalyzer import PYPI_TOKEN, package_data
+from docketanalyzer import PYPI_TOKEN
 
 
 def parse_version(version_str):

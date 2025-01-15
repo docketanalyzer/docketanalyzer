@@ -18,6 +18,20 @@ import simplejson as json
 from tqdm import tqdm
 
 
+BASE_DIR = Path(__file__).parents[2]
+
+
+def fixture_path(path):
+    return BASE_DIR / 'tests' / 'fixtures' / path
+
+
+def demo_data_path(path=None):
+    data_dir = BASE_DIR / 'docketanalyzer' / 'data'
+    if path is None:
+        return list(data_dir.glob('*'))
+    return data_dir / path
+
+
 def bash(cmd):
     out = subprocess.run(cmd, capture_output=True, text=True)
     return out.stdout.strip()
@@ -39,6 +53,12 @@ def generate_code(length=16):
 
 
 class timeout:
+    """Timeout context manager. Raises TimeoutError if block takes longer than specified time.
+
+    | Example:
+    | with timeout(1):
+    |     time.sleep(2)
+    """
     def __init__(self, seconds=1, error_message='Timeout'):
         self.seconds = seconds
         self.error_message = error_message
@@ -52,6 +72,12 @@ class timeout:
 
 
 class timeit:
+    """Timeit context manager. Measures execution time of block.
+
+    | Example:
+    | with timeit('Task'):
+    |     time.sleep(1)
+    """
     def __init__(self, tag='Task'):
         self.tag = tag
         self.start = None
@@ -67,6 +93,7 @@ class timeit:
 
 
 def download_file(url, path, description='Downloading'):
+    """Download file from URL to local path with progress bar."""
     path = str(path)
     response = requests.get(url, stream=True)
     response.raise_for_status()
@@ -84,10 +111,10 @@ def download_file(url, path, description='Downloading'):
             progress.update(size)
 
 
-def cpu_workers(n):
-    if n <= 1:
-        n = multiprocessing.cpu_count() * n
-    return int(n)
+def cpu_workers(p=1):
+    if p <= 0 or p > 1:
+        raise ValueError("p must be between 0 and 1")
+    return int(multiprocessing.cpu_count() * p)
 
 
 def pd_save_or_append(data, path, **kwargs):
@@ -98,83 +125,27 @@ def pd_save_or_append(data, path, **kwargs):
         data.to_csv(path, index=False, **kwargs)
 
 
-def rotate_ip():
-    """Requires PIA VPN to be installed and running."""
-    current_region = bash(['piactl', 'get', 'region'])
-    regions = bash(['piactl', 'get', 'regions']).split('\n')
-    regions = [
-        x for x in regions
-        if x not in ['auto', current_region] and
-        not x.startswith('dedicated')
-    ]
-    np.random.shuffle(regions)
-    bash(['piactl', 'set', 'region', regions[0]])
-    bash(['piactl', 'connect'])
-    while 1:
-        time.sleep(1)
-        status = bash(['piactl', 'get', 'connectionstate'])
-        if status == 'Connected':
-            break
-
-
-def require_confirmation(message="Are you sure you want to proceed?"):
-    message += "\n(y/n): "
-    confirmation = input(message).lower()
-    return confirmation == 'y'
-
-
-def require_confirmation_wrapper(message="Are you sure you want to proceed?", disable=None):
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            sig = inspect.signature(func)
-            param_names = list(sig.parameters.keys())
-
-            all_args = {}
-            for i, arg in enumerate(args):
-                if i < len(param_names):
-                    all_args[param_names[i]] = arg
-            all_args.update(kwargs)
-
-            if disable is not None:
-                if disable(all_args):
-                    return func(*args, **kwargs)
-
-            if callable(message):
-                prompt = message(all_args)
-            else:
-                prompt = message
-            
-            if require_confirmation(prompt):
-                return func(*args, **kwargs)
-            else:
-                print("Aborted.")
-                return None
-        return wrapper
-    return decorator
-
-
 def datetime_utcnow():
     from datetime import UTC
     return datetime.now(UTC)
 
 
-def list_to_array(embeddings):
-    return np.array([np.array(e) for e in embeddings]).astype('float32')
+def list_to_array(value):
+    return np.array([np.array(x) for x in value]).astype('float32')
 
 
-def to_date(x):
-    if x:
+def to_date(value):
+    if value:
         try:
-            return pd.to_datetime(x).date()
+            return pd.to_datetime(value).date()
         except (ParserError, OutOfBoundsDatetime):
             pass
 
 
-def to_int(x):
-    if x is not None:
+def to_int(value):
+    if value is not None:
         try:
-            return int(x)
+            return int(value)
         except ValueError:
             pass
 
@@ -185,4 +156,4 @@ def json_default(obj):
 
 
 def dev_available():
-    return (Path(__file__).parents[2] / 'dev' / 'docketanalyzer').exists()
+    return (BASE_DIR / 'dev' / 'docketanalyzer').exists()

@@ -1,6 +1,5 @@
-from docketanalyzer import Registry, lazy_load
-Chat = lazy_load('docketanalyzer.agents.chat', 'Chat')
-ChatStream = lazy_load('docketanalyzer.agents.chat', 'ChatStream')
+from docketanalyzer import Registry
+from .chat import Chat, ChatStream
 from .agent import Agent, BaseTool
 from .working_memory_mixin import WorkingMemoryMixin
 

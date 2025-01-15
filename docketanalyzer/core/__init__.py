@@ -1,5 +1,5 @@
-from .database import Database, DatabaseModel, connect
 from .elastic import load_elastic
+from .psql import Database, DatabaseModel, DatabaseModelQueryMixin, load_psql
 from .flp import JuriscraperUtility
 from .object import ObjectIndex, ObjectManager, ObjectBatch
 from .ocr import extract_pages

@@ -1,31 +1,30 @@
 import os
 import time
 import requests
-from docketanalyzer import (
-    PACER_USERNAME, PACER_PASSWORD,
-    SELENIUM_HOST, SELENIUM_PORT,
-)
+from docketanalyzer import env
+
+
+def add_docket_id(docket_json):
+    docket_id = (
+        docket_json['court_id'] + '__' +
+        '-'.join(docket_json['docket_number'].split('-')[:3]).replace(':', '_')
+    )
+    docket_json['docket_id'] = docket_id
+    return docket_json
 
 
 class JuriscraperUtility:
-    def __init__(
-        self, host=SELENIUM_HOST, port=SELENIUM_PORT,
-        pacer_username=PACER_USERNAME, pacer_password=PACER_PASSWORD,
-    ):
-        self.host = host
-        self.port = port
-        self.pacer_username = pacer_username
-        self.pacer_password = pacer_password
+    def __init__(self, host=None, port=None, pacer_username=None, pacer_password=None):
+        self.host = host or env.SELENIUM_HOST
+        self.port = port or env.SELENIUM_PORT
+        self.pacer_username = pacer_username or env.PACER_USERNAME
+        self.pacer_password = pacer_password or env.PACER_PASSWORD
         self.cache = {}
-
-    @property
-    def url(self):
-        return f'{self.host}:{self.port}/wd/hub/'
 
     @property
     def is_running(self):
         try:
-            requests.get(self.url)
+            requests.get(f'{self.host}:{self.port}/wd/hub/')
             return True
         except requests.exceptions.ConnectionError:
             return False
@@ -73,7 +72,10 @@ class JuriscraperUtility:
         docket_report = DocketReport(court, self.session)
         docket_report.query(pacer_case_id, **kwargs)
         docket_html = docket_report.response.text
-        return docket_html, docket_report.data
+        docket_html += f"<!--PACER CASE ID: {pacer_case_id}-->"
+        docket_json = add_docket_id(docket_report.data)
+        docket_json['pacer_case_id'] = pacer_case_id
+        return docket_html, docket_json
 
     def parse(self, docket_html, court):
         from juriscraper.pacer import DocketReport
@@ -82,9 +84,11 @@ class JuriscraperUtility:
         # temp fix for error string issue https://github.com/freelawproject/juriscraper/issues/1025
         if 'This case was administratively closed' in parser.ERROR_STRINGS:
             parser.ERROR_STRINGS.remove('This case was administratively closed')
+        
         parser._parse_text(docket_html)
-        x = parser.data
-        return x
+        docket_json = add_docket_id(parser.data)
+        docket_json['pacer_case_id'] = docket_html.split('<!--PACER CASE ID:')[1].split('-->')[0].strip()
+        return docket_json
 
     def purchase_document(self, pacer_case_id, pacer_doc_id, court):
         from juriscraper.pacer import DocketReport

@@ -7,7 +7,10 @@ from types import ModuleType
 
 class Registry:
     """
-    Implement a custom 'find' condition and automatically build a registry of relevant objects in the current module.
+    A registry system that automatically discovers and registers objects based on custom criteria.
+    
+    Subclass this and implement find_filter() to define what objects should be registered.
+    Then use find() to automatically populate the registry from a module.
     """
 
     def __init__(self) -> None:
@@ -29,9 +32,10 @@ class Registry:
 
     def find_filter(self, obj: Any) -> bool:
         """
-        Add your custom object test here.
+        Override this method to define what objects should be registered.
+        Should return True for objects that should be included in the registry.
         """
-        raise NotImplementedError("find_filter() must be implemented by a subclass.")
+        raise NotImplementedError("Subclasses must implement find_filter() to define registration criteria.")
 
     def find(self, module: Optional[ModuleType] = None, recurse: bool = False) -> None:
         if module is None:

@@ -14,10 +14,7 @@ from playhouse.reflection import Introspector
 from playhouse.shortcuts import model_to_dict
 from toolz import partition_all
 from tqdm import tqdm
-from docketanalyzer import (
-    POSTGRES_URL,
-    require_confirmation_wrapper, require_confirmation, notabs,
-)
+from docketanalyzer import env, notabs
 
 
 class CustomQueryMixin:
@@ -93,6 +90,10 @@ class DatabaseModelSelect(ModelSelect, CustomQueryMixin):
 
 
 class DatabaseModelQueryMixin:
+    """This mixin adds DataFrame conversion, batch processing, and sampling functionality
+    to Peewee queries.
+    """
+
     @classmethod
     def select(cls, *fields):
         is_default = not fields
@@ -102,10 +103,27 @@ class DatabaseModelQueryMixin:
 
     @classmethod
     def sample(cls, n):
+        """Randomly sample n records from the query.
+
+        Args:
+            n (int): Number of records to sample
+
+        Returns:
+            DatabaseModelSelect: Query object for the random sample
+        """
         return cls.select(cls).sample(n)
     
     @classmethod
     def pandas(cls, *columns, copy=False):
+        """Convert query results directly to a pandas DataFrame.
+
+        Args:
+            *columns: Specific columns to include in the DataFrame
+            copy (bool): Whether to use Postgres COPY command (better for large batch sizes)
+
+        Returns:
+            pd.DataFrame: Query results as a DataFrame
+        """
         return cls.select(cls).pandas(*columns, copy=copy)
 
     @classmethod
@@ -114,6 +132,15 @@ class DatabaseModelQueryMixin:
 
     @classmethod
     def batch(cls, n, verbose=False):
+        """Iterate over query results in batches of size n.
+
+        Args:
+            n (int): Batch size
+            verbose (bool): Whether to show progress bar
+
+        Yields:
+            DatabaseModelSelect: Query object for each batch
+        """
         return cls.select(cls).batch(n, verbose=verbose)
     
     @classmethod
@@ -125,24 +152,47 @@ class DatabaseModelQueryMixin:
 
 
 class DatabaseModel(DatabaseModelQueryMixin, Model):
+    """A base model class that extends Peewee's Model with additional database functionality.
+    
+    This class provides enhanced database operations including pandas DataFrame conversion,
+    batch processing, column management, and model reloading capabilities.
+    """
     db_manager = None
 
     @classmethod
-    @require_confirmation_wrapper(
-        message=lambda args: notabs(f"""
-            Are you sure you want to drop column '{args['column_name']}' from '{args['cls']._meta.table_name}'?
-            This will DELETE ALL COLUMN DATA.
-        """),
-        disable=lambda args: not args.get('confirm', True),
-    )
     def drop_column(cls, column_name, confirm=True):
+        """Drop a column from the database table.
+        
+        Args:
+            column_name (str): Name of the column to drop
+            confirm (bool): Whether to prompt for confirmation before dropping
+        """
+        if confirm:
+            response = input(notabs(f"""
+                Are you sure you want to drop column '{column_name}' from '{cls._meta.table_name}'?
+                This will DELETE ALL COLUMN DATA.
+
+                Are you sure you want to proceed? (y/n):
+            """)).lower()
+            if response != 'y':
+                raise Exception("Aborted")
         table_name = cls._meta.table_name
         migrator = PostgresqlMigrator(cls._meta.database)
         migrate(migrator.drop_column(table_name, column_name))
         cls.reload()
 
     @classmethod
-    def add_column(cls, column_name, column_type, null=None, overwrite=False, exists_ok=True, **kwargs):
+    def add_column(cls, column_name, column_type, null=True, overwrite=False, exists_ok=True, **kwargs):
+        """Add a new column to the database table.
+        
+        Args:
+            column_name (str): Name of the new column
+            column_type (str): Peewee field type for the column
+            null (bool, optional): Whether the column can contain NULL values
+            overwrite (bool): Whether to overwrite if column exists
+            exists_ok (bool): Whether to silently continue if column exists
+            **kwargs: Additional field parameters passed to Peewee
+        """
         table_name = cls._meta.table_name
         table_meta = cls.db_manager.meta[table_name]
         migrator = PostgresqlMigrator(cls._meta.database)
@@ -153,8 +203,6 @@ class DatabaseModel(DatabaseModelQueryMixin, Model):
                 return
             cls.drop_column(column_name)
 
-        if null is None:
-            null = True if 'default' not in kwargs else False
         kwargs['null'] = null
         migrate(
             migrator.add_column(table_name, column_name, getattr(peewee, column_type)(**kwargs))
@@ -163,17 +211,24 @@ class DatabaseModel(DatabaseModelQueryMixin, Model):
     
     @classmethod
     def add_data(cls, data, copy=False, batch_size=1000):
+        """Add data to the table from a pandas DataFrame.
+        
+        Args:
+            data (pd.DataFrame): DataFrame containing the data to insert
+            copy (bool): Whether to use Postgres COPY command for faster insertion
+            batch_size (int): Number of records to insert in each batch when not using COPY
+        """
         if copy:
             conn = cls._meta.database.connection()
             with conn.cursor() as cursor:
-                    buffer = StringIO()
-                    csv_writer = csv.writer(buffer, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-                    for _, row in data.iterrows():
-                        csv_writer.writerow([
-                            '\\N' if pd.isna(value) or value == '' else str(value) for value in row
-                        ])
-                    buffer.seek(0)
-                    cursor.copy_expert(f"COPY {cls._meta.table_name} ({','.join(data.columns)}) FROM STDIN WITH CSV NULL AS '\\N'", buffer)
+                buffer = StringIO()
+                csv_writer = csv.writer(buffer, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                for _, row in data.iterrows():
+                    csv_writer.writerow([
+                        '\\N' if pd.isna(value) or value == '' else str(value) for value in row
+                    ])
+                buffer.seek(0)
+                cursor.copy_expert(f"COPY {cls._meta.table_name} ({','.join(data.columns)}) FROM STDIN WITH CSV NULL AS '\\N'", buffer)
         else:
             data = data.to_dict(orient='records')
             with cls._meta.database.atomic():
@@ -192,7 +247,6 @@ class DatabaseModel(DatabaseModelQueryMixin, Model):
         for attr in new_attrs:
             if not attr.startswith('__'):
                 setattr(cls, attr, getattr(new_table, attr))
-
 
 
 class Tables:
@@ -223,8 +277,101 @@ class Tables:
 
 
 class Database:
-    def __init__(self, connection=POSTGRES_URL, registered_models=[]):
-        self.connection = connection
+    """A PostgreSQL database manager that provides high-level database operations.
+    
+    This class handles database connections, table management, model registration,
+    and provides an interface for table operations with schemaless tables through the Tables class.
+
+    Examples
+    --------
+    Connect to database and create a table:
+
+    .. code-block:: python
+
+        db = Database()
+        
+        # Access table through the Tables interface
+        Users = db.t.users
+        
+    Define and register a custom model:
+
+    .. code-block:: python
+        import peewee as pw
+        from docketanalyzer import Database, DatabaseModel
+
+        class Test(DatabaseModel):
+            email = pw.CharField(unique=True)
+            name = pw.CharField()
+            age = pw.IntegerField()
+            registration_date = pw.DateTimeField()
+            
+            class Meta:
+                table_name = 'test'
+        
+        db = Database()
+        db.create_table(Test)
+        
+    Register a model to access it through the table interface:
+
+    .. code-block:: python
+
+        db.register_model(Test)
+        table = db.t.test # table == Test
+
+    Push data directly from DataFrames and convert query results back to pandas:
+
+    .. code-block:: python
+        data = pd.DataFrame({
+            'email': ['alice@example.com', 'bob@example.com'],
+            'name': ['Alice', 'Bob'],
+            'age': [30, 25],
+            'registration_date': [datetime(2020, 1, 1), datetime(2021, 1, 15)],
+        })
+
+        table.add_data(data)
+        results = table.where(table.age > 25).pandas()
+
+        assert len(results) == 1
+        assert results.columns.tolist() == ['id', 'email', 'name', 'age', 'registration_date']
+    
+    Query data with enhanced features:
+
+    .. code-block:: python
+    
+        for batch in Test.batch(1000):
+            process_batch(batch)
+
+        random_records = Test.sample(10)
+    
+    Create schemaless tables and infer table objects without a schema. 
+    These are slow but useful for quickly accessing existing tables if the schema is unknown:
+
+    .. code-block:: python
+
+        db.create_table('schemaless_test')
+        table = db.t.schemaless_test
+
+        table.add_column('email', 'CharField', unique=True)
+        table.add_column('name', 'CharField')
+        table.add_column('age', 'IntegerField')
+        table.add_column('registration_date', 'DateTimeField')
+
+        table = db.t.schemaless_test # need to reload table after adding columns
+        table.add_data(data)
+
+        results = table.pandas()
+
+        assert results['age'].dtype == 'int64'
+        assert results['registration_date'].dtype == 'datetime64[ns]'
+    """
+    def __init__(self, connection=None, registered_models=[]):
+        """Initialize the database manager.
+        
+        Args:
+            connection (str, optional): PostgreSQL connection URL
+            registered_models (list): List of model classes to register with the database
+        """
+        self.connection = connection or env.POSTGRES_URL
         self.db = None
         self.connect()
         self.registered_models = {}
@@ -234,6 +381,7 @@ class Database:
         self.cache = {}
     
     def connect(self):
+        """Establish connection to the PostgreSQL database using the connection URL."""
         url = urlparse(self.connection)
         self.db = PostgresqlExtDatabase(
             database=url.path[1:],
@@ -245,6 +393,11 @@ class Database:
 
     @property
     def meta(self):
+        """Get database metadata including table and column information.
+        
+        Returns:
+            dict: Database metadata including table schemas and foreign key relationships
+        """
         if 'meta' not in self.cache:
             meta = {}
             introspector = Introspector.from_database(self.db)
@@ -270,11 +423,28 @@ class Database:
         )
 
     def register_model(self, model):
+        """Register a model class with the database manager.
+        
+        Args:
+            model: Peewee model class to register
+        """
         self.registered_models[model._meta.table_name] = model
         model.db_manager = self
         model._meta.database = self.db
 
     def load_table_class(self, name, new=False):
+        """Dynamically create a model class for a database table.
+        
+        Args:
+            name (str): Name of the table
+            new (bool): Whether this is a new table being created
+            
+        Returns:
+            type: A new DatabaseModel subclass representing the table
+            
+        Raises:
+            KeyError: If table doesn't exist and new=False
+        """
         if not new and name not in self.meta:
             raise KeyError(f'Table {name} does not exist. Use db.create_table to create it.')
 
@@ -303,23 +473,38 @@ class Database:
         TableClass.db_manager = self
         return TableClass
 
-    def create_table(self, name, exists_ok=True):
-        if name in self.meta:
-            if not exists_ok:
-                raise ValueError(f'Table {name} already exists.')
-            return
-        table = self.load_table_class(name, new=True)
+    def create_table(self, name_or_model, exists_ok=True):
+        """Create a new table in the database.
+        
+        Args:
+            name (str): Name of the table to create
+            exists_ok (bool): Whether to silently continue if table exists
+            
+        Raises:
+            ValueError: If table exists and exists_ok=False
+        """
+        if isinstance(name_or_model, str):
+            name = name_or_model
+            if name in self.meta:
+                if not exists_ok:
+                    raise ValueError(f'Table {name} already exists.')
+                return
+            table = self.load_table_class(name, new=True)
+        else:
+            table = name_or_model
         self.db.create_tables([table])
         self.reload()
 
-    @require_confirmation_wrapper(
-        message=lambda args: notabs(f"""
-            Are you sure you want to drop table '{args['name']}'?
-            This will DELETE ALL TABLE DATA
-        """),
-        disable=lambda args: not args.get('confirm', True),
-    )
     def drop_table(self, name, confirm=True):
+        if confirm:
+            response = input(notabs(f"""
+                Are you sure you want to drop table '{name}'?
+                This will DELETE ALL TABLE DATA.
+
+                Are you sure you want to proceed? (y/n):
+            """)).lower()
+            if response != 'y':
+                raise Exception("Aborted")
         table = self.t[name]
         self.db.drop_tables([table])
         self.reload()
@@ -328,5 +513,10 @@ class Database:
         self.db.close()
 
 
-def connect(connection=POSTGRES_URL):
+def load_psql(connection=None):
+    """Load a Database object using the connection url in your config.
+
+    Run `da configure postgres` to set your PostgreSQL connection URL.
+    """
+    connection = connection or env.POSTGRES_URL
     return Database(connection)

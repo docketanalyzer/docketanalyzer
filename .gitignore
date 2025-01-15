@@ -1,5 +1,8 @@
 docketanalyzer/data/choices/labels.py
 dev
+containers
+docs
+tests
 build
 dist
 *.gradio

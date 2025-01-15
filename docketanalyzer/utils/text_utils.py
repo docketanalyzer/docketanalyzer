@@ -2,10 +2,12 @@ import regex as re
 
 
 def notabs(text):
+    """Remove leading/trailing whitespace on each line."""
     return '\n'.join([x.strip() for x in text.split('\n')]).strip()
 
 
 def extract_from_pattern(text, pattern, label, ignore_case=False, extract_groups={}):
+    """Extract spans from text using a regex pattern."""
     spans = []
     for match in re.finditer(pattern, text, re.IGNORECASE if ignore_case else 0):
         spans.append({
@@ -21,7 +23,55 @@ def extract_from_pattern(text, pattern, label, ignore_case=False, extract_groups
     return spans
 
 
+def mask_text_with_spans(text, spans, mapper=None):
+    """Provide a list of spans and mask the text with a custom function."""
+    if not spans:
+        return text
+    if mapper is None:
+        mapper = lambda text, span: f"<{span['label']}>"
+    spans = sorted(spans, key=lambda x: -x['start'])
+    parts, last_end = [], len(text)
+    
+    for span in spans:
+        parts.append(text[span['end']:last_end])
+        parts.append(mapper(text, span))
+        last_end = span['start']
+    if last_end > 0:
+        parts.append(text[:last_end])
+    return ''.join(reversed(parts))
+
+
+def check_span_overlap(span1, span2):
+    """Check if two spans overlap."""
+    if span1['start'] < span2['start']:
+        if span1['end'] > span2['start']:
+            return True
+    elif span1['start'] < span2['end']:
+        return True
+    return False
+
+
+def merge_spans(spans):
+    """Merge spans that don't overlap, prioritizing longer spans."""
+    if not spans:
+        return []
+    sorted_spans = sorted(spans, key=lambda x: (x['start'], -(x['end'] - x['start'])))
+    merged = [sorted_spans[0]]
+    
+    for span in sorted_spans[1:]:
+        if span['start'] >= merged[-1]['end']:
+            merged.append(span)
+    return merged
+
+
+def escape_markdown(text):
+    """Escape special characters in Markdown."""
+    markdown_chars = r'([\*\_\{\}\[\]\(\)\#\+\-\.\!\|])'
+    return re.sub(markdown_chars, r'\\\1', text)
+
+
 def extract_attachments(text):
+    """Parse the attachment sections from docket entries."""
     pattern = r'((\(|\( )?(EXAMPLE: )?(additional )?Attachment\(?s?\)?([^:]+)?: )((([^()]+)?(\(([^()]+|(?7))*+\))?([^()]+)?)*+)\)*+'
     spans = extract_from_pattern(
         text, pattern,
@@ -47,53 +97,20 @@ def extract_attachments(text):
 
 
 def extract_entered_date(text):
+    """Parse the entered date from docket entries."""
     pattern = r'\(Entered: ([\d]+/[\d]+/[\d]+)\)'
     return extract_from_pattern(text, pattern, 'entered_date')
 
 
-def get_clean_name(name):
-    return re.sub(r"[,.;@#?!&$]+\ *", " ", name.lower()).strip().replace('/', '_')
-
-
-def mask_text_with_spans(text, spans, mapper=None):
-    if mapper is None:
-        mapper = lambda text, span: f"<{span['label']}>"
-    spans = sorted(spans, key=lambda x: -x['start'])
-    for span in spans:
-        span_replace = mapper(text, span)
-        text = text[:span['start']] + span_replace + text[span['end']:]
-    return text
-
-
-def check_span_overlap(span1, span2):
-    if span1['start'] < span2['start']:
-        if span1['end'] > span2['start']:
-            return True
-    elif span1['start'] < span2['end']:
-        return True
-    return False
-
-
-def merge_spans(spans):
-    spans = spans.copy()
-    spans = sorted(spans, key=lambda x: -(x['end'] - x['start']))
-    merged_spans = []
-    for span in spans:
-        if not any(check_span_overlap(span, s) for s in merged_spans):
-            merged_spans.append(span)
-    return merged_spans
-
-
-def escape_markdown(text):
-    """Escape special characters in Markdown."""
-    markdown_chars = r'([\*\_\{\}\[\]\(\)\#\+\-\.\!\|])'
-    return re.sub(markdown_chars, r'\\\1', text)
-
-
-
 def make_simple_text(text):
+    """Strip entered dates and attachments from docket entry text."""
     attachments = extract_attachments(text)
     entered_date = extract_entered_date(text)
     text = mask_text_with_spans(text, attachments + entered_date, mapper=lambda text, span: ' ')
     text = ' '.join(text.split())
     return text
+
+
+def get_clean_name(name):
+    """Prepro utility for simplifying and standardizing names."""
+    return re.sub(r"[,.;@#?!&$]+\ *", " ", name.lower()).strip().replace('/', '_')

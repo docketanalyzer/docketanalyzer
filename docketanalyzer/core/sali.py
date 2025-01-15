@@ -1,6 +1,6 @@
 import pandas as pd
 from pathlib import Path
-from docketanalyzer import package_data
+from docketanalyzer import demo_data_path
 
 
 class SALI:
@@ -10,7 +10,7 @@ class SALI:
     @property
     def raw_data(self):
         if 'raw_data' not in self.cache:
-            self.cache['raw_data'] = package_data('sali').load()
+            self.cache['raw_data'] = pd.read_csv(demo_data_path('sali.csv'))
         return self.cache['raw_data']
 
     @property

@@ -3,7 +3,7 @@ import pandas as pd
 import peewee as pw
 from tqdm import tqdm
 from docketanalyzer import DATA_DIR
-from .database import connect
+from .psql import load_psql
 
 
 class ObjectManager:
@@ -112,7 +112,7 @@ class ObjectIndex:
     @property
     def db(self):
         if 'db' not in self.cache:
-            self.cache['db'] = connect(**self.db_connection)
+            self.cache['db'] = load_psql(**self.db_connection)
         return self.cache['db']
     
     @property
