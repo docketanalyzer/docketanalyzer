@@ -104,8 +104,8 @@ class Chat:
         response_model = args.pop('response_format', None)
         cache_args = dict(args=args, mode=self.mode, base_url=self.base_url)
         if response_model:
-            args['response_format'] = self.get_tool_schema(response_model)
-        return args
+            cache_args['response_format'] = self.get_tool_schema(response_model)
+        return cache_args
 
     def chat(
         self, messages, system=None, model=None, temperature=0.00000000000001, 

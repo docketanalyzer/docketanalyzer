@@ -29,8 +29,6 @@ class S3:
 
         kwargs['exact_timestamps'] = exact_timestamps
         kwargs = {k: v for k,v in kwargs.items() if v is not None}
-        if 'include' in kwargs:
-            kwargs['exclude'] = kwargs.get('exclude', '*')
 
         for k, v in kwargs.items():
             k = k.replace('_', '-')

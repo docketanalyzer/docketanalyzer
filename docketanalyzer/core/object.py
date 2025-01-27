@@ -52,11 +52,13 @@ class ObjectManager:
 
     def push(self, name=None, **kwargs):
         if name is not None:
+            kwargs['exclude'] = '*'
             kwargs['include'] = name
         self.index.push(self.path, **kwargs)
     
     def pull(self, name=None, **kwargs):
         if name is not None:
+            kwargs['exclude'] = '*'
             kwargs['include'] = name
         self.index.pull(self.path, **kwargs)
 
