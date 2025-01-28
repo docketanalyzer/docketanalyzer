@@ -1,0 +1,26 @@
+{
+    "run_name": "count-extract",
+    "base_model": "answerdotai/ModernBERT-base",
+    "push_to_hub": null,
+    "run_args": {
+        "max_length": 512
+    },
+    "training_args": {
+        "num_train_epochs": 1,
+        "per_device_train_batch_size": 8,
+        "per_device_eval_batch_size": 8,
+        "gradient_accumulation_steps": 1,
+        "bf16": true,
+        "save_steps": 0.2,
+        "eval_steps": 0.2,
+        "eval_strategy": "steps",
+        "save_total_limit": 2,
+        "load_best_model_at_end": true,
+        "report_to": "tensorboard",
+        "logging_dir": "outputs/logs",
+        "logging_steps": 1,
+        "overwrite_output_dir": true
+    },
+    "model_args": {},
+    "routine": "classification"
+}

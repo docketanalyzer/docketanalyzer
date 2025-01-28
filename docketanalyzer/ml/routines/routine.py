@@ -19,6 +19,7 @@ from docketanalyzer import DATA_DIR, S3, RUNPOD_API_KEY, REMOTE_ROUTINES_ENDPOIN
 
 class Routine:
     name = None
+    dataset_cols = ['input_ids', 'attention_mask', 'labels']
 
     def __init__(
         self,
@@ -107,7 +108,7 @@ class Routine:
 
     @property
     def data_collator(self):
-        return DataCollatorWithPadding(pad_to_multiple_of=8)
+        return DataCollatorWithPadding(self.tokenizer, pad_to_multiple_of=8)
 
     @property
     def tokenize_function(self):
@@ -121,7 +122,6 @@ class Routine:
                 padding=False,
                 truncation=True,
                 max_length=max_length,
-                return_tensors="pt",
                 return_offsets_mapping=return_offsets_mapping,
             )
             inputs = self.tokenize_hook(examples, inputs)
@@ -162,9 +162,11 @@ class Routine:
 
     def load_trainer(self):
         train_dataset, eval_dataset = self.train_dataset, self.eval_dataset
-        train_dataset.set_transform(self.tokenize_function)
+        train_dataset = train_dataset.map(self.tokenize_function, batched=True)
+        train_dataset.set_format(type="torch", columns=self.dataset_cols)
         if eval_dataset is not None:
-            eval_dataset.set_transform(self.tokenize_function)
+            eval_dataset = eval_dataset.map(self.tokenize_function, batched=True)
+            eval_dataset.set_format(type="torch", columns=self.dataset_cols)
 
         args = {
             'model': self.model,

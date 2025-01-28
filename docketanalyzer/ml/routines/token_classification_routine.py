@@ -36,13 +36,13 @@ class TokenClassificationRoutine(Routine):
 
     @property
     def data_collator(self):
-        return DataCollatorForTokenClassification(self.tokenizer)
+        return DataCollatorForTokenClassification(self.tokenizer, pad_to_multiple_of=8)
 
     def tokenize_hook(self, examples, inputs):
         labels = []
         for input_ids, offset_mapping, spans in zip(inputs['input_ids'], inputs['offset_mapping'], examples['spans']):
             labels.append(self.example_spans_to_labels(input_ids, offset_mapping, spans))
-        inputs['labels'] = torch.tensor(labels)
+        inputs['labels'] = labels
         del inputs['offset_mapping']
         return inputs
 

@@ -6,6 +6,7 @@ from .routine import Routine
 
 class ClassificationRoutine(Routine):
     name = 'classification'
+    dataset_cols = ['input_ids', 'attention_mask', 'label']
 
     @property
     def label_names(self):
