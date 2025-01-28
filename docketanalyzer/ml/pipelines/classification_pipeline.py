@@ -28,7 +28,7 @@ class ClassificationPipeline(Pipeline):
     def process_outputs(self, outputs, **kwargs):
         return outputs.logits.softmax(dim=-1)
 
-    def post_process_preds(self, examples, preds, return_scores=False, **kwargs):
+    def post_process_preds(self, examples, preds, dataset=None, return_scores=False, **kwargs):
         if self.is_binary:
             scores = preds[:, 1]
             labels = (scores > self.threshold).tolist()

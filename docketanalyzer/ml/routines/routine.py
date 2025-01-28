@@ -10,6 +10,7 @@ import simplejson as json
 import torch
 from transformers import (
     AutoTokenizer,
+    DataCollatorWithPadding,
     TrainingArguments,
     Trainer,
 )
@@ -106,7 +107,7 @@ class Routine:
 
     @property
     def data_collator(self):
-        return None
+        return DataCollatorWithPadding(pad_to_multiple_of=8)
 
     @property
     def tokenize_function(self):
@@ -117,7 +118,7 @@ class Routine:
         def f(examples):
             inputs = self.tokenizer(
                 *[examples[x] for x in text_cols],
-                padding="max_length",
+                padding=False,
                 truncation=True,
                 max_length=max_length,
                 return_tensors="pt",

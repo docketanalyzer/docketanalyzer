@@ -71,3 +71,7 @@ class TokenClassificationRoutine(Routine):
                 else:
                     labels.append(self.label_map['I-' + current_label])
         return labels
+
+
+class NERRoutine(TokenClassificationRoutine):
+    name = 'ner'

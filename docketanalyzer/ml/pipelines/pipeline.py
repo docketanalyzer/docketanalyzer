@@ -15,7 +15,8 @@ class Pipeline:
     default_model_name = None
     default_tokenizer_name = None
     default_model_args = dict()
-    default_tokenize_args = dict(truncation=True, max_length=512)
+    default_tokenize_args = dict(padding=False,truncation=True, max_length=512)
+    dataset_cols = ["input_ids", "attention_mask", "idx"]
 
     def __init__(self, model_name=None, tokenizer_name=None, model_args=None, tokenize_args=None, num_workers=0, device=None, bf16=True, smart_sort=True):
         self.model_name = model_name or deepcopy(self.default_model_name)
@@ -69,14 +70,14 @@ class Pipeline:
         if self.smart_sort:
             dataset = dataset.map(lambda x: {'length': [len(y) for y in x['input_ids']]}, batched=True)
             dataset = dataset.sort("length", reverse=True)
-        dataset.set_format(type="torch", columns=["input_ids", "attention_mask", "idx"])
+        dataset.set_format(type="torch", columns=self.dataset_cols)
         return dataset
 
     def create_dataloader(self, dataset, batch_size=1):
         dataloader = torch.utils.data.DataLoader(
             dataset, batch_size=batch_size, shuffle=False,
             pin_memory=True, num_workers=self.num_workers,
-            collate_fn=DataCollatorWithPadding(self.tokenizer, padding=True),
+            collate_fn=DataCollatorWithPadding(self.tokenizer, padding=True, pad_to_multiple_of=8),
         )
         return dataloader
 
@@ -113,16 +114,17 @@ class Pipeline:
                     batch_len = batch["input_ids"].shape[0]
                     idxs[start_idx:start_idx + batch_len] = batch["idx"]
                     del batch["idx"]
-                    batch = {k: v.to(self.device, non_blocking=False) for k, v in batch.items()}
+                    batch = {k: batch[k].to(self.device, non_blocking=False) for k in ['input_ids', 'attention_mask']}
                     outputs = model(**batch)
-                    preds[start_idx:start_idx + batch_len] = self.process_outputs(outputs, **kwargs).cpu()
+                    batch_preds = self.process_outputs(outputs, **kwargs).cpu()
+                    preds[start_idx:start_idx + batch_len, :batch_preds.shape[1]] = batch_preds[:, :preds.shape[1]]
                     start_idx += batch_len
                     del outputs
                     torch.cuda.empty_cache()
 
         idxs = idxs.argsort()
         preds = preds[idxs]
-        preds = self.post_process_preds(examples, preds, **kwargs)
+        preds = self.post_process_preds(examples, preds, dataset=dataset, **kwargs)
         return preds
 
     def __call__(self, *args, **kwargs):

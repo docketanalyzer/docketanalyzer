@@ -1,6 +1,6 @@
 import torch
 from transformers import AutoModelForSequenceClassification
-from .classification_pipelines import ClassificationPipeline
+from .classification_pipeline import ClassificationPipeline
 
 
 class MultilabelClassificationPipeline(ClassificationPipeline):
@@ -11,7 +11,7 @@ class MultilabelClassificationPipeline(ClassificationPipeline):
     def process_outputs(self, outputs, **kwargs):
         return outputs.logits.sigmoid()
 
-    def post_process_preds(self, examples, preds, return_scores=False, **kwargs):
+    def post_process_preds(self, examples, preds, dataset=None, return_scores=False, **kwargs):
         if return_scores:
             return [
                 {
