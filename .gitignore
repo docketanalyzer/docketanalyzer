@@ -7,6 +7,7 @@ build
 dist
 *.gradio
 .env
+temp.py
 
 ### Flask ###
 instance/*

@@ -4,9 +4,8 @@ from copy import deepcopy
 from contextlib import nullcontext
 from datasets import Dataset
 import torch
-from transformers import AutoTokenizer, AutoModel, DataCollatorWithPadding
+from transformers import AutoTokenizer, DataCollatorWithPadding
 from tqdm import tqdm
-from docketanalyzer import cpu_workers
 
 
 class Pipeline:
@@ -15,7 +14,7 @@ class Pipeline:
     default_model_name = None
     default_tokenizer_name = None
     default_model_args = dict()
-    default_tokenize_args = dict(padding=False,truncation=True, max_length=512)
+    default_tokenize_args = dict(padding=False, truncation=True, max_length=512)
     dataset_cols = ["input_ids", "attention_mask", "idx"]
 
     def __init__(self, model_name=None, tokenizer_name=None, model_args=None, tokenize_args=None, num_workers=0, device=None, bf16=True, smart_sort=True):
@@ -96,10 +95,13 @@ class Pipeline:
     def predict(self, examples, batch_size=1, **kwargs):
         examples = self.pre_process_examples(examples, **kwargs)
         dataset = self.create_dataset(examples)
-        dataloader = self.create_dataloader(dataset, batch_size=batch_size)
-
-        preds = self.init_preds(dataset, **kwargs)
+        
+        dataset, preds = self.init_preds(dataset, **kwargs)
         idxs = torch.empty(len(dataset), dtype=torch.long)
+
+        dataloader = self.create_dataloader(
+            dataset, batch_size=batch_size,
+        )
 
         model = self.model
 

@@ -23,7 +23,7 @@ class ClassificationPipeline(Pipeline):
         return self.num_labels == 2
 
     def init_preds(self, dataset, **kwargs):
-        return torch.empty(len(dataset), self.num_labels)
+        return dataset, torch.empty(len(dataset), self.num_labels)
 
     def process_outputs(self, outputs, **kwargs):
         return outputs.logits.softmax(dim=-1)
