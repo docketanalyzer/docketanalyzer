@@ -8,7 +8,8 @@ from docketanalyzer import load_docket_index
 @click.option('--exact-timestamps', '-e', is_flag=True, help='Use exact timestamps for comparison')
 @click.option('--exclude', default=None, help='Exclude pattern')
 @click.option('--include', default=None, help='Include pattern')
-def push(path, delete, exact_timestamps, exclude, include):
+@click.option('--skip_confirm', '-y', is_flag=True, help='Skip confirmation before pushing')
+def push(path, delete, exact_timestamps, exclude, include, skip_confirm):
     """
     Push data from the specified PATH relative to your DATA_DIR to the S3 bucket.
 
@@ -32,7 +33,7 @@ def push(path, delete, exact_timestamps, exclude, include):
     index = load_docket_index()
     exclude = None if exclude is None else exclude.split(',')
     include = None if include is None else include.split(',')
-    index.push(path, delete=delete, exact_timestamps=exact_timestamps, exclude=exclude, include=include, confirm=True)
+    index.push(path, delete=delete, exact_timestamps=exact_timestamps, exclude=exclude, include=include, confirm=not skip_confirm)
 
 
 @click.command()
@@ -41,7 +42,8 @@ def push(path, delete, exact_timestamps, exclude, include):
 @click.option('--exact-timestamps', '-e', is_flag=True, help='Use exact timestamps for comparison')
 @click.option('--exclude', default=None, help='Exclude pattern')
 @click.option('--include', default=None, help='Include pattern')
-def pull(path, delete, exact_timestamps, exclude, include):
+@click.option('--skip_confirm', '-y', is_flag=True, help='Skip confirmation before pulling')
+def pull(path, delete, exact_timestamps, exclude, include, skip_confirm):
     """
     Pull data from the S3 bucket to the specified PATH relative to your DATA_DIR.
 
@@ -63,4 +65,4 @@ def pull(path, delete, exact_timestamps, exclude, include):
     index = load_docket_index()
     exclude = None if exclude is None else exclude.split(',')
     include = None if include is None else include.split(',')
-    index.pull(path, delete=delete, exact_timestamps=exact_timestamps, exclude=exclude, include=include, confirm=True)
+    index.pull(path, delete=delete, exact_timestamps=exact_timestamps, exclude=exclude, include=include, confirm=not skip_confirm)
