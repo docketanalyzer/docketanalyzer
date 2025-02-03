@@ -41,7 +41,7 @@ class TokenClassificationPipeline(Pipeline):
                     break
                 label = id2label[label_id]
                 start, end = starts[i][tok_idx], ends[i][tok_idx]
-                if label == '0':
+                if label == 'O':
                     broken = True
                 elif label.startswith("B-") or broken:
                     spans.append({"start": start.item(), "end": end.item(), "label": label[2:]})

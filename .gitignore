@@ -5,9 +5,9 @@ docs
 tests
 build
 dist
-*.gradio
 .env
 temp.py
+setup.sh
 
 ### Flask ###
 instance/*
