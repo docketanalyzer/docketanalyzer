@@ -2,15 +2,15 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
 import requests
 from tqdm import tqdm
-from docketanalyzer import RUNPOD_API_KEY, REMOTE_INFERENCE_ENDPOINT_ID
+from docketanalyzer import env
 
 
 class RemotePipeline:
-    def __init__(self, name, api_key=RUNPOD_API_KEY, endpoint_id=REMOTE_INFERENCE_ENDPOINT_ID, max_retries=3, timeout=60, **args):
+    def __init__(self, name, api_key=None, endpoint_id=None, max_retries=3, timeout=60, **args):
         self.name = name
         self.args = args
-        self.api_key = api_key
-        self.endpoint_id = endpoint_id
+        self.api_key = api_key or env.RUNPOD_API_KEY
+        self.endpoint_id = endpoint_id or env.REMOTE_INFERENCE_ENDPOINT_ID
         self.base_url = f'https://api.runpod.ai/v2/{endpoint_id}/'
         self.max_retries = max_retries
     

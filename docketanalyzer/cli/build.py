@@ -3,7 +3,7 @@ import shutil
 import click
 from pathlib import Path
 import docketanalyzer
-from docketanalyzer import PYPI_TOKEN
+from docketanalyzer import env
 
 
 def parse_version(version_str):
@@ -74,7 +74,7 @@ def build(push):
 
         cmd = f"twine upload {dist_dir}/*"
         if PYPI_TOKEN is not None:
-            cmd += f" -u __token__ -p {PYPI_TOKEN}"
+            cmd += f" -u __token__ -p {env.PYPI_TOKEN}"
         os.system(cmd)
     
         shutil.rmtree(build_dir)

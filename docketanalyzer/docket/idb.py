@@ -24,7 +24,7 @@ from docketanalyzer.choices import (
     IDBStatusCode,
 )
 from docketanalyzer import (
-    DATA_DIR, notabs, load_psql, download_file, 
+    env, notabs, load_psql, download_file, 
     json_default, pd_save_or_append, cpu_workers
 )
 
@@ -201,7 +201,7 @@ class IDB:
     ]
 
     def __init__(self, skip_db=False):
-        self.dir = DATA_DIR / 'data' / 'idb'
+        self.dir = env.DATA_DIR / 'data' / 'idb'
         self.data_path = self.dir / 'data.csv'
         self.raw_data_path = self.dir / 'raw.zip'
         self.extracted_data_path = self.dir / IDB_FILE_NAME

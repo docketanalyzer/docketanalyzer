@@ -2,7 +2,7 @@ from pathlib import Path
 import pandas as pd
 import peewee as pw
 from tqdm import tqdm
-from docketanalyzer import DATA_DIR
+from docketanalyzer import env
 from .psql import load_psql
 
 
@@ -101,7 +101,8 @@ class ObjectIndex:
     manager_class = ObjectManager
     batch_class = ObjectBatch
 
-    def __init__(self, data_dir=DATA_DIR, db_connection={}):
+    def __init__(self, data_dir=None, db_connection={}):
+        data_dir = data_dir or env.DATA_DIR
         self.data_dir = Path(data_dir)
         self.dir = self.data_dir / 'data' / self.name
         self.db_connection = db_connection

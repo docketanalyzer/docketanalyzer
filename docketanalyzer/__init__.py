@@ -1,9 +1,7 @@
 from docketanalyzer._version import __version__
 from docketanalyzer.utils import *
 from docketanalyzer.env import env
-env.add_to_namespace(globals())
 from docketanalyzer.core import *
-from docketanalyzer.agents import *
 from docketanalyzer.agents import *
 from docketanalyzer.docket import *
 from docketanalyzer.tasks import *

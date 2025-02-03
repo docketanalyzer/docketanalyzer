@@ -1,7 +1,7 @@
 import os
 import time
 import requests
-from docketanalyzer import DATA_DIR, WEB_SEARCH_PORT
+from docketanalyzer import env
 
 
 limiter_content = """
@@ -90,10 +90,10 @@ search:
 
 
 class WebSearch:
-    def __init__(self, host='127.0.0.1', port=WEB_SEARCH_PORT):
+    def __init__(self, host='127.0.0.1', port=None):
         self.host = host
-        self.port = port
-        self.config_dir = DATA_DIR / 'local' / 'searxng'
+        self.port = port or env.WEB_SEARCH_PORT
+        self.config_dir = env.DATA_DIR / 'local' / 'searxng'
         self.started = False
         self.cache = {}
     

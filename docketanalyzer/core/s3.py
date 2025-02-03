@@ -1,18 +1,12 @@
 import os
 from pathlib import Path
-from docketanalyzer import (
-    DATA_DIR, AWS_S3_BUCKET_NAME, AWS_S3_ENDPOINT_URL,
-)
+from docketanalyzer import env
 
 class S3:
-    def __init__(
-        self, bucket=AWS_S3_BUCKET_NAME,
-        endpoint_url=AWS_S3_ENDPOINT_URL,
-        data_dir=DATA_DIR,
-    ):
-        self.bucket = Path(bucket)
-        self.data_dir = None if data_dir is None else Path(data_dir)
-        self.endpoint_url = endpoint_url
+    def __init__(self, bucket=None, endpoint_url=None, data_dir=None):
+        self.bucket = Path(bucket or env.AWS_S3_BUCKET_NAME)
+        self.data_dir = Path(data_dir or env.DATA_DIR)
+        self.endpoint_url = endpoint_url or env.AWS_S3_ENDPOINT_URL
 
 
     def _sync(

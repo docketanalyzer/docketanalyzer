@@ -1,21 +1,7 @@
 from copy import deepcopy
-from anthropic import Anthropic
-from cohere import Client as CohereClient
-from groq import Groq
-import openai
-from openai import OpenAI
 from pathlib import Path
 import simplejson as json
-import tiktoken
-from docketanalyzer import (
-    generate_hash, notabs,
-    ANTHROPIC_API_KEY, ANTHROPIC_DEFAULT_CHAT_MODEL,
-    GROQ_API_KEY, GROQ_DEFAULT_CHAT_MODEL,
-    OPENAI_API_KEY, OPENAI_DEFAULT_CHAT_MODEL, OPENAI_DEFAULT_EMBEDDING_MODEL,
-    COHERE_API_KEY, COHERE_DEFAULT_CHAT_MODEL,
-    TOGETHER_API_KEY, TOGETHER_DEFAULT_CHAT_MODEL,
-    RUNPOD_API_KEY,
-)
+from docketanalyzer import  generate_hash, env
 
 
 class ChatStream:
@@ -55,42 +41,47 @@ class ChatStream:
 
 class Chat:
     def __init__(self, api_key=None, base_url=None, mode='openai', model=None):
+        from anthropic import Anthropic
+        from cohere import Client as CohereClient
+        from groq import Groq
+        from openai import OpenAI
+
         self.mode = mode
         self.base_url = base_url
         if api_key is None:
             if mode == 'anthropic':
-                api_key = ANTHROPIC_API_KEY
+                api_key = env.ANTHROPIC_API_KEY
             elif mode == 'openai':
-                api_key = OPENAI_API_KEY
+                api_key = env.OPENAI_API_KEY
             elif mode == 'vllm':
-                api_key = RUNPOD_API_KEY
+                api_key = env.RUNPOD_API_KEY
             elif mode == 'groq':
-                api_key = GROQ_API_KEY
+                api_key = env.GROQ_API_KEY
             elif mode == 'cohere':
-                api_key = COHERE_API_KEY
+                api_key = env.COHERE_API_KEY
             elif mode == 'together':
-                api_key = TOGETHER_API_KEY
+                api_key = env.TOGETHER_API_KEY
         self.api_key = api_key
 
         if mode == 'anthropic':
             self.client = Anthropic(api_key=self.api_key)
-            self.default_model = ANTHROPIC_DEFAULT_CHAT_MODEL
+            self.default_model = env.ANTHROPIC_DEFAULT_CHAT_MODEL
 
         elif mode in ['openai', 'vllm']:
             self.client = OpenAI(base_url=base_url, api_key=self.api_key)
-            self.default_model = OPENAI_DEFAULT_CHAT_MODEL
+            self.default_model = env.OPENAI_DEFAULT_CHAT_MODEL
         
         elif mode == 'groq':
             self.client = Groq(api_key=self.api_key)
-            self.default_model = GROQ_DEFAULT_CHAT_MODEL
+            self.default_model = env.GROQ_DEFAULT_CHAT_MODEL
 
         elif mode == 'cohere':
             self.client = CohereClient(api_key=self.api_key)
-            self.default_model = COHERE_DEFAULT_CHAT_MODEL
+            self.default_model = env.COHERE_DEFAULT_CHAT_MODEL
 
         elif mode == 'together':
             self.client = OpenAI(base_url='https://api.together.xyz/v1', api_key=self.api_key)
-            self.default_model = TOGETHER_DEFAULT_CHAT_MODEL
+            self.default_model = env.TOGETHER_DEFAULT_CHAT_MODEL
 
         else:
             raise ValueError("Invalid mode. Must be one of: 'anthropic', 'cohere', 'groq', 'openai', 'together', 'vllm'.")
@@ -174,6 +165,8 @@ class Chat:
         return response
 
     def get_tool_schema(self, tool_class):
+        import openai
+
         schema = openai.pydantic_function_tool(tool_class)
         schema['function']['parameters']['additionalProperties'] = False
         for params in schema['function']['parameters']['properties'].values():
@@ -185,7 +178,8 @@ class Chat:
             return dict(name=schema['name'], description=schema['description'], input_schema = schema['parameters'])
         return schema
     
-    def embed(self, texts, model=OPENAI_DEFAULT_EMBEDDING_MODEL, dimensions=None):
+    def embed(self, texts, model=None, dimensions=None):
+        model = model or env.OPENAI_DEFAULT_EMBEDDING_MODEL
         if self.mode != 'openai':
             raise ValueError("Embeddings only supported for OpenAI.")
         texts = [x.replace("\n", " ") for x in texts]
@@ -193,6 +187,8 @@ class Chat:
         return [x.embedding for x in results]
 
     def get_tokenizer(self, model):
+        import tiktoken
+
         key = f'tokenizer__{model}'
         if self.cache.get(key) is None:
             self.cache[key] = tiktoken.encoding_for_model(model)

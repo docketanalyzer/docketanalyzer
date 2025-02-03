@@ -14,7 +14,7 @@ from transformers import (
     TrainingArguments,
     Trainer,
 )
-from docketanalyzer import DATA_DIR, S3, RUNPOD_API_KEY, REMOTE_ROUTINES_ENDPOINT_ID
+from docketanalyzer import env, S3
 
 
 class Routine:
@@ -29,7 +29,7 @@ class Routine:
         run_args={},
         training_args={},
         model_args={},
-        data_dir=DATA_DIR / 'runs',
+        data_dir=None,
     ):
         self.run_name = run_name
         self.base_model = base_model
@@ -37,7 +37,7 @@ class Routine:
         self.run_args = run_args
         self.training_args = training_args
         self.model_args = model_args
-        self.data_dir = Path(data_dir)
+        self.data_dir = Path(data_dir or (env.DATA_DIR / 'runs'))
 
         self.train_dataset = None
         self.eval_dataset = None
@@ -239,10 +239,10 @@ class Routine:
         s3 = S3()
         s3.push(self.run_dir, delete=True, exact_timestamps=True)
 
-        data_dir = self.data_dir.relative_to(DATA_DIR)
+        data_dir = self.data_dir.relative_to(env.DATA_DIR)
         inputs = dict(input=dict(run_name=self.run_name, data_dir=str(data_dir)))
-        headers = {'Authorization': f'Bearer {RUNPOD_API_KEY}'}
-        endpoint_url = f'https://api.runpod.ai/v2/{REMOTE_ROUTINES_ENDPOINT_ID}/'
+        headers = {'Authorization': f'Bearer {env.RUNPOD_API_KEY}'}
+        endpoint_url = f'https://api.runpod.ai/v2/{env.REMOTE_ROUTINES_ENDPOINT_ID}/'
         status = requests.post(
             endpoint_url + 'run', headers=headers, json=inputs,
         ).json()
