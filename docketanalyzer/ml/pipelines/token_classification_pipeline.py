@@ -19,15 +19,17 @@ class TokenClassificationPipeline(Pipeline):
             return dict(start=start, end=end)
         dataset = dataset.map(get_start_end, batched=True)
         dataset = dataset.remove_columns(['offset_mapping'])
-        return dataset, torch.empty(len(dataset), max_len)
+        return dataset, torch.full((len(dataset), max_len), self.model.config.label2id['O'], dtype=torch.long)
 
     def process_outputs(self, outputs, **kwargs):
         return outputs.logits.argmax(dim=-1)
     
     def post_process_preds(self, examples, preds, dataset, **kwargs):
         id2label = self.model.config.id2label
+        dataset = dataset.sort("idx")
         starts = dataset["start"]
         ends = dataset["end"]
+        broken = True
 
         results = []
         for i, _ in enumerate(examples):
@@ -39,10 +41,16 @@ class TokenClassificationPipeline(Pipeline):
                     break
                 label = id2label[label_id]
                 start, end = starts[i][tok_idx], ends[i][tok_idx]
-                if label.startswith("B-"):
-                    spans.append({"start": start.item(), "end": end.item(), "label": label})
+                if label == '0':
+                    broken = True
+                elif label.startswith("B-") or broken:
+                    spans.append({"start": start.item(), "end": end.item(), "label": label[2:]})
+                    broken = False
                 elif label.startswith("I-"):
-                    spans[-1]["end"] = end.item()
+                    if spans and spans[-1]["label"] == label[2:]:
+                        spans[-1]["end"] = end.item()
+                    else:
+                        spans.append({"start": start.item(), "end": end.item(), "label": label[2:]})
             results.append(spans)
         return results
 
