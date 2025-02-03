@@ -11,7 +11,7 @@ class RemotePipeline:
         self.args = args
         self.api_key = api_key or env.RUNPOD_API_KEY
         self.endpoint_id = endpoint_id or env.REMOTE_INFERENCE_ENDPOINT_ID
-        self.base_url = f'https://api.runpod.ai/v2/{endpoint_id}/'
+        self.base_url = f'https://api.runpod.ai/v2/{self.endpoint_id}/'
         self.max_retries = max_retries
     
     @property

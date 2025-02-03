@@ -90,19 +90,11 @@ class Config():
         
         Returns:
             dict: Stored configuration values
-        
-        Raises:
-            json.JSONDecodeError: If the config file is invalid JSON
         """
         if self.path.exists():
-            try:
-                return json.loads(self.path.read_text())
-            except json.JSONDecodeError as e:
-                raise json.JSONDecodeError(
-                    f"Failed to parse config file {self.path}: {str(e)}",
-                    e.doc,
-                    e.pos
-                )
+            config = json.loads(self.path.read_text())
+            config = {k: v for k, v in config.items() if k in self.keys}
+            return config
         return {}
 
     @property

@@ -73,7 +73,7 @@ def build(push):
         os.system(cmd)
 
         cmd = f"twine upload {dist_dir}/*"
-        if PYPI_TOKEN is not None:
+        if env.PYPI_TOKEN is not None:
             cmd += f" -u __token__ -p {env.PYPI_TOKEN}"
         os.system(cmd)
     
