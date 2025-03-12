@@ -9,7 +9,8 @@ extra:
 
 theme:
   name: material
-  logo: "static/img/logo.png"
+  logo: static/img/logo.png
+  favicon: static/img/favicon.svg
   site_url: "https://docketanalyzer.com/docs"
   features:
     - navigation.instant
