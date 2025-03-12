@@ -9,9 +9,37 @@
 	-webkit-box-shadow: 0 0 1px rgba(255, 255, 255, 0.5);
 }
 
+/* Make logo visible */
+@media screen and (max-width: 76.1875em) {
+    .md-header__button.md-logo {
+      display: block;
+    }
+}
+
+.md-nav--primary .md-nav__title[for=__drawer],
+.md-nav__source {
+    background-color: white !important;
+}
+  
+label[for="__drawer"].md-header__button.md-icon {
+    order: -1;
+}
+  
+[dir="ltr"] .md-header__title {
+    margin-left: .1rem;
+}
+
 .md-header,
 .md-header__inner {
     background-color: white !important;
+}
+
+.md-header__button {
+    color: #4b5563 !important;
+}
+
+.md-header__button.md-logo img {
+    height: 32px;
 }
 
 .md-container {
@@ -44,6 +72,12 @@ a:hover {
     background-color: #f9fafb !important;
 }
 
+@media screen and (max-width: 40rem) {
+    .md-main {
+        background-color: white !important;
+    }
+}
+
 .md-sidebar__inner {
     background-color: white !important;
     border-radius: 0.5rem;
@@ -58,6 +92,15 @@ a:hover {
     border: 1px solid #e5e7eb !important;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     margin: 1.2rem;
+}
+
+@media screen and (max-width: 40rem) {
+    .md-content {
+        border: 0 !important;
+        box-shadow: 0 !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+    }
 }
 
 .md-main__inner {

@@ -40,6 +40,12 @@ jobs:
           
       - name: Build documentation
         run: mkdocs build
+
+      - name: Copy static content
+        run: |
+          if [ -d "static" ]; then
+            cp -r static/* site/
+          fi
         
       - name: Setup Pages
         uses: actions/configure-pages@v4
