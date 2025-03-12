@@ -1,3 +1,4 @@
+from typing import Any
 from litellm import completion
 
 
@@ -14,7 +15,7 @@ class Chat:
     """
 
     def __init__(
-        self, model: str = "openai/gpt-4o-mini", temperature: float = 1e-16, **kwargs
+        self, model: str = "openai/gpt-4o-mini", temperature: float = 1e-16, **kwargs: dict[str, Any]
     ):
         """
         Load a Chat model.
@@ -32,8 +33,8 @@ class Chat:
         self.r = None
 
     def __call__(
-        self, messages: list[dict[str, str]] | str, thread: bool = False, **kwargs
-    ):
+        self, messages: list[dict[str, str]] | str, thread: bool = False, **kwargs: dict[str, Any]
+    ) -> str:
         """
         Generate a chat completion.
 
