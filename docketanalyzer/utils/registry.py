@@ -38,6 +38,9 @@ class Registry:
         raise NotImplementedError("Subclasses must implement find_filter() to define registration criteria.")
 
     def find(self, module: Optional[ModuleType] = None, recurse: bool = False) -> None:
+        """
+        Find all objects in the module that match the registration criteria.
+        """
         if module is None:
             module = self.module
         if isinstance(module, str):

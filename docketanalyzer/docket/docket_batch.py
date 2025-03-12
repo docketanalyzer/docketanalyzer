@@ -40,7 +40,7 @@ class DocketBatch(ObjectBatch):
             data['nature_suit'] = data['nature_suit'].apply(lambda x: None if not x else '_' + x.split()[0].strip())
             data['nature_suit'].apply(lambda x: None if pd.isnull(x) else validate(x, choices['NatureSuit']))
             data['jury_demand'] = data['jury_demand'].apply(lambda x: None if not x else values['JuryDemand'][x])
-            data['jurisdiction'] = data['jurisdiction'].apply(lambda x: None if not x else values['Jurisdiction'][x])
+            data['jurisdiction'] = data['jurisdiction'].apply(lambda x: None if not x or x not in values['Jurisdiction'] else values['Jurisdiction'][x])
             data['date_filed'] = pd.to_datetime(data['date_filed'], errors='coerce')
             data['date_terminated'] = pd.to_datetime(data['date_terminated'], errors='coerce')
             self.cache['headers'] = data

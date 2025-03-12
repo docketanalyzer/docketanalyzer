@@ -2,7 +2,6 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import datetime
 import math
 from bs4 import BeautifulSoup
-from pathlib import Path
 import pandas as pd
 import regex as re
 import requests
@@ -33,7 +32,7 @@ pd.options.mode.chained_assignment = None
 
 IDB_UPDATES_URL = 'https://www.fjc.gov/research/idb/civil-cases-filed-terminated-and-pending-sy-1988-present'
 
-IDB_DOWNLOAD_URL = 'https://www.fjc.gov/sites/default/files/idb/textfiles/cv88on_0.zip'
+IDB_DOWNLOAD_URL = 'https://www.fjc.gov/sites/default/files/idb/textfiles/cv88on.zip'
 
 IDB_FILE_NAME = 'cv88on.txt'
 

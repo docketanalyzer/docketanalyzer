@@ -6,7 +6,7 @@ from docketanalyzer import env
 
 
 class RemotePipeline:
-    def __init__(self, name, api_key=None, endpoint_id=None, max_retries=3, timeout=60, **args):
+    def __init__(self, name, api_key=None, endpoint_id=None, max_retries=1, **args):
         self.name = name
         self.args = args
         self.api_key = api_key or env.RUNPOD_API_KEY
@@ -19,7 +19,7 @@ class RemotePipeline:
         return {'Authorization': f'Bearer {self.api_key}'}
     
     def get_inputs(self, texts, **args):
-        return {
+        inputs = {
             'input': {
                 'pipeline': {
                     'name': self.name,
@@ -29,6 +29,7 @@ class RemotePipeline:
                 **args,
             }
         }
+        return inputs
     
     def process_job(self, job):
         error = False
@@ -48,7 +49,6 @@ class RemotePipeline:
             if job['retries'] >= self.max_retries:
                 raise Exception(job['status']['error'])
             job = self.create_job(job['i'], job['inputs'])
-            self.flurry(8)
         return job
     
     def create_job(self, i, texts, **args):
