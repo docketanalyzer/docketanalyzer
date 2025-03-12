@@ -1,19 +1,66 @@
 # docketanalyzer
 
+## Docket Management
 
 ::: docketanalyzer.Pacer
-    handler: python
-    show_source: true
     options:
-      show_root_heading: true
-      members_order: source
+      heading_level: 3
+      members:
+        - purchase_docket
+        - purchase_document
+        - purchase_attachment
+        - parse
+        - find_candidate_cases
 
 
-::: docketanalyzer.utils
-    handler: python
-    show_source: true
-    heading_level: 2
+## Services
+
+::: docketanalyzer_core.load_elastic
     options:
-      show_root_heading: true
-      members_order: source
+      heading_level: 3
 
+::: docketanalyzer_core.load_psql
+    options:
+      heading_level: 3
+
+::: docketanalyzer_core.load_redis
+    options:
+      heading_level: 3
+
+::: docketanalyzer_core.load_s3
+    options:
+      heading_level: 3
+
+::: docketanalyzer_core.Database
+    options:
+      heading_level: 3
+      members:
+        - __init__
+        - connect
+        - create_table
+        - register_model
+
+::: docketanalyzer_core.DatabaseModel
+    options:
+      heading_level: 3
+
+::: docketanalyzer_core.S3
+    options:
+      heading_level: 3
+      members:
+        - __init__
+        - push
+        - pull
+        - upload
+        - download
+        - delete
+        - status
+
+::: docketanalyzer_core.utils
+    options:
+      heading_level: 2
+
+
+::: docketanalyzer_core.Registry
+    options:
+      heading_level: 3

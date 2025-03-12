@@ -35,6 +35,8 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.superfences
+  - toc:
+      toc_depth: 3
 
 plugins:
   - search
@@ -52,3 +54,4 @@ nav:
     - Download PACER Data: examples/pacer.md
   - Package Reference: 
     - api/main.md
+    - api/chat.md
