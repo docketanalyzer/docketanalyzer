@@ -1,4 +1,4 @@
-# Docket Analyzer
+# Docket Analyzer Documentation
 
 ## Installation
 
