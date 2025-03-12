@@ -1,0 +1,308 @@
+{
+    "court_id": "insd",
+    "docket_number": "1:24-cv-00524",
+    "case_name": "TRUSTEES OF THE INDIANA TEAMSTERS HEALTH BENEFITS PLAN v. INDY DIRT WERKS, LLC",
+    "date_filed": "2024-03-21",
+    "date_terminated": null,
+    "date_converted": null,
+    "date_discharged": null,
+    "assigned_to_str": "James Patrick Hanlon",
+    "referred_to_str": "Kellie M. Barr",
+    "cause": "29:1132 E.R.I.S.A.-Employee Benefits",
+    "nature_of_suit": "791 Labor: E.R.I.S.A.",
+    "jury_demand": "None",
+    "demand": "",
+    "jurisdiction": "Federal Question",
+    "mdl_status": "",
+    "ordered_by": "date_filed",
+    "federal_dn_office_code": "1",
+    "federal_dn_case_type": "cv",
+    "federal_dn_judge_initials_assigned": "JPH",
+    "federal_dn_judge_initials_referred": "KMB",
+    "federal_defendant_number": null,
+    "parties": [],
+    "docket_entries": [
+        {
+            "date_filed": "2024-03-21",
+            "document_number": "1",
+            "pacer_doc_id": "073010365471",
+            "pacer_seq_no": "8",
+            "description": "COMPLAINT against INDY DIRT WERKS, LLC, filed by All Plaintiffs. (Filing fee $405, receipt number AINSDC-8082329) (Attachments: # 1 Exhibit 1 - Health Trust Agreement, # 2 Exhibit 2 - Pension Trust Agreement, # 3 Exhibit 3 - ITDCP Trust Document, # 4 Exhibit 4 - Safety Training Trust Agreement, # 5 Exhibit 5a - Health Plan Collection Policy, # 6 Exhibit 5b - Pension Plan Collection Policy, # 7 Exhibit 6a - Health Participation Agreement, # 8 Exhibit 6b - Pension Participation Agreement, # 9 Exhibit 6c - DC Participation Agreement, # 10 Exhibit 6d - IDW Safety Participation Agreement, # 11 Exhibit 7 - Indiana Heavy Highway CBA, # 12 Civil Cover Sheet, # 13 Proposed Summons)(Lehman, Sawyer) (Entered: 03/21/2024)",
+            "date_entered": "2024-03-21"
+        },
+        {
+            "date_filed": "2024-03-21",
+            "document_number": "2",
+            "pacer_doc_id": "073010365523",
+            "pacer_seq_no": "14",
+            "description": "NOTICE of Appearance by Sawyer Christian Lehman on behalf of Plaintiffs TRUSTEES OF THE INDIANA TEAMSTERS DEFINED CONTRIBUTION FUND, TRUSTEES OF THE INDIANA TEAMSTERS HEALTH BENEFITS PLAN, TRUSTEES OF THE INDIANA TEAMSTERS PENSION FUND, TRUSTEES OF THE INDIANA TEAMSTERS SAFETY TRAINING AND EDUCATIONAL TRUST FUND. (Lehman, Sawyer) (Entered: 03/21/2024)",
+            "date_entered": "2024-03-21"
+        },
+        {
+            "date_filed": "2024-03-21",
+            "document_number": "3",
+            "pacer_doc_id": "073010365537",
+            "pacer_seq_no": "16",
+            "description": "NOTICE of Appearance by Thomas Reed Kendall on behalf of Plaintiffs TRUSTEES OF THE INDIANA TEAMSTERS DEFINED CONTRIBUTION FUND, TRUSTEES OF THE INDIANA TEAMSTERS HEALTH BENEFITS PLAN, TRUSTEES OF THE INDIANA TEAMSTERS PENSION FUND, TRUSTEES OF THE INDIANA TEAMSTERS SAFETY TRAINING AND EDUCATIONAL TRUST FUND. (Kendall, Thomas) (Entered: 03/21/2024)",
+            "date_entered": "2024-03-21"
+        },
+        {
+            "date_filed": "2024-03-22",
+            "document_number": "4",
+            "pacer_doc_id": "073010366957",
+            "pacer_seq_no": "22",
+            "description": "Summons issued as to INDY DIRT WERKS, LLC. (KAA) Modified on 3/25/2024 - Updated dkt text (JSR). (Entered: 03/22/2024)",
+            "date_entered": "2024-03-22"
+        },
+        {
+            "date_filed": "2024-03-22",
+            "document_number": "5",
+            "pacer_doc_id": "073010366970",
+            "pacer_seq_no": "26",
+            "description": "PRACTICES AND PROCEDURES before Judge James Patrick Hanlon. (KAA) (Entered: 03/22/2024)",
+            "date_entered": "2024-03-22"
+        },
+        {
+            "date_filed": "2024-03-22",
+            "document_number": "6",
+            "pacer_doc_id": "073010366979",
+            "pacer_seq_no": "28",
+            "description": "MAGISTRATE JUDGE's NOTICE of Availability to Exercise Jurisdiction issued. (KAA) (Entered: 03/22/2024)",
+            "date_entered": "2024-03-22"
+        },
+        {
+            "date_filed": "2024-03-22",
+            "document_number": "7",
+            "pacer_doc_id": "073010366982",
+            "pacer_seq_no": "30",
+            "description": "Notice to File Rule 7.1 Disclosure Statement. (RAGS) (KAA) (Entered: 03/22/2024)",
+            "date_entered": "2024-03-22"
+        },
+        {
+            "date_filed": "2024-04-19",
+            "document_number": "8",
+            "pacer_doc_id": "073010412190",
+            "pacer_seq_no": "32",
+            "description": "Proposed Summons submitted for issuance by the clerk as to All Defendants. (Lehman, Sawyer) (Entered: 04/19/2024)",
+            "date_entered": "2024-04-19"
+        },
+        {
+            "date_filed": "2024-04-22",
+            "document_number": "9",
+            "pacer_doc_id": "073010413777",
+            "pacer_seq_no": "34",
+            "description": "Summons Issued as to INDY DIRT WERKS, LLC. (KAA) (Entered: 04/22/2024)",
+            "date_entered": "2024-04-22"
+        },
+        {
+            "date_filed": "2024-04-25",
+            "document_number": "10",
+            "pacer_doc_id": "073010421371",
+            "pacer_seq_no": "36",
+            "description": "RETURN of Personal Service, filed by All Plaintiffs. All Defendants. (Kendall, Thomas) (Entered: 04/25/2024)",
+            "date_entered": "2024-04-25"
+        },
+        {
+            "date_filed": "2024-05-17",
+            "document_number": "11",
+            "pacer_doc_id": "073010458722",
+            "pacer_seq_no": "38",
+            "description": "MOTION for Clerk's Entry of Default Failure to Appear, Answer, or Otherwise Plead, filed by Plaintiffs TRUSTEES OF THE INDIANA TEAMSTERS DEFINED CONTRIBUTION FUND, TRUSTEES OF THE INDIANA TEAMSTERS HEALTH BENEFITS PLAN, TRUSTEES OF THE INDIANA TEAMSTERS PENSION FUND, TRUSTEES OF THE INDIANA TEAMSTERS SAFETY TRAINING AND EDUCATIONAL TRUST FUND. (Attachments: # 1 Declaration of SCL)(Lehman, Sawyer) (Entered: 05/17/2024)",
+            "date_entered": "2024-05-17"
+        },
+        {
+            "date_filed": "2024-06-07",
+            "document_number": "12",
+            "pacer_doc_id": "073010492940",
+            "pacer_seq_no": "40",
+            "description": "**VACATED PER DKT 20 **Clerk's ENTRY OF DEFAULT - Pursuant to Plaintiff's Application for Clerk's Entry of Default, dkt. 11, default is entered against Indy Dirt Werks, LLC for failure to plead or otherwise defend this action. Copy to defendant via US Mail Signed by Clerk, Roger A.G. Sharpe. (KAA) Modified on 8/7/2024 (LF). (Entered: 06/07/2024)",
+            "date_entered": "2024-06-07"
+        },
+        {
+            "date_filed": "2024-06-13",
+            "document_number": "13",
+            "pacer_doc_id": "073010502051",
+            "pacer_seq_no": "43",
+            "description": "MOTION for Default Judgment as to Liability, filed by Plaintiffs TRUSTEES OF THE INDIANA TEAMSTERS DEFINED CONTRIBUTION FUND, TRUSTEES OF THE INDIANA TEAMSTERS HEALTH BENEFITS PLAN, TRUSTEES OF THE INDIANA TEAMSTERS PENSION FUND, TRUSTEES OF THE INDIANA TEAMSTERS SAFETY TRAINING AND EDUCATIONAL TRUST FUND. (Lehman, Sawyer) (Entered: 06/13/2024)",
+            "date_entered": "2024-06-13"
+        },
+        {
+            "date_filed": "2024-06-13",
+            "document_number": "14",
+            "pacer_doc_id": "073010502056",
+            "pacer_seq_no": "45",
+            "description": "BRIEF/MEMORANDUM in Support re 13 MOTION for Default Judgment as to Liability, filed by Plaintiffs TRUSTEES OF THE INDIANA TEAMSTERS DEFINED CONTRIBUTION FUND, TRUSTEES OF THE INDIANA TEAMSTERS HEALTH BENEFITS PLAN, TRUSTEES OF THE INDIANA TEAMSTERS PENSION FUND, TRUSTEES OF THE INDIANA TEAMSTERS SAFETY TRAINING AND EDUCATIONAL TRUST FUND. (Attachments: # 1 Text of Proposed Order)(Lehman, Sawyer) (Entered: 06/13/2024)",
+            "date_entered": "2024-06-13"
+        },
+        {
+            "date_filed": "2024-06-18",
+            "document_number": "15",
+            "pacer_doc_id": "073010509800",
+            "pacer_seq_no": "48",
+            "description": "ORDER GRANTING AUDIT - The request for an audit is GRANTED. Defendant shall, not later than 14 days from the date of this Order, submit to Plaintiffs true and correct reports of hours worked from July 2023 through the date reports are provided. If Defendant fails to do so or if Plaintiffs, at their discretion, desire an audit, then Defendant shall submit to an audit as demanded by Plaintiffs, by contacting Plaintiffs' designated agent, in the manner and at the time and place designated by Plaintiffs, and furnishing copies of Defendant's books and records for the period of July 2023 to the date of the audit. The motion for default judgment, dkt. 13, remains pending because damages are not at this point \"liquidated or capable of ascertainment from definite figures.\" See Order for details. Signed by Judge James Patrick Hanlon on 6/18/2024 (Copy mailed to Indy Dirt Werks, LLC).(LBT) (Entered: 06/18/2024)",
+            "date_entered": "2024-06-18"
+        },
+        {
+            "date_filed": "2024-07-08",
+            "document_number": "16",
+            "pacer_doc_id": "073010543594",
+            "pacer_seq_no": "50",
+            "description": "Mail Returned as undeliverable. 15 Order sent to INDY DIRT WERKS, LLC at 2006 Martin Luther King Jr. St., Indianapolis, IN 46202. Envelope marked return to sender, not deliverable as addressed, unable to forward. (LBT) (Entered: 07/10/2024)",
+            "date_entered": "2024-07-10"
+        },
+        {
+            "date_filed": "2024-07-25",
+            "document_number": "17",
+            "pacer_doc_id": "073010571388",
+            "pacer_seq_no": "53",
+            "description": "MOTION for Leave to File Amended Complaint, filed by Plaintiffs TRUSTEES OF THE INDIANA TEAMSTERS DEFINED CONTRIBUTION FUND, TRUSTEES OF THE INDIANA TEAMSTERS HEALTH BENEFITS PLAN, TRUSTEES OF THE INDIANA TEAMSTERS PENSION FUND, TRUSTEES OF THE INDIANA TEAMSTERS SAFETY TRAINING AND EDUCATIONAL TRUST FUND. (Lehman, Sawyer) (Entered: 07/25/2024)",
+            "date_entered": "2024-07-25"
+        },
+        {
+            "date_filed": "2024-07-25",
+            "document_number": "18",
+            "pacer_doc_id": "073010571399",
+            "pacer_seq_no": "55",
+            "description": "BRIEF/MEMORANDUM in Support re 17 MOTION for Leave to File Amended Complaint, filed by Plaintiffs TRUSTEES OF THE INDIANA TEAMSTERS DEFINED CONTRIBUTION FUND, TRUSTEES OF THE INDIANA TEAMSTERS HEALTH BENEFITS PLAN, TRUSTEES OF THE INDIANA TEAMSTERS PENSION FUND, TRUSTEES OF THE INDIANA TEAMSTERS SAFETY TRAINING AND EDUCATIONAL TRUST FUND. (Attachments: # 1 Text of Proposed Order)(Lehman, Sawyer) (Entered: 07/25/2024)",
+            "date_entered": "2024-07-25"
+        },
+        {
+            "date_filed": "2024-07-25",
+            "document_number": "19",
+            "pacer_doc_id": "073010571518",
+            "pacer_seq_no": "58",
+            "description": "EXHIBIT - Proposed Amended Complaint re 17 MOTION for Leave to File Amended Complaint by All Plaintiffs. (Lehman, Sawyer) Modified on 7/25/2024 - added additional text (DWH). (Entered: 07/25/2024)",
+            "date_entered": "2024-07-25"
+        },
+        {
+            "date_filed": "2024-08-06",
+            "document_number": "20",
+            "pacer_doc_id": "073010590379",
+            "pacer_seq_no": "64",
+            "description": "ORDER GRANTING MOTION FOR LEAVE TO FILE AN AMENDED COMPLAINT, DENYING MOTION FOR DEFAULT JUDGMENT AS MOOT, AND SETTING ASIDE CLERK'S ENTRY OF DEFAULT: The Plaintiffs' Motion for Leave to File an Amended Complaint is GRANTED. [Dkt. 17 .] The Plaintiffs shall refile the proposed amended complaint as the Amended Complaint within seven (7) days of the issuance of this Order and promptly serve copies of the Amended Complaint on all of the Defendants in accordance with the Federal Rules of Civil Procedure. The Plaintiffs' Motion for Default Judgment is DENIED AS MOOT. [Dkt. 13 .] The CLERK SHALL vacate the previously entered Clerk's Entry of Default with regard to Defendant Indy Dirt Werks, LLC. SEE ORDER. Signed by Magistrate Judge Kellie M. Barr on 8/6/2024. (LF) (Entered: 08/07/2024)",
+            "date_entered": "2024-08-07"
+        },
+        {
+            "date_filed": "2024-08-07",
+            "document_number": "21",
+            "pacer_doc_id": "073010590923",
+            "pacer_seq_no": "67",
+            "description": "AMENDED COMPLAINT against All Defendants, filed by All Plaintiffs. (Attachments: # 1 Exhibit 1 - Health Trust Agreement, # 2 Exhibit 2 - Pension Trust Agreement, # 3 Exhibit 3 - ITDCP Trust Document, # 4 Exhibit 4 - Safety Training Trust Agreement, # 5 Exhibit 5a - Health Plan Collection Policy, # 6 Exhibit 5b - Pension Plan Collection Policy, # 7 Exhibit 5c - Safety Training Collection Policy, # 8 Exhibit 6a - Health Participation Agreement, # 9 Exhibit 6b - Pension Participation Agreement, # 10 Exhibit 6c - DC Participation Agreement, # 11 Exhibit 6d - IDW Participation Agreement, # 12 Exhibit 7 - IHH CBA, # 13 Exhibit 8 - Truck Photo)(Lehman, Sawyer) (Entered: 08/07/2024)",
+            "date_entered": "2024-08-07"
+        },
+        {
+            "date_filed": "2024-08-09",
+            "document_number": "22",
+            "pacer_doc_id": "073010595279",
+            "pacer_seq_no": "69",
+            "description": "RETURN of Service, filed by All Plaintiffs. INDY DIRT WERKS, LLC served on 8/8/2024. (Lehman, Sawyer) (Entered: 08/09/2024)",
+            "date_entered": "2024-08-09"
+        },
+        {
+            "date_filed": "2024-08-12",
+            "document_number": "23",
+            "pacer_doc_id": "073010597603",
+            "pacer_seq_no": "72",
+            "description": "RETURN of Service, filed by All Plaintiffs. IDW LLC served on 8/10/2024. (Lehman, Sawyer) (Entered: 08/12/2024)",
+            "date_entered": "2024-08-12"
+        },
+        {
+            "date_filed": "2024-09-05",
+            "document_number": "24",
+            "pacer_doc_id": "073010636283",
+            "pacer_seq_no": "74",
+            "description": "MOTION for Clerk's Entry of Default as to Indy Dirt Werks, LLC Failure to Appear, Answer, or Otherwise Plead, filed by Plaintiffs TRUSTEES OF THE INDIANA TEAMSTERS DEFINED CONTRIBUTION FUND, TRUSTEES OF THE INDIANA TEAMSTERS HEALTH BENEFITS PLAN, TRUSTEES OF THE INDIANA TEAMSTERS PENSION FUND, TRUSTEES OF THE INDIANA TEAMSTERS SAFETY TRAINING AND EDUCATIONAL TRUST FUND. (Attachments: # 1 Declaration of SCL)(Lehman, Sawyer) Modified on 9/6/2024 to add party name (KAA). (Entered: 09/05/2024)",
+            "date_entered": "2024-09-05"
+        },
+        {
+            "date_filed": "2024-09-05",
+            "document_number": "25",
+            "pacer_doc_id": "073010636290",
+            "pacer_seq_no": "76",
+            "description": "MOTION for Clerk's Entry of Default as to IDW LLC Failure to Appear, Answer, or Otherwise Plead, filed by Plaintiffs TRUSTEES OF THE INDIANA TEAMSTERS DEFINED CONTRIBUTION FUND, TRUSTEES OF THE INDIANA TEAMSTERS HEALTH BENEFITS PLAN, TRUSTEES OF THE INDIANA TEAMSTERS PENSION FUND, TRUSTEES OF THE INDIANA TEAMSTERS SAFETY TRAINING AND EDUCATIONAL TRUST FUND. (Attachments: # 1 Declaration of SCL)(Lehman, Sawyer) Modified on 9/6/2024 to add party name (KAA). (Entered: 09/05/2024)",
+            "date_entered": "2024-09-05"
+        },
+        {
+            "date_filed": "2024-10-07",
+            "document_number": "26",
+            "pacer_doc_id": "073010689380",
+            "pacer_seq_no": "78",
+            "description": "ORDER denying 24 and 25 MOTIONS FOR CLERK'S DEFAULT - SEE ORDER. Copy sent to distribution list via US Mail. Signed by Judge James Patrick Hanlon on 10/7/2024. (JRB) (Entered: 10/08/2024)",
+            "date_entered": "2024-10-08"
+        },
+        {
+            "date_filed": "2024-11-22",
+            "document_number": "27",
+            "pacer_doc_id": "073010764193",
+            "pacer_seq_no": "81",
+            "description": "MOTION for Clerk's Entry of Default Failure to Appear, Answer, or Otherwise Plead, filed by Plaintiffs TRUSTEES OF THE INDIANA TEAMSTERS HEALTH BENEFITS PLAN, TRUSTEES OF THE INDIANA TEAMSTERS PENSION FUND, TRUSTEES OF THE INDIANA TEAMSTERS DEFINED CONTRIBUTION FUND, TRUSTEES OF THE INDIANA TEAMSTERS SAFETY TRAINING AND EDUCATIONAL TRUST FUND. (Attachments: # 1 Declaration of SCL)(Lehman, Sawyer) (Entered: 11/22/2024)",
+            "date_entered": "2024-11-22"
+        },
+        {
+            "date_filed": "2024-11-22",
+            "document_number": "28",
+            "pacer_doc_id": "073010764197",
+            "pacer_seq_no": "83",
+            "description": "MOTION for Clerk's Entry of Default Failure to Appear, Answer, or Otherwise Plead, filed by Plaintiffs TRUSTEES OF THE INDIANA TEAMSTERS HEALTH BENEFITS PLAN, TRUSTEES OF THE INDIANA TEAMSTERS PENSION FUND, TRUSTEES OF THE INDIANA TEAMSTERS DEFINED CONTRIBUTION FUND, TRUSTEES OF THE INDIANA TEAMSTERS SAFETY TRAINING AND EDUCATIONAL TRUST FUND. (Attachments: # 1 Declaration of SCL)(Lehman, Sawyer) (Entered: 11/22/2024)",
+            "date_entered": "2024-11-22"
+        },
+        {
+            "date_filed": "2024-12-10",
+            "document_number": "29",
+            "pacer_doc_id": "073010791059",
+            "pacer_seq_no": "85",
+            "description": "ORDER DENYING MOTIONS FOR CLERK'S DEFAULT - Plaintiffs have not shown proper service on Defendants, their motions for entry of default are DENIED without prejudice. Dkt. 27 ; dkt. 28 . Plaintiffs may renew their motions with supporting authority and evidence or after completing service by another means. SEE ORDER. Copy sent to distribution list via US Mail. Signed by Judge James Patrick Hanlon on 12/11/2024. (JRB) (Entered: 12/11/2024)",
+            "date_entered": "2024-12-11"
+        },
+        {
+            "date_filed": "2024-12-18",
+            "document_number": "30",
+            "pacer_doc_id": "073010805078",
+            "pacer_seq_no": "88",
+            "description": "Proposed Summons submitted for issuance by the clerk as to All Plaintiffs. (Lehman, Sawyer) (Entered: 12/18/2024)",
+            "date_entered": "2024-12-18"
+        },
+        {
+            "date_filed": "2024-12-18",
+            "document_number": "31",
+            "pacer_doc_id": "073010805081",
+            "pacer_seq_no": "90",
+            "description": "Proposed Summons submitted for issuance by the clerk as to All Plaintiffs. (Lehman, Sawyer) (Entered: 12/18/2024)",
+            "date_entered": "2024-12-18"
+        },
+        {
+            "date_filed": "2024-12-19",
+            "document_number": "32",
+            "pacer_doc_id": "073010806490",
+            "pacer_seq_no": "92",
+            "description": "Summonses Issued as to IDW LLC, INDY DIRT WERKS, LLC. (TPS) (Entered: 12/19/2024)",
+            "date_entered": "2024-12-19"
+        },
+        {
+            "date_filed": "2025-01-08",
+            "document_number": "33",
+            "pacer_doc_id": "073010830691",
+            "pacer_seq_no": "94",
+            "description": "Proposed Summons submitted for issuance by the clerk as to All Plaintiffs. (Lehman, Sawyer) (Entered: 01/08/2025)",
+            "date_entered": "2025-01-08"
+        },
+        {
+            "date_filed": "2025-01-08",
+            "document_number": "34",
+            "pacer_doc_id": "073010830881",
+            "pacer_seq_no": "96",
+            "description": "AFFIDAVIT of Service for Amended Complaint served on Indy Drt Werks, LLC c/o Haneefah Muhammad - Registered Agent on 01/02/2025, filed by All Plaintiffs. (Lehman, Sawyer) (Entered: 01/08/2025)",
+            "date_entered": "2025-01-08"
+        },
+        {
+            "date_filed": "2025-01-10",
+            "document_number": "35",
+            "pacer_doc_id": "073010832510",
+            "pacer_seq_no": "98",
+            "description": "Summons Issued as to IDW LLC. (KAA) (Entered: 01/10/2025)",
+            "date_entered": "2025-01-10"
+        }
+    ],
+    "docket_id": "insd__1_24-cv-00524",
+    "pacer_case_id": "213601"
+}

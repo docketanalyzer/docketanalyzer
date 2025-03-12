@@ -27,9 +27,14 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "-ra -q --cov=docketanalyzer"
+log_cli = true
+log_cli_level = "INFO"
+addopts = "-ra -q --cov=docketanalyzer -m 'not cost'"
 testpaths = ["tests"]
 pythonpath = "."
+markers = [
+    "cost: marks tests that incur real costs when run",
+]
 
 [project.scripts]
 da = "docketanalyzer:cli"
