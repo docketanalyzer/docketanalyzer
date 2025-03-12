@@ -24,7 +24,6 @@ def test_openai():
     chat = Chat(model="openai/gpt-4o-mini")
     response = chat("Hi!")
 
-
     logging.info(f"GPT says: {response}")
     assert isinstance(response, str), "Response is not a string"
     assert len(response) > 0, "Response is empty"

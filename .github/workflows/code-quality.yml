@@ -2,9 +2,12 @@ name: Code Quality
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+      - v1
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   ruff-check:
