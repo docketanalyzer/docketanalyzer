@@ -1,0 +1,35 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "docketanalyzer"
+version = "0.4.0"
+authors = [
+    { name = "Nathan Dahlberg" },
+]
+description = "Docket Analyzer"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "docketanalyzer-core>=0.1.0",
+    "juriscraper>=2.6.55",
+    "selenium>=4.18.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "docketanalyzer-core[dev]>=0.1.0",
+    "mkdocs>=1.5.0",
+    "mkdocs-material>=9.0.0",
+    "mkdocstrings[python]>=0.24.0",
+    "mkdocs-pygments>=0.0.2",
+]
+
+[tool.pytest.ini_options]
+addopts = "-ra -q --cov=docketanalyzer"
+testpaths = ["tests"]
+pythonpath = "."
+
+[project.scripts]
+da = "docketanalyzer:cli"
