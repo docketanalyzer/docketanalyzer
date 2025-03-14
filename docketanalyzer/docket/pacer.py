@@ -1,17 +1,25 @@
+from contextlib import suppress
+
 import regex as re
 from selenium import webdriver
-from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.firefox.options import Options
-from .. import env, parse_docket_id, construct_docket_id
+from selenium.webdriver.firefox.service import Service
+
+from .. import construct_docket_id, env, parse_docket_id
 
 
 class Pacer:
-    """
-    Convenience wrapper around [Free Law Project's juriscraper](https://github.com/freelawproject/juriscraper) for downloading dockets and documents from PACER.
+    """Utility for downloading PACER data.
+
+    Convenience wrapper around
+        [Free Law Project's juriscraper](https://github.com/freelawproject/juriscraper)
+        for downloading dockets and documents from PACER.
 
     Args:
-        pacer_username (str, optional): PACER account username. If not provided, will use saved config or PACER_USERNAME from environment.
-        pacer_password (str, optional): PACER account password. If not provided, will use saved config or PACER_PASSWORD from environment.
+        pacer_username (str, optional): PACER account username.
+            If not provided, will use saved config or PACER_USERNAME from environment.
+        pacer_password (str, optional): PACER account password.
+            If not provided, will use saved config or PACER_PASSWORD from environment.
 
     Attributes:
         pacer_username (str): The PACER account username
@@ -19,13 +27,17 @@ class Pacer:
         cache (dict): Internal cache for storing session and driver instances
     """
 
-    def __init__(self, pacer_username: str = None, pacer_password: str = None):
+    def __init__(
+        self, pacer_username: str | None = None, pacer_password: str | None = None
+    ):
+        """Initializes the Pacer class with the provided PACER credentials."""
         self.pacer_username = pacer_username or env.PACER_USERNAME
         self.pacer_password = pacer_password or env.PACER_PASSWORD
         self.cache = {}
 
     @property
     def driver(self) -> webdriver:
+        """Returns a Selenium WebDriver instance ."""
         if "driver" not in self.cache:
             options = Options()
             options.add_argument("--headless")
@@ -35,6 +47,7 @@ class Pacer:
 
     @property
     def session(self) -> "PacerSession":  # noqa: F821
+        """Returns a PacerSession instance."""
         from juriscraper.pacer import PacerSession
 
         if "session" not in self.cache:
@@ -45,15 +58,13 @@ class Pacer:
         return self.cache["session"]
 
     def __del__(self):
+        """Destructor to clean up the session and driver instances."""
         if self.cache.get("driver") is not None:
-            try:
+            with suppress(Exception):
                 self.driver.quit()
-            except Exception:
-                pass
 
     def find_candidate_cases(self, docket_id: str) -> list[dict[str, str]]:
-        """
-        Finds candidate PACER cases for a given docket ID.
+        """Finds candidate PACER cases for a given docket ID.
 
         Args:
             docket_id (str): The docket ID to search for.
@@ -61,8 +72,8 @@ class Pacer:
         Returns:
             list: A list of candidate cases.
         """
-        from juriscraper.pacer import PossibleCaseNumberApi
         from juriscraper.lib.string_utils import force_unicode
+        from juriscraper.pacer import PossibleCaseNumberApi
 
         court, docket_number = parse_docket_id(docket_id)
         case_numbers = PossibleCaseNumberApi(court, self.session)
@@ -78,11 +89,11 @@ class Pacer:
         ]
 
     def purchase_docket(self, docket_id: str, **kwargs) -> tuple[str, dict]:
-        """
-        Purchases a docket for a given docket ID.
+        """Purchases a docket for a given docket ID.
 
         Args:
             docket_id (str): The docket ID to purchase.
+            **kwargs: Additional query arguments to pass to juriscraper.
 
         Returns:
             tuple: A tuple containing the raw HTML and the parsed docket JSON.
@@ -94,12 +105,12 @@ class Pacer:
     def purchase_docket_with_pacer_case_id(
         self, court: str, pacer_case_id: str, **kwargs
     ) -> tuple[str, dict]:
-        """
-        Purchases a docket for a given PACER case ID.
+        """Purchases a docket for a given PACER case ID.
 
         Args:
             court (str): The court to purchase the docket from.
             pacer_case_id (str): The PACER case ID to purchase.
+            **kwargs: Additional query arguments to pass to juriscraper.
 
         Returns:
             tuple: A tuple containing the raw HTML and the parsed docket JSON.
@@ -118,8 +129,7 @@ class Pacer:
         return docket_html, docket_json
 
     def parse(self, docket_html: str, court: str) -> dict:
-        """
-        Parses the raw HTML of a docket and returns the parsed docket JSON.
+        """Parses the raw HTML of a docket and returns the parsed docket JSON.
 
         Args:
             docket_html (str): The raw HTML of the docket.
@@ -144,8 +154,7 @@ class Pacer:
     def purchase_document(
         self, pacer_case_id: str, pacer_doc_id: str, court: str
     ) -> tuple[bytes, str]:
-        """
-        Purchases a document for a given PACER case ID and document ID.
+        """Purchases a document for a given PACER case ID and document ID.
 
         Args:
             pacer_case_id (str): The PACER case ID to purchase the document from.
@@ -163,14 +172,13 @@ class Pacer:
         docket_report = DocketReport(court, self.session)
         r, status = docket_report.download_pdf(pacer_case_id, pacer_doc_id)
         pdf = r.content if r else None
-        status = "success" if not status else status
+        status = status if status else "success"
         return pdf, status
 
     def purchase_attachment(
         self, pacer_case_id: str, pacer_doc_id: str, attachment_number: str, court: str
     ) -> tuple[bytes, str]:
-        """
-        Purchases an attachment for a given PACER case ID and document ID.
+        """Purchases an attachment for a given PACER case ID and document ID.
 
         Args:
             pacer_case_id (str): The PACER case ID to purchase the attachment from.
@@ -196,8 +204,7 @@ class Pacer:
     def add_pacer_case_id_to_docket_html(
         self, docket_html: str, pacer_case_id: str
     ) -> str:
-        """
-        Adds the PACER case ID to the docket HTML if it is not already present.
+        """Adds the PACER case ID to the docket HTML if it is not already present.
 
         Args:
             docket_html (str): The raw HTML of the docket.

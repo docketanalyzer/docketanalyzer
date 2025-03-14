@@ -1,17 +1,23 @@
 import pytest
-from docketanalyzer import Pacer, parse_docket_id
+
+from docketanalyzer import Pacer, env, parse_docket_id
 
 
 def is_valid_pdf(pdf_bytes):
     """Check if the bytes represent a valid PDF."""
-
     return pdf_bytes.startswith(b"%PDF-") and pdf_bytes.rstrip(b"\n").endswith(b"%%EOF")
+
+
+@pytest.mark.cost
+def test_pacer_credentials():
+    """Test that PACER credentials are set in the environment variables."""
+    key_check = bool(env.PACER_USERNAME and env.PACER_PASSWORD)
+    assert key_check, "PACER credentials are not set in the environment variables"
 
 
 @pytest.mark.cost
 def test_purchase_docket(sample_docket_id, sample_docket_json):
     """Test purchasing a docket from PACER."""
-
     pacer = Pacer()
     docket_html, docket_json = pacer.purchase_docket(sample_docket_id)
 
@@ -38,7 +44,6 @@ def test_purchase_document(
     sample_docket_json, sample_document_path, sample_attachment_path
 ):
     """Test that downloaded document matches the fixture data."""
-
     pacer = Pacer()
     sample_pdf = sample_document_path.read_bytes()
     sample_attachment = sample_attachment_path.read_bytes()

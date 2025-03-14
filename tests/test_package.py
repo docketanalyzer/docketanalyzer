@@ -1,12 +1,12 @@
+import logging
 import subprocess
 import sys
-import logging
+
 from docketanalyzer import notabs
 
 
 def test_import_time():
     """Test the import time of the package."""
-
     timing_code = notabs("""
         import time
         start = time.time()

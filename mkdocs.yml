@@ -51,8 +51,9 @@ plugins:
 
 nav:
   - Quickstart: index.md
-  - Usage Examples:
-    - Download PACER Data: examples/pacer.md
+  - Examples:
+    - Download PACER Data:
+      - Download PACER Data: examples/pacer.md
   - Package Reference: 
     - api/main.md
     - api/chat.md

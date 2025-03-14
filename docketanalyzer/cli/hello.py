@@ -3,5 +3,5 @@ import click
 
 @click.command()
 def hello():
-    """Hello"""
+    """Hello."""
     click.echo("hello")

@@ -1,26 +1,25 @@
-name: Code Quality
+name: Code Format
 
 on:
   push:
     branches:
       - main
-      - v1
   pull_request:
     branches:
       - main
 
 jobs:
-  ruff-check:
+  format-check:
     name: Format Check
     runs-on: ubuntu-latest
     
     steps:
     - uses: actions/checkout@v3
     
-    - name: Set up
+    - name: Set Up
       uses: actions/setup-python@v4
       with:
-        python-version: '3.10'
+        python-version: '3.11'
         
     - name: Install
       run: |

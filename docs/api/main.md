@@ -15,9 +15,10 @@
 
 ## Services
 
-::: docketanalyzer_core.load_elastic
+::: docketanalyzer_core.services
     options:
-      heading_level: 3
+      heading_level: 2
+      members_order: source
 
 ::: docketanalyzer_core.load_psql
     options:
@@ -59,6 +60,7 @@
 ::: docketanalyzer_core.utils
     options:
       heading_level: 2
+      members_order: source
 
 
 ::: docketanalyzer_core.Registry
