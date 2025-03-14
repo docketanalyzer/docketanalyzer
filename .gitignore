@@ -1,14 +1,5 @@
-docketanalyzer/data/choices/labels.py
-dev
-app
-containers
-docs
-tests
-build
-dist
-.env
 temp.py
-setup.sh
+cleanup
 
 ### Flask ###
 instance/*

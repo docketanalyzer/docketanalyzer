@@ -1,0 +1,59 @@
+site_name: Docket Analyzer
+site_description: Docket Analyzer Python Package
+repo_url: https://github.com/docketanalyzer/docketanalyzer
+extra_css:
+  - "static/css/custom.css"
+
+extra:
+  homepage: https://docketanalyzer.com
+
+theme:
+  name: material
+  logo: static/img/logo.png
+  favicon: static/img/favicon.svg
+  site_url: "https://docketanalyzer.com/docs"
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.highlight
+    - search.share
+    - toc.follow
+    - content.code.copy
+    - content.code.annotate
+  palette:
+    - scheme: default
+      primary: "#5b46e5"
+      accent: "#5b46e5"
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - toc:
+      toc_depth: 3
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+
+nav:
+  - Quickstart: index.md
+  - Examples:
+    - Download PACER Data:
+      - Download PACER Data: examples/pacer.md
+  - Package Reference: 
+    - api/main.md
+    - api/chat.md
