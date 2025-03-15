@@ -5,8 +5,11 @@ except ImportError as e:
         "\n\nChat extension not installed. "
         "Use `pip install docketanalyzer[chat]` to install."
     ) from e
-from docketanalyzer_chat import Chat
+from docketanalyzer_chat import Agent, Chat, Field, Tool
 
 __all__ = [
+    "Agent",
     "Chat",
+    "Field",
+    "Tool",
 ]

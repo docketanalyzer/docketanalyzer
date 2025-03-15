@@ -13,8 +13,6 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "docketanalyzer-core>=0.1.4",
-    "juriscraper>=2.6.55",
-    "selenium>=4.18.1",
 ]
 
 [project.optional-dependencies]
@@ -27,9 +25,11 @@ dev = [
 ]
 all = [
     "docketanalyzer-chat>=0.1.0",
+    "docketanalyzer-pacer>=0.1.0",
     "docketanalyzer-ocr>=0.1.1",
 ]
 chat = ["docketanalyzer-chat>=0.1.0"]
+pacer = ["docketanalyzer-pacer>=0.1.0"]
 ocr = ["docketanalyzer-ocr>=0.1.1"]
 
 [tool.ruff]
@@ -38,11 +38,12 @@ lint.ignore = ["D100", "D104"]
 
 [tool.ruff.lint.isort]
 known-first-party = [
-    "docketanalyzer", 
-    "docketanalyzer_core", 
+    "docketanalyzer",
+    "docketanalyzer_core",
+    "docketanalyzer_chat",
     "docketanalyzer_ml", 
     "docketanalyzer_ocr", 
-    "docketanalyzer_chat",
+    "docketanalyzer_pacer", 
 ]
 section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
 
@@ -55,12 +56,9 @@ convention = "google"
 [tool.pytest.ini_options]
 log_cli = true
 log_cli_level = "INFO"
-addopts = "-ra -q --cov=docketanalyzer -m 'not cost'"
+addopts = "-ra -q --cov=docketanalyzer"
 testpaths = ["tests"]
 pythonpath = "."
-markers = [
-    "cost: marks tests that incur real costs when run",
-]
 
 [project.scripts]
 da = "docketanalyzer:cli"
