@@ -1,0 +1,14 @@
+name: Run Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  tests:
+    uses: docketanalyzer/core/.github/workflows/tests.yml@main
+    secrets: inherit

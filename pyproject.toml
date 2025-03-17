@@ -1,10 +1,12 @@
 [build-system]
-requires = ["hatchling"]
+requires = [
+    "hatchling",
+]
 build-backend = "hatchling.build"
 
 [project]
 name = "docketanalyzer"
-version = "0.4.2"
+version = "0.4.3"
 authors = [
     { name = "Nathan Dahlberg" },
 ]
@@ -12,43 +14,77 @@ description = "Docket Analyzer"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "docketanalyzer-core>=0.1.4",
+    "docketanalyzer-core>=0.1.6",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "docketanalyzer-core[dev]>=0.1.4",
+    "docketanalyzer-core[dev]>=0.1.6",
     "mkdocs>=1.5.0",
     "mkdocs-material>=9.0.0",
     "mkdocstrings[python]>=0.24.0",
     "mkdocs-pygments>=0.0.2",
 ]
 all = [
-    "docketanalyzer-chat>=0.1.0",
-    "docketanalyzer-pacer>=0.1.0",
-    "docketanalyzer-ocr>=0.1.1",
+    "docketanalyzer-chat>=0.1.1",
+    "docketanalyzer-pacer>=0.1.1",
+    "docketanalyzer-ocr>=0.1.2",
 ]
-chat = ["docketanalyzer-chat>=0.1.0"]
-pacer = ["docketanalyzer-pacer>=0.1.0"]
-ocr = ["docketanalyzer-ocr>=0.1.1"]
+chat = [
+    "docketanalyzer-chat>=0.1.1",
+]
+pacer = [
+    "docketanalyzer-pacer>=0.1.1",
+]
+ocr = [
+    "docketanalyzer-ocr>=0.1.2",
+]
 
-[tool.ruff]
-lint.select = ["E", "F", "I", "B", "UP", "N", "SIM", "PD", "NPY", "PTH", "RUF", "D"]
-lint.ignore = ["D100", "D104"]
+[project.scripts]
+da = "docketanalyzer:cli"
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "I",
+    "B",
+    "UP",
+    "N",
+    "SIM",
+    "PD",
+    "NPY",
+    "PTH",
+    "RUF",
+    "D",
+]
+ignore = [
+    "D100",
+    "D104",
+    "N801",
+]
 
 [tool.ruff.lint.isort]
 known-first-party = [
     "docketanalyzer",
     "docketanalyzer_core",
+    "docketanalyzer_pacer",
+    "docketanalyzer_ocr",
     "docketanalyzer_chat",
-    "docketanalyzer_ml", 
-    "docketanalyzer_ocr", 
-    "docketanalyzer_pacer", 
 ]
-section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+section-order = [
+    "future",
+    "standard-library",
+    "third-party",
+    "first-party",
+    "local-folder",
+]
 
 [tool.ruff.lint.per-file-ignores]
-"__init__.py" = ["I001", "I002"]
+"__init__.py" = [
+    "I001",
+    "I002",
+]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
@@ -56,9 +92,22 @@ convention = "google"
 [tool.pytest.ini_options]
 log_cli = true
 log_cli_level = "INFO"
-addopts = "-ra -q --cov=docketanalyzer"
-testpaths = ["tests"]
+addopts = "-ra -q --cov=docketanalyzer -m 'not cost'"
+testpaths = [
+    "tests",
+]
 pythonpath = "."
-
-[project.scripts]
-da = "docketanalyzer:cli"
+markers = [
+    "cost: tests that incur real costs when run",
+    "local: requires credentials only available locally",
+]
+filterwarnings = [
+    "ignore:builtin type SwigPyPacked has no __module__ attribute:DeprecationWarning",
+    "ignore:builtin type SwigPyObject has no __module__ attribute:DeprecationWarning",
+    "ignore:builtin type swigvarlink has no __module__ attribute:DeprecationWarning",
+    "ignore:distutils Version classes are deprecated:DeprecationWarning",
+    "ignore:Support for class-based `config` is deprecated:DeprecationWarning",
+    "ignore:open_text is deprecated:DeprecationWarning",
+    "ignore:The `dict` method is deprecated; use `model_dump` instead::",
+    "ignore:Use 'content=<...>' to upload raw bytes/text content:DeprecationWarning",
+]
