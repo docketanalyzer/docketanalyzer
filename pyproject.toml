@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "docketanalyzer"
-version = "0.4.5"
+version = "0.4.6"
 authors = [
     { name = "Nathan Dahlberg" },
 ]
@@ -14,12 +14,12 @@ description = "Docket Analyzer"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "docketanalyzer-core>=0.1.8",
+    "docketanalyzer-core>=0.1.9",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "docketanalyzer-core[dev]>=0.1.8",
+    "docketanalyzer-core[dev]>=0.1.9",
     "mkdocs>=1.5.0",
     "mkdocs-material>=9.0.0",
     "mkdocstrings[python]>=0.24.0",
@@ -28,7 +28,7 @@ dev = [
 all = [
     "docketanalyzer-chat>=0.1.1",
     "docketanalyzer-pacer>=0.1.1",
-    "docketanalyzer-ocr>=0.1.4",
+    "docketanalyzer-ocr>=0.1.5",
 ]
 chat = [
     "docketanalyzer-chat>=0.1.1",
@@ -37,7 +37,7 @@ pacer = [
     "docketanalyzer-pacer>=0.1.1",
 ]
 ocr = [
-    "docketanalyzer-ocr>=0.1.4",
+    "docketanalyzer-ocr>=0.1.5",
 ]
 
 [project.scripts]
@@ -51,7 +51,7 @@ packages = [
 [tool.hatch.build.targets.sdist]
 exclude = [
     "*",
-    "!docketanalyzer/*",
+    "!docketanalyzer/**",
     "!pyproject.toml",
     "!README.md",
 ]
