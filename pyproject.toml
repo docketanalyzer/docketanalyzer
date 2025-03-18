@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "docketanalyzer"
-version = "0.4.6"
+version = "0.4.7"
 authors = [
     { name = "Nathan Dahlberg" },
 ]
@@ -28,7 +28,7 @@ dev = [
 all = [
     "docketanalyzer-chat>=0.1.1",
     "docketanalyzer-pacer>=0.1.1",
-    "docketanalyzer-ocr>=0.1.5",
+    "docketanalyzer-ocr>=0.1.7",
 ]
 chat = [
     "docketanalyzer-chat>=0.1.1",
@@ -37,7 +37,7 @@ pacer = [
     "docketanalyzer-pacer>=0.1.1",
 ]
 ocr = [
-    "docketanalyzer-ocr>=0.1.5",
+    "docketanalyzer-ocr>=0.1.7",
 ]
 
 [project.scripts]
