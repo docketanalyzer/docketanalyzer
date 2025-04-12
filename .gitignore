@@ -1,5 +1,7 @@
 temp.py
-cleanup
+data/*
+projects/*
+
 
 ### Flask ###
 instance/*

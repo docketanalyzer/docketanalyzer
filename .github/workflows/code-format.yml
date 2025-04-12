@@ -1,12 +1,7 @@
 name: Code Format
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  workflow_call:
 
 jobs:
   format-check:
@@ -32,4 +27,4 @@ jobs:
         
     - name: Check linting
       run: |
-        ruff check . 
+        ruff check .

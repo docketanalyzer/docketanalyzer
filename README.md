@@ -5,7 +5,7 @@
 Install Docket Analyzer with pip:
 
 ```bash
-pip install 'docketanalyzer[all]'
+pip install docketanalyzer && da install
 ```
 
 Run the configuration command to setup your environment:

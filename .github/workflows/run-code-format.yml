@@ -1,0 +1,13 @@
+name: Run Code Format
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  format:
+    uses: docketanalyzer/docketanalyzer/.github/workflows/code-format.yml@main
