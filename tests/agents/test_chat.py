@@ -1,7 +1,7 @@
 import asyncio
 import logging
 
-from docketanalyzer_core import env, notabs
+from docketanalyzer import env, notabs
 
 from docketanalyzer import Chat
 

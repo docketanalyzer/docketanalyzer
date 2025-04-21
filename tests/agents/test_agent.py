@@ -1,6 +1,6 @@
 import asyncio
 
-from docketanalyzer_core import notabs
+from docketanalyzer import notabs
 
 from docketanalyzer import Agent, Tool
 

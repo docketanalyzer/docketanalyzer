@@ -1,4 +1,21 @@
+import os
 from typing import Any
+
+from .. import env
+
+
+def export_env():
+    """Export llm env for litellm."""
+    keys = [
+        "ANTHROPIC_API_KEY",
+        "OPENAI_API_KEY",
+        "TOGETHER_API_KEY",
+        "COHERE_API_KEY",
+        "GROQ_API_KEY",
+    ]
+    for key in keys:
+        if key not in os.environ:
+            os.environ[key] = env[key]
 
 
 class Chat:
@@ -30,6 +47,7 @@ class Chat:
                 Default is nearly 0 (very deterministic).
             **kwargs: Additional arguments to pass to the completion function.
         """
+        export_env()
         self.args = {"model": model, "temperature": temperature, **kwargs}
         self.messages = []
         self.r = None
