@@ -131,7 +131,6 @@ class S3:
                 path = path.relative_to(self.data_dir)
             from_path = to_path = path
 
-        # Cast to handle the case where from_path or to_path might be None
         return Path(cast(str | Path, from_path)), Path(cast(str | Path, to_path))
 
     def push(

@@ -1,8 +1,6 @@
 import asyncio
 
-from docketanalyzer import notabs
-
-from docketanalyzer import Agent, Tool
+from docketanalyzer import Agent, Tool, notabs
 
 
 class WeatherTool(Tool):

@@ -1,9 +1,7 @@
 import asyncio
 import logging
 
-from docketanalyzer import env, notabs
-
-from docketanalyzer import Chat
+from docketanalyzer import Chat, env, notabs
 
 
 def test_anthropic():

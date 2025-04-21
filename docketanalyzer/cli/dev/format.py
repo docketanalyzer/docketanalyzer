@@ -10,5 +10,8 @@ from docketanalyzer import BASE_DIR
 def format_command(no_fix):
     """Run lint and code format check."""
     fix = "--fix" if not no_fix else ""
-    cmd = f"ruff format {BASE_DIR.resolve()} && ruff check {fix} {BASE_DIR.resolve()}"
+    cmd = (
+        f"ruff format {BASE_DIR.parent.resolve()} && "
+        f"ruff check {fix} {BASE_DIR.parent.resolve()}"
+    )
     os.system(cmd)
