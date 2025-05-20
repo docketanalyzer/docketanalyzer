@@ -131,11 +131,6 @@ class DocketManager:
         if name in index_attributes:
             return getattr(object.__getattribute__(self, "index"), name)
 
-        batch_attributes = ["hello"]
-        if name in batch_attributes:
-            batch = object.__getattribute__(self, "batch")
-            return getattr(batch, name)
-
         return object.__getattribute__(self, name)
 
     def __repr__(self) -> str:
