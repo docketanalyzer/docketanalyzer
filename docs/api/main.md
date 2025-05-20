@@ -2,7 +2,7 @@
 
 ## Docket Management
 
-::: docketanalyzer.Pacer
+::: docketanalyzer.pacer.Pacer
     options:
       heading_level: 3
       members:

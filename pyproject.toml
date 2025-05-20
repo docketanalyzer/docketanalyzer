@@ -40,12 +40,13 @@ dev = [
     "pytest>=8.3.5",
 ]
 all = [
-    "docketanalyzer-chat>=0.1.1",
-    "docketanalyzer-pacer>=0.1.1",
+    "juriscraper>=2.6.55",
+    "selenium>=4.18.1",
     "docketanalyzer-ocr>=0.1.9",
 ]
 pacer = [
-    "docketanalyzer-pacer>=0.1.1",
+    "juriscraper>=2.6.55",
+    "selenium>=4.18.1",
 ]
 ocr = [
     "docketanalyzer-ocr>=0.1.9",
