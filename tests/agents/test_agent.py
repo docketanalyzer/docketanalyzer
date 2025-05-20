@@ -10,7 +10,7 @@ class WeatherTool(Tool):
 
     def __call__(self, agent=None):
         """Mock tool call."""
-        return f"The weather in {self.location} is 72 degrees farenheit."
+        return f"The weather in {self.location} is 72 degrees Fahrenheit."
 
 
 class WeatherAgent(Agent):
