@@ -1,7 +1,7 @@
 import os
 from contextlib import suppress
 from pathlib import Path
-from typing import Any, cast
+from typing import Any
 
 import boto3
 from botocore.client import Config
@@ -131,7 +131,13 @@ class S3:
                 path = path.relative_to(self.data_dir)
             from_path = to_path = path
 
-        return Path(cast(str | Path, from_path)), Path(cast(str | Path, to_path))
+        if path is None and from_path is None and to_path is None:
+            raise ValueError("Must provide at least one path argument")
+
+        from_path = Path() if from_path is None else Path(from_path)
+        to_path = Path() if to_path is None else Path(to_path)
+
+        return from_path, to_path
 
     def push(
         self,

@@ -1,6 +1,7 @@
 import shutil
 from contextlib import suppress
 from datetime import datetime
+from pathlib import Path
 
 import botocore
 import pandas as pd
@@ -15,6 +16,7 @@ from docketanalyzer import (
     load_redis,
     load_s3,
 )
+from docketanalyzer.services.s3 import S3
 
 
 @pytest.fixture(scope="session")
@@ -265,3 +267,20 @@ def test_s3_push_and_pull(temp_data_dir, dummy_data):
     s3.pull(temp_data_dir)
 
     assert not path.exists()
+
+
+def test_prepare_paths_defaults(temp_data_dir):
+    """`_prepare_paths` defaults missing paths to `.` and errors if all missing."""
+    s3 = S3.__new__(S3)
+    s3.data_dir = temp_data_dir
+
+    from_path, to_path = s3._prepare_paths(None, "src", None)
+    assert from_path == Path("src")
+    assert to_path == Path()
+
+    from_path, to_path = s3._prepare_paths(None, None, "dst")
+    assert from_path == Path()
+    assert to_path == Path("dst")
+
+    with pytest.raises(ValueError):
+        s3._prepare_paths(None, None, None)
