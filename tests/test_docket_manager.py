@@ -1,5 +1,6 @@
 import tempfile
 from pathlib import Path
+
 import pytest
 
 from docketanalyzer.docket import DocketIndex
@@ -12,4 +13,3 @@ def test_unknown_attribute_error():
     manager = index["test__1"]
     with pytest.raises(AttributeError):
         _ = manager.hello
-
