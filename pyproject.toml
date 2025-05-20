@@ -37,6 +37,7 @@ dev = [
     "mkdocs-material>=9.0.0",
     "mkdocstrings[python]>=0.24.0",
     "mkdocs-pygments>=0.0.2",
+    "pytest>=8.3.5",
 ]
 all = [
     "docketanalyzer-chat>=0.1.1",
