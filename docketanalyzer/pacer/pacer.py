@@ -171,9 +171,9 @@ class Pacer:
         docket_json["docket_id"] = construct_docket_id(
             court, docket_json["docket_number"]
         )
-        docket_json["pacer_case_id"] = re.search(
-            r"<!--PACER CASE ID: (.*?)-->", docket_html
-        ).group(1)
+        match = re.search(r"<!--PACER CASE ID: (.*?)-->", docket_html)
+        if match:
+            docket_json["pacer_case_id"] = match.group(1)
         return docket_json
 
     def get_attachments(self, pacer_doc_id: str, court: str) -> dict:
