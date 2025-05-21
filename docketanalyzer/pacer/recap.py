@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 import time
 from urllib.parse import urlencode
 
@@ -147,7 +148,7 @@ class RecapAPI:
             return recap_ids, r
 
     def dockets(
-        self, docket_or_recap_id: str | int | None = None, **kwargs
+        self, docket_or_recap_id: str | int | None = None, **kwargs: Any
     ) -> RecapResponse:
         """Download docket data from RECAP.
 
@@ -171,7 +172,7 @@ class RecapAPI:
         return self.get("dockets", **kwargs)
 
     def entries(
-        self, docket_or_recap_id: str | int | None = None, **kwargs
+        self, docket_or_recap_id: str | int | None = None, **kwargs: Any
     ) -> RecapResponse:
         """Download docket entries from RECAP.
 
@@ -203,7 +204,7 @@ class RecapAPI:
         self,
         docket_or_recap_id: str | int | None = None,
         filter_nested_results: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ) -> RecapResponse:
         """Download parties from RECAP.
 
@@ -235,7 +236,7 @@ class RecapAPI:
         )
 
     def attorneys(
-        self, docket_or_recap_id: str | int | None = None, **kwargs
+        self, docket_or_recap_id: str | int | None = None, **kwargs: Any
     ) -> RecapResponse:
         """Download attorneys from RECAP.
 
