@@ -1,4 +1,4 @@
-# Services Quickstart
+# Services
 
 Docket Analyzer includes helpers for common infrastructure services.
 

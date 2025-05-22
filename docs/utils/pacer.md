@@ -1,8 +1,8 @@
-# Download PACER Data
+# PACER Utilities
 
-The `PACER` class provides a simplified interface for downloading dockets and documents from PACER with [juriscraper](https://github.com/freelawproject/juriscraper).
+The `Pacer` class provides a standalone utility for downloading dockets and documents from PACER with [juriscraper](https://github.com/freelawproject/juriscraper).
 
-You can set your PACER credentials by running:
+To use it, set your PACER credentials by running:
 ```bash
 da configure pacer
 ```
@@ -10,12 +10,12 @@ da configure pacer
 ## Purchase and parse a docket
 
 ```python
-from docketanalyzer import PACER, construct_docket_id
+from docketanalyzer import Pacer, construct_docket_id
 
 court, docket_number = "insd", "1:24-cv-00524"
 docket_id = construct_docket_id(court, docket_number) # "insd__1_24-cv-00524"
 
-pacer = PACER()
+pacer = Pacer()
 docket_html, docket_json = pacer.purchase_docket(docket_id)
 print(json.dumps(docket_json, indent=2))
 ```

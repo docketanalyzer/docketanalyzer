@@ -1,32 +1,25 @@
 # Docket Analyzer
 
-Docket Analyzer is a toolkit for working with federal court dockets.
-It wraps juriscraper for PACER downloads, manages docket files on disk or S3,
-and provides simple language‑model agents for interacting with your data.
+Docket Analyzer is a AI toolkit for working with federal court dockets.
 
-## Installation
-
-```bash
-pip install docketanalyzer
-```
-
-Optional extensions can be installed with extras. For PACER support:
-
-```bash
-pip install 'docketanalyzer[pacer]'
-```
-
-Install all available features (except OCR) with:
+Install docketanalyzer with pip:
 
 ```bash
 pip install 'docketanalyzer[all]'
 ```
 
-After installing, run the configuration helper:
+Then run the interactive configuration script:
 
 ```bash
 da configure
 ```
 
-See the `docs/` directory or [documentation](https://docketanalyzer.com/docs)
+Alternatively, you can install just the core package and/or specific extensions:
+
+```bash
+pip install docketanalyzer
+pip install 'docketanalyzer[pacer]'
+```
+
+See [documentation](https://docketanalyzer.com/docs)
 for tutorials and API reference.

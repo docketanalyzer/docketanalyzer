@@ -51,14 +51,12 @@ plugins:
 
 nav:
   - Overview: index.md
-  - Quickstart:
-    - PACER: quickstart/pacer.md
-    - Docket Management: quickstart/dockets.md
-    - Services: quickstart/services.md
-    - Agents: quickstart/agents.md
-  - Examples:
-    - Download PACER Data: examples/pacer.md
   - Configuration: config.md
+  - Quickstart:
+    - Docket Management: quickstart/dockets.md
+    - Agents: quickstart/agents.md
+  - Utilities:
+    - PACER: utils/pacer.md
+    - Services: utils/services.md
   - Package Reference:
     - api/main.md
-    - api/chat.md

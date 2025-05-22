@@ -1,10 +1,18 @@
-# Configuration Reference
+# Package Configuration
 
-The `da configure` command writes your settings to `~/.cache/docketanalyzer/config.json`.
+Use the `da configure` to run the interactive configuration script. This will cache various keys and settings in `~/.cache/docketanalyzer/config.json`.
+
+You can access these keys in code like this:
+
+```python
+from docketanalyzer import env
+
+print(env.DA_DATA_DIR)
+```
 
 | Variable | Description |
 |----------|-------------|
-| `DA_DATA_DIR` | Base directory for all data files |
+| `DA_DATA_DIR` | Directory for storing data managed by docketanalyzer |
 | `PACER_USERNAME` | PACER login username |
 | `PACER_PASSWORD` | PACER login password |
 | `COURTLISTENER_TOKEN` | CourtListener API token |
