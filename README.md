@@ -21,5 +21,5 @@ pip install docketanalyzer
 pip install 'docketanalyzer[pacer]'
 ```
 
-See [documentation](https://docketanalyzer.com/docs)
+See [documentation](https://docs.docketanalyzer.com)
 for tutorials and API reference.
