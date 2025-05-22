@@ -50,10 +50,13 @@ plugins:
             show_root_full_path: false
 
 nav:
-  - Quickstart: index.md
-  - Examples:
-    - Download PACER Data:
-      - Download PACER Data: examples/pacer.md
-  - Package Reference: 
+  - Overview: index.md
+  - Configuration: config.md
+  - Quickstart:
+    - Docket Management: quickstart/dockets.md
+    - Agents: quickstart/agents.md
+  - Utilities:
+    - PACER: utils/pacer.md
+    - Services: utils/services.md
+  - Package Reference:
     - api/main.md
-    - api/chat.md

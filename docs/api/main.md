@@ -63,6 +63,3 @@
       members_order: source
 
 
-::: docketanalyzer.Registry
-    options:
-      heading_level: 3

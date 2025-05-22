@@ -1,5 +1,6 @@
 from contextlib import suppress
 from datetime import date
+from typing import Any
 
 import regex as re
 from selenium import webdriver
@@ -89,7 +90,7 @@ class Pacer:
             for node in case_numbers.tree.xpath("//case")
         ]
 
-    def purchase_docket(self, docket_id: str, **kwargs) -> tuple[str, dict]:
+    def purchase_docket(self, docket_id: str, **kwargs: Any) -> tuple[str, dict]:
         """Purchases a docket for a given docket ID.
 
         Args:
@@ -112,7 +113,7 @@ class Pacer:
         show_parties_and_counsel: bool = True,
         show_terminated_parties: bool = True,
         show_list_of_member_cases: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ) -> tuple[str, dict]:
         """Purchases a docket for a given PACER case ID.
 
