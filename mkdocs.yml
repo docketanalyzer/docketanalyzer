@@ -51,6 +51,7 @@ plugins:
 
 nav:
   - Quickstart: index.md
+  - Services: services.md
   - Examples:
     - Download PACER Data:
       - Download PACER Data: examples/pacer.md
