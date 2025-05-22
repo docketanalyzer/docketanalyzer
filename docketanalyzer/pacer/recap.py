@@ -1,6 +1,6 @@
 import logging
-from typing import Any
 import time
+from typing import Any
 from urllib.parse import urlencode
 
 import requests
