@@ -1,6 +1,7 @@
+import re
 from contextlib import suppress
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pandas as pd
 import peewee as pw
@@ -87,6 +88,33 @@ class DocketManager:
         doc = pdf_document(pdf_path, **kwargs).process()
         doc.save(ocr_path)
         return doc.data, ocr_path
+
+    # PACER Utilities
+    def purchase_docket(self, update: bool = False, **kwargs: Any):
+        """Purchase the docket from PACER.
+
+        If a docket html already exists, we skip it unless `update` is True.
+        Multiple htmls stored with versions as `pacer.{version}.html` etc.
+
+        Args:
+            update (bool): Whether to update the docket if it already exists.
+            **kwargs: Additional arguments to pass to the Pacer purchase_docket method.
+        """
+        docket_html_paths = list(self.docket_html_paths)
+        if not update and docket_html_paths:
+            return
+        from docketanalyzer.pacer import Pacer
+
+        pacer = Pacer()
+        docket_html, _ = pacer.purchase_docket(self.docket_id, **kwargs)
+
+        html_versions = [
+            re.search(r"pacer\.(\d+)\.html", path.name) for path in docket_html_paths
+        ]
+        html_versions = [int(match.group(1)) for match in html_versions if match]
+        new_version = max(html_versions) + 1 if html_versions else 0
+        docket_html_path = self.dir / f"pacer.{new_version}.html"
+        docket_html_path.write_text(docket_html)
 
     # S3
     @property

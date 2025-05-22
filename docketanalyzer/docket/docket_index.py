@@ -28,7 +28,7 @@ class DocketIndex:
         self._db = None
         self._s3 = None
 
-    # Postgre
+    # Postgres
     @property
     def db(self) -> Database:
         """Get the database connection."""

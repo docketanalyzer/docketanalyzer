@@ -1,15 +1,22 @@
-# Docket Analyzer Documentation
+# Docket Analyzer
 
-## Installation
+Docket Analyzer is a AI toolkit for working with federal court dockets.
 
-Install Docket Analyzer with pip:
+Install docketanalyzer with pip:
 
 ```bash
-pip install docketanalyzer
+pip install 'docketanalyzer[all]'
 ```
 
-Run the configuration command to setup your environment:
+Then run the interactive configuration script:
 
 ```bash
 da configure
+```
+
+Alternatively, you can install just the core package and/or specific extensions:
+
+```bash
+pip install docketanalyzer
+pip install 'docketanalyzer[pacer]'
 ```
