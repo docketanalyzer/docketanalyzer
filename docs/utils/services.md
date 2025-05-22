@@ -82,7 +82,6 @@ standard Peewee interface:
   large transfers.
 - `sample(n)` returns a randomly sampled query.
 - `batch(n, verbose=True)` yields query results in chunks of `n` rows.
-- `delete()` performs a subquery delete for the current selection.
 - Instances provide `dict()` for easy serialization.
 
 Example usage:
@@ -99,7 +98,7 @@ for batch in users.sample(100).batch(25, verbose=False):
     process(batch.pandas())
 
 # delete by condition
-users.where(users.email == "bob@example.com").delete()
+users.delete().where(users.email == "bob@example.com").execute()
 ```
 
 ### Modifying tables
