@@ -42,14 +42,10 @@ dev = [
 all = [
     "juriscraper>=2.6.55",
     "selenium>=4.18.1",
-    "docketanalyzer-ocr>=0.1.9",
 ]
 pacer = [
     "juriscraper>=2.6.55",
     "selenium>=4.18.1",
-]
-ocr = [
-    "docketanalyzer-ocr>=0.1.9",
 ]
 
 [project.scripts]
