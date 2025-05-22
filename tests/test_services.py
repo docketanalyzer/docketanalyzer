@@ -140,7 +140,7 @@ def test_psql_schemaless_table(dummy_data, db_with_test_table):
     assert len(data) == 1
 
     # Test delete functionality
-    table.where(table.email == "bob@example.com").delete()
+    table.delete().where(table.email == "bob@example.com").execute()
 
     data = table.pandas("email")["email"].tolist()
 

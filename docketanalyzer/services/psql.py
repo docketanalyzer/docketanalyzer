@@ -65,21 +65,6 @@ class CustomQueryMixin:
         """
         return self.order_by(peewee.fn.Random()).limit(n)
 
-    def delete(self) -> int:
-        """Delete all records matching the query.
-
-        This method constructs a delete query using a subquery to find matching
-        records based on the primary key and executes it.
-
-        Returns:
-            int: Number of records deleted
-        """
-        model_class = self.model
-        subquery = self.select(model_class._meta.primary_key)
-        delete_query = model_class.delete().where(
-            model_class._meta.primary_key.in_(subquery)
-        )
-        return delete_query.execute()
 
     def batch(
         self, n: int, verbose: bool = True
