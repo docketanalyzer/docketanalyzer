@@ -177,5 +177,12 @@ env = Config(
             default=None,
             group="s3",
         ),
+        dict(
+            name="PYPI_TOKEN",
+            key_type="str",
+            default=None,
+            mask=True,
+            group="dev",
+        ),
     ],
 )

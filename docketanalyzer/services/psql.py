@@ -65,7 +65,6 @@ class CustomQueryMixin:
         """
         return self.order_by(peewee.fn.Random()).limit(n)
 
-
     def batch(
         self, n: int, verbose: bool = True
     ) -> Generator["DatabaseModelSelect", None, None]:

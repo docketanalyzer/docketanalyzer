@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "docketanalyzer"
-version = "0.4.9"
+version = "0.4.10"
 authors = [
     { name = "Nathan Dahlberg" },
 ]
