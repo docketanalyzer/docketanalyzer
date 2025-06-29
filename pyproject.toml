@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "docketanalyzer"
-version = "0.4.10"
+version = "0.4.11"
 authors = [
     { name = "Nathan Dahlberg" },
 ]
@@ -40,8 +40,16 @@ dev = [
     "pytest>=8.3.5",
 ]
 all = [
+    "datasets>=3.6.0",
     "juriscraper>=2.6.55",
+    "scikit-learn>=1.7.0",
     "selenium>=4.18.1",
+    "transformers[torch]>=4.53.0",
+]
+ml = [
+    "datasets>=3.6.0",
+    "scikit-learn>=1.7.0",
+    "transformers[torch]>=4.53.0",
 ]
 pacer = [
     "juriscraper>=2.6.55",
