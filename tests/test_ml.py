@@ -53,12 +53,12 @@ def test_multilabel_classification():
         shutil.rmtree(model_dir)
 
     text_labels = {
-        'apple': ['fruit', 'red'],
-        'banana': ['fruit', 'yellow'],
-        'orange': ['fruit', 'orange'],
-        'dog': ['animal', 'mammal'],
-        'cat': ['animal', 'mammal'],
-        'bird': ['animal', 'bird'],
+        "apple": ["fruit", "red"],
+        "banana": ["fruit", "yellow"],
+        "orange": ["fruit", "orange"],
+        "dog": ["animal", "mammal"],
+        "cat": ["animal", "mammal"],
+        "bird": ["animal", "bird"],
     }
 
     data, label_names = [], []

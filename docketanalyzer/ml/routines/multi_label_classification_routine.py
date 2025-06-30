@@ -6,7 +6,9 @@ from .routine import Routine
 
 
 class MultilabelTrainer(Trainer):
+    """Trainer with multi-label loss."""
     def compute_loss(self, model, inputs, return_outputs=False, **kwargs):
+        """Compute the loss for multi-label classification."""
         labels = inputs.pop("labels")
         outputs = model(**inputs)
         logits = outputs.logits
@@ -17,7 +19,7 @@ class MultilabelTrainer(Trainer):
 
 class MultilabelClassificationRoutine(Routine):
     """Multilabel classification routine.
-    
+
     Expected data format:
 
     | text | labels |
@@ -29,6 +31,7 @@ class MultilabelClassificationRoutine(Routine):
     | "cat" | ["animal", "mammal"] |
     | "bird" | ["animal", "bird"] |
     """
+
     name = "multi-label-classification"
 
     @property
@@ -83,4 +86,3 @@ class MultilabelClassificationRoutine(Routine):
             return scores
 
         return f
-
