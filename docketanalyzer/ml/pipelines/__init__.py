@@ -1,6 +1,5 @@
 from docketanalyzer import Registry
 from .pipeline import Pipeline
-from .remote_pipeline import RemotePipeline
 
 
 class PipelineRegistry(Registry):
@@ -21,6 +20,8 @@ pipeline_registry.import_registered()
 def pipeline(name, remote=False, **kwargs):
     """Load and initialize a pipeline by name."""
     if remote:
+        raise NotImplementedError("Remote pipelines are not supported yet.")
+        from .remote_pipeline import RemotePipeline
         return RemotePipeline(name, **kwargs)
     for pipeline_class in pipeline_registry.all():
         if pipeline_class.name == name:
