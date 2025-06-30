@@ -1,11 +1,4 @@
-
-pipelines/*
-routines/*
-!routines/__init__.py
-!routines/routine.py
-!routines/classification_routine.py
-!routines/multi_label_classification_routine.py
-!pipelines/__init__.py
-!pipelines/pipeline.py
-!pipelines/classification_pipeline.py
-!pipelines/multi_label_classification_pipeline.py
+routines/multitask_routine.py
+pipelines/multitask_pipeline.py
+pipelines/remote_pipeline.py
+pipelines/embedding_pipeline.py

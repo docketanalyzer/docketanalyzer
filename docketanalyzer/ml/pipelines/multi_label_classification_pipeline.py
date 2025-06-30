@@ -3,7 +3,7 @@ from transformers import AutoModelForSequenceClassification
 from .classification_pipeline import ClassificationPipeline
 
 
-class MultilabelClassificationPipeline(ClassificationPipeline):
+class MultiLabelClassificationPipeline(ClassificationPipeline):
     """Pipeline for multi-label classification."""
 
     name = "multi-label-classification"
@@ -47,3 +47,9 @@ class MultilabelClassificationPipeline(ClassificationPipeline):
         return self.predict(
             examples, batch_size=batch_size, return_scores=return_scores
         )
+
+
+class MultilabelClassificationPipeline(MultiLabelClassificationPipeline):
+    """Alias for multi-label classification pipeline."""
+
+    name = "multilabel-classification"

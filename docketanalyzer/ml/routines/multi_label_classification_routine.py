@@ -5,8 +5,9 @@ from transformers import AutoModelForSequenceClassification, Trainer
 from .routine import Routine
 
 
-class MultilabelTrainer(Trainer):
+class MultiLabelTrainer(Trainer):
     """Trainer with multi-label loss."""
+
     def compute_loss(self, model, inputs, return_outputs=False, **kwargs):
         """Compute the loss for multi-label classification."""
         labels = inputs.pop("labels")
@@ -17,7 +18,7 @@ class MultilabelTrainer(Trainer):
         return (loss, outputs) if return_outputs else loss
 
 
-class MultilabelClassificationRoutine(Routine):
+class MultiLabelClassificationRoutine(Routine):
     """Multilabel classification routine.
 
     Expected data format:
@@ -68,7 +69,7 @@ class MultilabelClassificationRoutine(Routine):
 
     def get_trainer_class(self):
         """Get the trainer with multi-label loss."""
-        return MultilabelTrainer
+        return MultiLabelTrainer
 
     @property
     def compute_metrics(self):
@@ -86,3 +87,9 @@ class MultilabelClassificationRoutine(Routine):
             return scores
 
         return f
+
+
+class MultilabelClassificationRoutine(MultiLabelClassificationRoutine):
+    """Alias for multi-label classification routine."""
+
+    name = "multilabel-classification"

@@ -8,7 +8,17 @@ from .routine import Routine
 
 
 class ClassificationRoutine(Routine):
-    """Binary classification routine."""
+    """Binary classification routine.
+
+    Expected data format:
+
+    | text | label |
+    |------|-------|
+    | "apple" | 1 |
+    | "banana" | 0 |
+    | "orange" | 1 |
+    | "dog" | 0 |
+    """
 
     name = "classification"
     dataset_cols: ClassVar[list[str]] = ["input_ids", "attention_mask", "label"]
@@ -40,7 +50,7 @@ class ClassificationRoutine(Routine):
         return model
 
     def tokenize_hook(self, examples, inputs):
-        """Tokenize the examples."""
+        """Tokenize the examples with one-hot encoded labels."""
         inputs["labels"] = torch.tensor(
             [
                 example_label

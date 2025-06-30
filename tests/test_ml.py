@@ -100,3 +100,59 @@ def test_multilabel_classification():
         ["animal", "mammal"],
         ["animal", "bird"],
     ]
+
+
+def test_token_classification():
+    """Test token classification routine on dummy data."""
+    model_dir = env.DATA_DIR / "runs" / "tests" / "token-classification" / "model"
+    if model_dir.exists():
+        shutil.rmtree(model_dir)
+
+    texts = [
+        "John Doe is a software engineer.",
+        "He gave John Doe a raise.",
+        "What about John Doe?",
+        "John Doe is happy.",
+        "Hello, John Doe!",
+    ]
+
+    data = []
+
+    for text in texts:
+        start = text.index("John Doe")
+        for _ in range(400):
+            data.append(
+                {
+                    "text": text,
+                    "spans": [{"start": start, "end": start + 8, "label": "name"}],
+                }
+            )
+
+    data = pd.DataFrame(data).sample(frac=1)
+
+    split = int(0.8 * len(data))
+    train_data = data.head(split)
+    eval_data = data.tail(-split)
+
+    routine = training_routine(
+        "token-classification",
+        base_model="docketanalyzer/modernbert-unit-test",
+        run_name="tests/token-classification",
+        run_args=dict(labels=["name"]),
+        training_args=dict(
+            num_train_epochs=1,
+            per_device_train_batch_size=4,
+            per_device_eval_batch_size=4,
+            gradient_accumulation_steps=1,
+        ),
+    )
+
+    routine.train(train_data, eval_data, overwrite=True)
+
+    assert model_dir.exists(), f"Model directory {model_dir} does not exist"
+
+    pipe = pipeline("token-classification", model_name=str(model_dir))
+    text = "I love John Doe"
+    pred = pipe([text])[0][0]
+
+    assert text[pred["start"] : pred["end"]] == "John Doe"
