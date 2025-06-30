@@ -22,6 +22,7 @@ def pipeline(name, remote=False, **kwargs):
     if remote:
         raise NotImplementedError("Remote pipelines are not supported yet.")
         from .remote_pipeline import RemotePipeline
+
         return RemotePipeline(name, **kwargs)
     for pipeline_class in pipeline_registry.all():
         if pipeline_class.name == name:
