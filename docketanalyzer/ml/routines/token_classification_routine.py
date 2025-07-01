@@ -73,7 +73,7 @@ class TokenClassificationRoutine(Routine):
         del inputs["offset_mapping"]
         return inputs
 
-    def example_spans_to_labels(self, input_ids, offset_mapping, spans):
+    def example_spans_to_labels(self, input_ids, offset_mapping, spans, o_idx=0):
         """Convert spans to BIO-encoded labels."""
         spans = sorted(spans, key=lambda x: x["start"])
 
@@ -90,7 +90,7 @@ class TokenClassificationRoutine(Routine):
                 labels.append(-100)
                 current_label = None
             elif len(spans) == 0 or offset[1] <= spans[0]["start"]:
-                labels.append(0)
+                labels.append(o_idx)
                 current_label = None
             else:
                 if current_label is None:

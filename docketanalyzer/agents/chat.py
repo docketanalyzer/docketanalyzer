@@ -14,7 +14,7 @@ def export_env():
         "GROQ_API_KEY",
     ]
     for key in keys:
-        if key not in os.environ:
+        if key not in os.environ and env[key]:
             os.environ[key] = env[key]
 
 
