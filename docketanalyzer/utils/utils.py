@@ -1,4 +1,5 @@
 import hashlib
+import os
 import secrets
 import string
 from contextlib import suppress
@@ -16,12 +17,6 @@ from tqdm import tqdm
 
 BASE_DIR = Path(__file__).parent.parent.resolve()
 CONFIG_DIR = Path.home() / ".cache" / "docketanalyzer"
-
-
-EXTENSIONS = [
-    "pacer",
-    "ocr",
-]
 
 
 class extension_required:
@@ -171,3 +166,14 @@ def to_int(value: Any) -> int | None:
     if value is not None:
         with suppress(ValueError):
             return int(value)
+
+
+def load_colab_env():
+    """Load environment variables from Colab userdata."""
+    from google.colab import userdata
+
+    from docketanalyzer import env
+
+    for key in env.keys:
+        with suppress(userdata.SecretNotFoundError):
+            os.environ[key] = userdata.get(key)
