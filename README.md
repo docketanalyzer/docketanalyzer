@@ -18,6 +18,7 @@ Alternatively, you can install just the core package and/or specific extensions:
 
 ```bash
 pip install docketanalyzer
+pip install 'docketanalyzer[ml]'
 pip install 'docketanalyzer[pacer]'
 ```
 

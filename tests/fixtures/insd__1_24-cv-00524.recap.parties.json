@@ -1,0 +1,226 @@
+[
+  {
+    "resource_uri": "https://www.courtlistener.com/api/rest/v4/parties/15064973/",
+    "id": 15064973,
+    "attorneys": [
+      {
+        "attorney": "https://www.courtlistener.com/api/rest/v4/attorneys/10111711/",
+        "attorney_id": 10111711,
+        "date_action": null,
+        "docket": "https://www.courtlistener.com/api/rest/v4/dockets/68363715/",
+        "docket_id": 68363715,
+        "role": 10
+      }
+    ],
+    "party_types": [
+      {
+        "docket": "https://www.courtlistener.com/api/rest/v4/dockets/68363715/",
+        "docket_id": 68363715,
+        "name": "Defendant",
+        "date_terminated": null,
+        "extra_info": "",
+        "highest_offense_level_opening": "",
+        "highest_offense_level_terminated": "",
+        "criminal_counts": [],
+        "criminal_complaints": []
+      }
+    ],
+    "date_created": "2025-02-10T12:37:54.390718-08:00",
+    "date_modified": "2025-02-10T12:37:54.390727-08:00",
+    "name": "IDW LLC",
+    "extra_info": "",
+    "docket_id": 68363715
+  },
+  {
+    "resource_uri": "https://www.courtlistener.com/api/rest/v4/parties/15064972/",
+    "id": 15064972,
+    "attorneys": [
+      {
+        "attorney": "https://www.courtlistener.com/api/rest/v4/attorneys/10111710/",
+        "attorney_id": 10111710,
+        "date_action": null,
+        "docket": "https://www.courtlistener.com/api/rest/v4/dockets/68363715/",
+        "docket_id": 68363715,
+        "role": 10
+      }
+    ],
+    "party_types": [
+      {
+        "docket": "https://www.courtlistener.com/api/rest/v4/dockets/68363715/",
+        "docket_id": 68363715,
+        "name": "Defendant",
+        "date_terminated": null,
+        "extra_info": "",
+        "highest_offense_level_opening": "",
+        "highest_offense_level_terminated": "",
+        "criminal_counts": [],
+        "criminal_complaints": []
+      }
+    ],
+    "date_created": "2025-02-10T12:37:54.375970-08:00",
+    "date_modified": "2025-02-10T12:37:54.375979-08:00",
+    "name": "INDY DIRT WERKS, LLC",
+    "extra_info": "",
+    "docket_id": 68363715
+  },
+  {
+    "resource_uri": "https://www.courtlistener.com/api/rest/v4/parties/15064971/",
+    "id": 15064971,
+    "attorneys": [
+      {
+        "attorney": "https://www.courtlistener.com/api/rest/v4/attorneys/10111708/",
+        "attorney_id": 10111708,
+        "date_action": null,
+        "docket": "https://www.courtlistener.com/api/rest/v4/dockets/68363715/",
+        "docket_id": 68363715,
+        "role": 1
+      },
+      {
+        "attorney": "https://www.courtlistener.com/api/rest/v4/attorneys/10111709/",
+        "attorney_id": 10111709,
+        "date_action": null,
+        "docket": "https://www.courtlistener.com/api/rest/v4/dockets/68363715/",
+        "docket_id": 68363715,
+        "role": 1
+      }
+    ],
+    "party_types": [
+      {
+        "docket": "https://www.courtlistener.com/api/rest/v4/dockets/68363715/",
+        "docket_id": 68363715,
+        "name": "Plaintiff",
+        "date_terminated": null,
+        "extra_info": "",
+        "highest_offense_level_opening": "",
+        "highest_offense_level_terminated": "",
+        "criminal_counts": [],
+        "criminal_complaints": []
+      }
+    ],
+    "date_created": "2025-02-10T12:37:54.354314-08:00",
+    "date_modified": "2025-02-10T12:37:54.354322-08:00",
+    "name": "TRUSTEES OF THE INDIANA TEAMSTERS SAFETY TRAINING AND EDUCATIONAL TRUST FUND",
+    "extra_info": "",
+    "docket_id": 68363715
+  },
+  {
+    "resource_uri": "https://www.courtlistener.com/api/rest/v4/parties/15064970/",
+    "id": 15064970,
+    "attorneys": [
+      {
+        "attorney": "https://www.courtlistener.com/api/rest/v4/attorneys/10111708/",
+        "attorney_id": 10111708,
+        "date_action": null,
+        "docket": "https://www.courtlistener.com/api/rest/v4/dockets/68363715/",
+        "docket_id": 68363715,
+        "role": 1
+      },
+      {
+        "attorney": "https://www.courtlistener.com/api/rest/v4/attorneys/10111709/",
+        "attorney_id": 10111709,
+        "date_action": null,
+        "docket": "https://www.courtlistener.com/api/rest/v4/dockets/68363715/",
+        "docket_id": 68363715,
+        "role": 1
+      }
+    ],
+    "party_types": [
+      {
+        "docket": "https://www.courtlistener.com/api/rest/v4/dockets/68363715/",
+        "docket_id": 68363715,
+        "name": "Plaintiff",
+        "date_terminated": null,
+        "extra_info": "",
+        "highest_offense_level_opening": "",
+        "highest_offense_level_terminated": "",
+        "criminal_counts": [],
+        "criminal_complaints": []
+      }
+    ],
+    "date_created": "2025-02-10T12:37:54.333556-08:00",
+    "date_modified": "2025-02-10T12:37:54.333564-08:00",
+    "name": "TRUSTEES OF THE INDIANA TEAMSTERS DEFINED CONTRIBUTION FUND",
+    "extra_info": "",
+    "docket_id": 68363715
+  },
+  {
+    "resource_uri": "https://www.courtlistener.com/api/rest/v4/parties/15064969/",
+    "id": 15064969,
+    "attorneys": [
+      {
+        "attorney": "https://www.courtlistener.com/api/rest/v4/attorneys/10111708/",
+        "attorney_id": 10111708,
+        "date_action": null,
+        "docket": "https://www.courtlistener.com/api/rest/v4/dockets/68363715/",
+        "docket_id": 68363715,
+        "role": 1
+      },
+      {
+        "attorney": "https://www.courtlistener.com/api/rest/v4/attorneys/10111709/",
+        "attorney_id": 10111709,
+        "date_action": null,
+        "docket": "https://www.courtlistener.com/api/rest/v4/dockets/68363715/",
+        "docket_id": 68363715,
+        "role": 1
+      }
+    ],
+    "party_types": [
+      {
+        "docket": "https://www.courtlistener.com/api/rest/v4/dockets/68363715/",
+        "docket_id": 68363715,
+        "name": "Plaintiff",
+        "date_terminated": null,
+        "extra_info": "",
+        "highest_offense_level_opening": "",
+        "highest_offense_level_terminated": "",
+        "criminal_counts": [],
+        "criminal_complaints": []
+      }
+    ],
+    "date_created": "2025-02-10T12:37:54.312711-08:00",
+    "date_modified": "2025-02-10T12:37:54.312719-08:00",
+    "name": "TRUSTEES OF THE INDIANA TEAMSTERS PENSION FUND",
+    "extra_info": "",
+    "docket_id": 68363715
+  },
+  {
+    "resource_uri": "https://www.courtlistener.com/api/rest/v4/parties/15064968/",
+    "id": 15064968,
+    "attorneys": [
+      {
+        "attorney": "https://www.courtlistener.com/api/rest/v4/attorneys/10111708/",
+        "attorney_id": 10111708,
+        "date_action": null,
+        "docket": "https://www.courtlistener.com/api/rest/v4/dockets/68363715/",
+        "docket_id": 68363715,
+        "role": 1
+      },
+      {
+        "attorney": "https://www.courtlistener.com/api/rest/v4/attorneys/10111709/",
+        "attorney_id": 10111709,
+        "date_action": null,
+        "docket": "https://www.courtlistener.com/api/rest/v4/dockets/68363715/",
+        "docket_id": 68363715,
+        "role": 1
+      }
+    ],
+    "party_types": [
+      {
+        "docket": "https://www.courtlistener.com/api/rest/v4/dockets/68363715/",
+        "docket_id": 68363715,
+        "name": "Plaintiff",
+        "date_terminated": null,
+        "extra_info": "",
+        "highest_offense_level_opening": "",
+        "highest_offense_level_terminated": "",
+        "criminal_counts": [],
+        "criminal_complaints": []
+      }
+    ],
+    "date_created": "2025-02-10T12:37:54.239838-08:00",
+    "date_modified": "2025-02-10T12:37:54.239850-08:00",
+    "name": "TRUSTEES OF THE INDIANA TEAMSTERS HEALTH BENEFITS PLAN",
+    "extra_info": "",
+    "docket_id": 68363715
+  }
+]

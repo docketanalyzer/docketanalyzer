@@ -1,0 +1,129 @@
+[
+  {
+    "resource_uri": "https://www.courtlistener.com/api/rest/v4/parties/10023544/",
+    "id": 10023544,
+    "attorneys": [
+      {
+        "attorney": "https://www.courtlistener.com/api/rest/v4/attorneys/6578022/",
+        "attorney_id": 6578022,
+        "date_action": null,
+        "docket": "https://www.courtlistener.com/api/rest/v4/dockets/18500729/",
+        "docket_id": 18500729,
+        "role": 1
+      },
+      {
+        "attorney": "https://www.courtlistener.com/api/rest/v4/attorneys/6578022/",
+        "attorney_id": 6578022,
+        "date_action": null,
+        "docket": "https://www.courtlistener.com/api/rest/v4/dockets/18500729/",
+        "docket_id": 18500729,
+        "role": 2
+      },
+      {
+        "attorney": "https://www.courtlistener.com/api/rest/v4/attorneys/6578023/",
+        "attorney_id": 6578023,
+        "date_action": null,
+        "docket": "https://www.courtlistener.com/api/rest/v4/dockets/18500729/",
+        "docket_id": 18500729,
+        "role": 1
+      },
+      {
+        "attorney": "https://www.courtlistener.com/api/rest/v4/attorneys/6578023/",
+        "attorney_id": 6578023,
+        "date_action": null,
+        "docket": "https://www.courtlistener.com/api/rest/v4/dockets/18500729/",
+        "docket_id": 18500729,
+        "role": 2
+      }
+    ],
+    "party_types": [
+      {
+        "docket": "https://www.courtlistener.com/api/rest/v4/dockets/18500729/",
+        "docket_id": 18500729,
+        "name": "Plaintiff",
+        "date_terminated": null,
+        "extra_info": "",
+        "highest_offense_level_opening": "",
+        "highest_offense_level_terminated": "",
+        "criminal_counts": [],
+        "criminal_complaints": []
+      }
+    ],
+    "date_created": "2020-10-05T06:08:33.748014-07:00",
+    "date_modified": "2020-10-05T06:08:33.748050-07:00",
+    "name": "USA",
+    "extra_info": "",
+    "docket_id": 18500729
+  },
+  {
+    "resource_uri": "https://www.courtlistener.com/api/rest/v4/parties/10023543/",
+    "id": 10023543,
+    "attorneys": [
+      {
+        "attorney": "https://www.courtlistener.com/api/rest/v4/attorneys/6705090/",
+        "attorney_id": 6705090,
+        "date_action": null,
+        "docket": "https://www.courtlistener.com/api/rest/v4/dockets/18500729/",
+        "docket_id": 18500729,
+        "role": 1
+      },
+      {
+        "attorney": "https://www.courtlistener.com/api/rest/v4/attorneys/6705090/",
+        "attorney_id": 6705090,
+        "date_action": null,
+        "docket": "https://www.courtlistener.com/api/rest/v4/dockets/18500729/",
+        "docket_id": 18500729,
+        "role": 2
+      },
+      {
+        "attorney": "https://www.courtlistener.com/api/rest/v4/attorneys/6705091/",
+        "attorney_id": 6705091,
+        "date_action": null,
+        "docket": "https://www.courtlistener.com/api/rest/v4/dockets/18500729/",
+        "docket_id": 18500729,
+        "role": 1
+      },
+      {
+        "attorney": "https://www.courtlistener.com/api/rest/v4/attorneys/6705091/",
+        "attorney_id": 6705091,
+        "date_action": null,
+        "docket": "https://www.courtlistener.com/api/rest/v4/dockets/18500729/",
+        "docket_id": 18500729,
+        "role": 2
+      },
+      {
+        "attorney": "https://www.courtlistener.com/api/rest/v4/attorneys/6578021/",
+        "attorney_id": 6578021,
+        "date_action": "2020-10-07",
+        "docket": "https://www.courtlistener.com/api/rest/v4/dockets/18500729/",
+        "docket_id": 18500729,
+        "role": 6
+      }
+    ],
+    "party_types": [
+      {
+        "docket": "https://www.courtlistener.com/api/rest/v4/dockets/18500729/",
+        "docket_id": 18500729,
+        "name": "Defendant",
+        "date_terminated": "2021-02-09",
+        "extra_info": "TERMINATED: 02/09/2021",
+        "highest_offense_level_opening": "None",
+        "highest_offense_level_terminated": "None",
+        "criminal_counts": [],
+        "criminal_complaints": [
+          {
+            "id": 741044,
+            "name": "18:1201.F-Kidnapping",
+            "disposition": "",
+            "party_type": 11084231
+          }
+        ]
+      }
+    ],
+    "date_created": "2020-10-05T06:08:33.699911-07:00",
+    "date_modified": "2020-10-05T06:08:33.699946-07:00",
+    "name": "Graigory Brown",
+    "extra_info": "",
+    "docket_id": 18500729
+  }
+]
