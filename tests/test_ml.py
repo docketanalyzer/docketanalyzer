@@ -46,7 +46,7 @@ def test_classification():
     assert preds == [True, True, False, False]
 
 
-def test_multilabel_classification():
+def test_multi_label_classification():
     """Test multi-label classification routine on dummy data."""
     model_dir = env.DATA_DIR / "runs" / "tests" / "multi-label-classification" / "model"
     if model_dir.exists():
@@ -83,7 +83,6 @@ def test_multilabel_classification():
             num_train_epochs=1,
             per_device_train_batch_size=4,
             per_device_eval_batch_size=4,
-            gradient_accumulation_steps=1,
         ),
     )
 
@@ -113,14 +112,14 @@ def test_token_classification():
         "He gave John Doe a raise.",
         "What about John Doe?",
         "John Doe is happy.",
-        "Hello, John Doe!",
+        "Hello, John Doe",
     ]
 
     data = []
 
     for text in texts:
         start = text.index("John Doe")
-        for _ in range(400):
+        for _ in range(600):
             data.append(
                 {
                     "text": text,
@@ -143,7 +142,6 @@ def test_token_classification():
             num_train_epochs=1,
             per_device_train_batch_size=4,
             per_device_eval_batch_size=4,
-            gradient_accumulation_steps=1,
         ),
     )
 
@@ -152,7 +150,80 @@ def test_token_classification():
     assert model_dir.exists(), f"Model directory {model_dir} does not exist"
 
     pipe = pipeline("token-classification", model_name=str(model_dir))
-    text = "I love John Doe"
+    text = "Hello, John Doe"
     pred = pipe([text])[0][0]
 
     assert text[pred["start"] : pred["end"]] == "John Doe"
+
+
+def test_multi_task():
+    """Test multi-task routine on dummy data."""
+    model_dir = env.DATA_DIR / "runs" / "tests" / "multi-task" / "model"
+    if model_dir.exists():
+        shutil.rmtree(model_dir)
+
+    repeats = 800
+
+    data = dict(
+        text=[
+            "John Doe is happy.",
+            "I think John Doe is sad. And he is human.",
+            "hi",
+            "wow",
+        ]
+        * repeats,
+        labels=[["happy"], ["sad"], ["sad", "happy"], []] * repeats,
+        spans=[
+            [
+                {"start": 0, "end": 8, "label": "name"},
+                {"start": 0, "end": 18, "label": "sentence"},
+            ],
+            [
+                {"start": 8, "end": 16, "label": "name"},
+                {"start": 0, "end": 24, "label": "sentence"},
+                {"start": 25, "end": 41, "label": "sentence"},
+            ],
+            [
+                {"start": 0, "end": 2, "label": "sentence"},
+            ],
+            [],
+        ]
+        * repeats,
+    )
+
+    data = pd.DataFrame(data).sample(frac=1)
+
+    split = int(0.8 * len(data))
+    train_data = data.head(split)
+    eval_data = data.tail(-split)
+
+    routine = training_routine(
+        "multi-task",
+        base_model="docketanalyzer/modernbert-unit-test",
+        run_name="tests/multi-task",
+        run_args=dict(labels=["happy", "sad", "sentence", "name"]),
+        training_args=dict(
+            num_train_epochs=1,
+            per_device_train_batch_size=4,
+            per_device_eval_batch_size=4,
+            learning_rate=2e-3,
+        ),
+    )
+
+    routine.train(train_data, eval_data, overwrite=True)
+
+    assert model_dir.exists(), f"Model directory {model_dir} does not exist"
+
+    pipe = pipeline("multi-task", model_name=str(model_dir))
+    data = data.drop_duplicates(subset=["text"])
+    data = data.groupby("text").apply(lambda x: x.to_dict(orient="records")[0])
+    texts = data.index.tolist()
+    preds = pipe(texts)
+
+    for i in range(len(preds)):
+        assert sorted(preds[i]["labels"]) == sorted(data.iloc[i]["labels"]), (
+            f"Labels do not match for text {texts[i]}"
+        )
+        assert sorted(preds[i]["spans"], key=lambda x: x["start"]) == sorted(
+            data.iloc[i]["spans"], key=lambda x: x["start"]
+        ), f"Spans do not match for text {texts[i]}"

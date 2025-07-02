@@ -151,7 +151,7 @@ class Agent:
                 yield {"content_delta": delta.content}
             if self.chat.finish_reason:
                 self.messages = self.chat.messages
-                if self.chat.finish_reason == "tool_calls":
+                if "tool_calls" in self.messages[-1]:
                     tool_calls = self.messages[-1]["tool_calls"]
                     for tool_call in tool_calls:
                         yield {"tool_call": tool_call}

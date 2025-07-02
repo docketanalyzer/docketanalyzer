@@ -52,16 +52,20 @@ class TokenClassificationPipeline(Pipeline):
 
         results = []
         for i, example in enumerate(examples):
-            print(example)
             token_ids = preds[i]
             spans = []
             for tok_idx, label_id in enumerate(token_ids):
+                if dataset[i]["input_ids"][tok_idx] in [
+                    self.model.config.eos_token_id,
+                    self.model.config.pad_token_id,
+                ]:
+                    break
+
                 label_id = label_id.item()
                 if label_id == -1:
                     break
                 label = id2label[label_id]
                 start, end = starts[i][tok_idx], ends[i][tok_idx]
-                print(label, start, end)
                 if label == "O":
                     broken = True
                 elif label.startswith("B-") or broken:
@@ -71,8 +75,7 @@ class TokenClassificationPipeline(Pipeline):
                     broken = False
                 elif label.startswith("I-"):
                     if spans and spans[-1]["label"] == label[2:]:
-                        if end.item() > spans[-1]["end"]:
-                            spans[-1]["end"] = end.item()
+                        spans[-1]["end"] = end.item()
                     else:
                         spans.append(
                             {
