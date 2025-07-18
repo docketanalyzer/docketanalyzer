@@ -48,80 +48,82 @@ class MultiTaskPipeline(Pipeline):
         return preds
 
     def post_process_preds(self, examples, preds, dataset, **kwargs):
-        """Convert BIO-encoded labels to labels andspans."""
-        id2label = self.model.config.id2label
+        """Convert BIO-encoded labels to labels and spans."""
         dataset = dataset.sort("idx")
-        starts = dataset["start"]
-        ends = dataset["end"]
+        batch_size, seq_len, num_labels = preds.shape
+        num_groups = num_labels // 3
+        tok_idxs = (
+            torch.arange(seq_len).repeat_interleave(num_groups).repeat(batch_size)
+        )
+        max_toks = torch.tensor(
+            [len(x) - 1 for x in dataset["input_ids"]]
+        ).repeat_interleave(seq_len * num_groups)
+        mask = tok_idxs < max_toks
+        tok_idxs = tok_idxs[mask]
+
+        example_idxs = torch.arange(batch_size).repeat_interleave(seq_len * num_groups)[
+            mask
+        ]
+        group_idxs = torch.arange(num_groups).repeat(batch_size * seq_len)[mask]
+        preds = preds.reshape(-1, 3).argmax(-1)[mask]
+
+        starts = dataset["start"].reshape(-1).repeat_interleave(num_groups)[mask]
+        ends = dataset["end"].reshape(-1).repeat_interleave(num_groups)[mask]
+
+        label_lookup = [
+            self.model.config.id2label[i].split("-") for i in range(num_labels)
+        ]
+        rows = torch.stack(
+            [example_idxs, tok_idxs, group_idxs, preds, starts, ends], dim=1
+        ).tolist()
 
         results = []
-        for i, example in enumerate(examples):
-            labels, spans = [], []
 
-            label_spans = {
-                label[2:]: None for label in id2label.values() if label.startswith("B-")
-            }
+        current_example = None
+        span_groups = {}
 
-            for tok_idx in range(len(preds[i])):
-                if dataset[i]["input_ids"][tok_idx] in [
-                    self.model.config.eos_token_id,
-                    self.model.config.pad_token_id,
+        for row in rows:
+            example_idx, tok_idx, group_idx, pred, start, end = row
+            label_type, label_name = label_lookup[group_idx * 3 + pred]
+
+            if example_idx != current_example:
+                if current_example is not None:
+                    # Close any remaining spans
+                    results[-1]["spans"].extend(span_groups.values())
+                    # Remove leading spaces
+                    for span in results[-1]["spans"]:
+                        if examples[current_example][span["start"]] == " ":
+                            span["start"] += 1
+                results.append(dict(labels=[], spans=[]))
+                current_example = example_idx
+                span_groups = {}
+            if tok_idx == 0:  # add sentence-level labels
+                if label_type == "B":
+                    results[-1]["labels"].append(label_name)
+            else:  # add spans
+                # Close the span if ended or new
+                if label_name in span_groups and label_type in [
+                    "O",
+                    "B",
                 ]:
-                    break
+                    results[-1]["spans"].append(span_groups.pop(label_name))
 
-                token_labels = [
-                    id2label[label_id]
-                    for label_id, value in enumerate(preds[i][tok_idx])
-                    if value == 1
-                ]
-                if tok_idx == 0:  # Add sentence-level labels
-                    labels += [
-                        label[2:] for label in token_labels if label.startswith("B-")
-                    ]
-                else:  # Add spans
-                    start, end = starts[i][tok_idx], ends[i][tok_idx]
+                # Open new spans
+                if label_type == "B":
+                    span_groups[label_name] = {
+                        "start": start,
+                        "end": end,
+                        "label": label_name,
+                    }
 
-                    for label in token_labels:
-                        label_type, label_name = label[:1], label[2:]
-
-                        # Close the span if ended or new
-                        if label_spans[label_name] is not None and label_type in [
-                            "O",
-                            "B",
-                        ]:
-                            spans.append(label_spans[label_name])
-                            label_spans[label_name] = None
-
-                        # Open new spans
-                        if label_type == "B":
-                            label_spans[label_name] = {
-                                "start": start.item(),
-                                "end": end.item(),
-                                "label": label_name,
-                            }
-
-                        # Continue existing spans
-                        elif label_type == "I":
-                            if label_spans[label_name] is not None:
-                                label_spans[label_name]["end"] = end.item()
-                            else:  # Open in edge case where it wasn't already
-                                label_spans[label_name] = {
-                                    "start": start.item(),
-                                    "end": end.item(),
-                                    "label": label_name,
-                                }
-
-            # Close any remaining spans
-            for span in label_spans.values():
-                if span is not None:
-                    spans.append(span)
-
-            # Remove leading spaces
-            for span in spans:
-                if example[span["start"]] == " ":
-                    span["start"] += 1
-
-            spans = list(sorted(spans, key=lambda x: x["start"]))
-
-            results.append(dict(labels=labels, spans=spans))
+                # Continue existing spans
+                elif label_type == "I":
+                    if label_name in span_groups:
+                        span_groups[label_name]["end"] = end
+                    else:  # Open in edge case where it wasn't already
+                        span_groups[label_name] = {
+                            "start": start,
+                            "end": end,
+                            "label": label_name,
+                        }
         return results

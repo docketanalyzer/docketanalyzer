@@ -599,9 +599,9 @@ class Database:
         self.db.close()
 
 
-def load_psql() -> Database:
+def load_psql(connection: str | None = None) -> Database:
     """Load a Database object using the connection url in your config.
 
     Run `da configure postgres` to set your PostgreSQL connection URL.
     """
-    return Database(env.POSTGRES_URL)
+    return Database(connection or env.POSTGRES_URL)

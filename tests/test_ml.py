@@ -192,6 +192,7 @@ def test_multi_task():
     )
 
     data = pd.DataFrame(data).sample(frac=1)
+    print(data)
 
     split = int(0.8 * len(data))
     train_data = data.head(split)

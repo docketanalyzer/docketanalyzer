@@ -102,31 +102,41 @@ class MultiTaskRoutine(TokenClassificationRoutine):
     def tokenize_hook(self, examples, inputs):
         """Tokenize the examples and convert labels to multi-task format."""
         labels = []
-        for input_ids, offset_mapping, example_spans, example_labels in zip(
+        labeled_for = examples.get("labeled_for", [[]] * len(examples["text"]))
+
+        for (
+            input_ids,
+            offset_mapping,
+            example_spans,
+            example_labels,
+            example_labeled_for,
+        ) in zip(
             inputs["input_ids"],
             inputs["offset_mapping"],
             examples["spans"],
             examples["labels"],
+            labeled_for,
             strict=False,
         ):
             example_outputs = torch.zeros((len(input_ids), len(self.label_map))).float()
 
             for label_name in self.label_names:
-                if label_name in example_labels:
-                    example_outputs[0][self.label_map["B-" + label_name]] = 1
-                else:
-                    example_outputs[0][self.label_map["O-" + label_name]] = 1
+                if not example_labeled_for or label_name in example_labeled_for:
+                    if label_name in example_labels:
+                        example_outputs[0][self.label_map["B-" + label_name]] = 1
+                    else:
+                        example_outputs[0][self.label_map["O-" + label_name]] = 1
 
-                label_spans = [x for x in example_spans if x["label"] == label_name]
-                label_idxs = self.example_spans_to_labels(
-                    input_ids,
-                    offset_mapping,
-                    label_spans,
-                    o_idx=self.label_map["O-" + label_name],
-                )
-                for i, label_idx in enumerate(label_idxs):
-                    if label_idx != -100:
-                        example_outputs[i][label_idx] = 1
+                    label_spans = [x for x in example_spans if x["label"] == label_name]
+                    label_idxs = self.example_spans_to_labels(
+                        input_ids,
+                        offset_mapping,
+                        label_spans,
+                        o_idx=self.label_map["O-" + label_name],
+                    )
+                    for i, label_idx in enumerate(label_idxs):
+                        if label_idx != -100:
+                            example_outputs[i][label_idx] = 1
             labels.append(example_outputs)
 
         inputs["labels"] = labels

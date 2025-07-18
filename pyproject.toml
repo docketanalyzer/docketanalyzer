@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "docketanalyzer"
-version = "0.4.16"
+version = "0.4.17"
 authors = [
     { name = "Nathan Dahlberg" },
 ]
@@ -41,15 +41,33 @@ dev = [
 ]
 all = [
     "datasets>=3.6.0",
+    "dill",
+    "doclayout_yolo",
+    "huggingface-hub",
     "juriscraper>=2.6.55",
+    "pymupdf",
+    "runpod",
     "scikit-learn>=1.7.0",
     "selenium>=4.18.1",
+    "surya-ocr",
     "transformers[torch]>=4.53.0",
+    "uv",
+    "uvicorn",
 ]
 ml = [
     "datasets>=3.6.0",
     "scikit-learn>=1.7.0",
     "transformers[torch]>=4.53.0",
+]
+ocr = [
+    "dill",
+    "doclayout_yolo",
+    "huggingface-hub",
+    "pymupdf",
+    "runpod",
+    "surya-ocr",
+    "uv",
+    "uvicorn",
 ]
 pacer = [
     "juriscraper>=2.6.55",
