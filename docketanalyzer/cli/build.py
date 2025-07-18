@@ -1,12 +1,11 @@
 import re
 import shutil
 import subprocess
-from pathlib import Path
 
 import click
 import tomli
 
-from docketanalyzer import env
+from docketanalyzer import BASE_DIR, env
 
 
 def parse_version(version_str):
@@ -59,7 +58,7 @@ def update_version(version, pyproject_path):
 @click.option("--push", is_flag=True, help="Push to PyPI after building")
 def build(push):
     """Build and / or push docketanalyzer."""
-    package_dir = Path(__file__).parents[3]
+    package_dir = BASE_DIR.parent.resolve()
     dist_dir = package_dir / "dist"
     if dist_dir.exists():
         shutil.rmtree(dist_dir)
