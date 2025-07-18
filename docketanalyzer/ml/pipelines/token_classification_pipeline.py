@@ -12,7 +12,7 @@ class TokenClassificationPipeline(Pipeline):
     name = "token-classification"
     model_class = AutoModelForTokenClassification
     default_tokenize_args: ClassVar[dict] = dict(
-        padding=False, truncation=True, max_length=512, return_offsets_mapping=True
+        padding=False, truncation=True, max_length=1024, return_offsets_mapping=True
     )
     dataset_cols: ClassVar[list[str]] = [
         "input_ids",

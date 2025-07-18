@@ -12,7 +12,7 @@ class MultiTaskPipeline(Pipeline):
     name = "multi-task"
     model_class = AutoModelForTokenClassification
     default_tokenize_args: ClassVar[dict] = dict(
-        padding=False, truncation=True, max_length=512, return_offsets_mapping=True
+        padding=False, truncation=True, max_length=1024, return_offsets_mapping=True
     )
     dataset_cols: ClassVar[list[str]] = [
         "input_ids",
@@ -67,8 +67,10 @@ class MultiTaskPipeline(Pipeline):
         group_idxs = torch.arange(num_groups).repeat(batch_size * seq_len)[mask]
         preds = preds.reshape(-1, 3).argmax(-1)[mask]
 
-        starts = dataset["start"].reshape(-1).repeat_interleave(num_groups)[mask]
-        ends = dataset["end"].reshape(-1).repeat_interleave(num_groups)[mask]
+        starts = torch.stack(list(dataset["start"]))
+        starts = starts.reshape(-1).repeat_interleave(num_groups)[mask]
+        ends = torch.stack(list(dataset["end"]))
+        ends = ends.reshape(-1).repeat_interleave(num_groups)[mask]
 
         label_lookup = [
             self.model.config.id2label[i].split("-") for i in range(num_labels)

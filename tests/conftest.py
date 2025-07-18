@@ -1,3 +1,4 @@
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -10,9 +11,12 @@ SAMPLE_DOCKET_ID2 = "nynd__8_20-mj-00487"
 
 
 @pytest.fixture
-def fixture_dir():
-    """Path to the fixtures directory."""
-    return FIXTURE_DIR
+def model_dir():
+    """Get a temporary run directory."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        model_dir = Path(temp_dir) / "test" / "model"
+        model_dir.mkdir(parents=True, exist_ok=True)
+        yield model_dir
 
 
 @pytest.fixture

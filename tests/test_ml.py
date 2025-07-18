@@ -1,17 +1,10 @@
-import shutil
-
 import pandas as pd
 
-from docketanalyzer import env
 from docketanalyzer.ml import pipeline, training_routine
 
 
-def test_classification():
+def test_classification(model_dir):
     """Test classification routine on dummy data."""
-    model_dir = env.DATA_DIR / "runs" / "tests" / "classification" / "model"
-    if model_dir.exists():
-        shutil.rmtree(model_dir)
-
     data = []
     for label in ["apple", "banana", "orange"]:
         data += [{"text": label, "label": 1} for _ in range(300)]
@@ -26,7 +19,8 @@ def test_classification():
 
     routine = training_routine(
         "classification",
-        run_name="tests/classification",
+        data_dir=model_dir.parents[1],
+        run_name=model_dir.parent.name,
         base_model="docketanalyzer/modernbert-unit-test",
         training_args=dict(
             num_train_epochs=1,
@@ -46,12 +40,8 @@ def test_classification():
     assert preds == [True, True, False, False]
 
 
-def test_multi_label_classification():
+def test_multi_label_classification(model_dir):
     """Test multi-label classification routine on dummy data."""
-    model_dir = env.DATA_DIR / "runs" / "tests" / "multi-label-classification" / "model"
-    if model_dir.exists():
-        shutil.rmtree(model_dir)
-
     text_labels = {
         "apple": ["fruit", "red"],
         "banana": ["fruit", "yellow"],
@@ -77,7 +67,8 @@ def test_multi_label_classification():
     routine = training_routine(
         "multi-label-classification",
         base_model="docketanalyzer/modernbert-unit-test",
-        run_name="tests/multi-label-classification",
+        data_dir=model_dir.parents[1],
+        run_name=model_dir.parent.name,
         run_args=dict(labels=label_names),
         training_args=dict(
             num_train_epochs=1,
@@ -101,12 +92,8 @@ def test_multi_label_classification():
     ]
 
 
-def test_token_classification():
+def test_token_classification(model_dir):
     """Test token classification routine on dummy data."""
-    model_dir = env.DATA_DIR / "runs" / "tests" / "token-classification" / "model"
-    if model_dir.exists():
-        shutil.rmtree(model_dir)
-
     texts = [
         "John Doe is a software engineer.",
         "He gave John Doe a raise.",
@@ -136,7 +123,8 @@ def test_token_classification():
     routine = training_routine(
         "token-classification",
         base_model="docketanalyzer/modernbert-unit-test",
-        run_name="tests/token-classification",
+        data_dir=model_dir.parents[1],
+        run_name=model_dir.parent.name,
         run_args=dict(labels=["name"]),
         training_args=dict(
             num_train_epochs=1,
@@ -156,12 +144,8 @@ def test_token_classification():
     assert text[pred["start"] : pred["end"]] == "John Doe"
 
 
-def test_multi_task():
+def test_multi_task(model_dir):
     """Test multi-task routine on dummy data."""
-    model_dir = env.DATA_DIR / "runs" / "tests" / "multi-task" / "model"
-    if model_dir.exists():
-        shutil.rmtree(model_dir)
-
     repeats = 800
 
     data = dict(
@@ -201,7 +185,8 @@ def test_multi_task():
     routine = training_routine(
         "multi-task",
         base_model="docketanalyzer/modernbert-unit-test",
-        run_name="tests/multi-task",
+        data_dir=model_dir.parents[1],
+        run_name=model_dir.parent.name,
         run_args=dict(labels=["happy", "sad", "sentence", "name"]),
         training_args=dict(
             num_train_epochs=1,

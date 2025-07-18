@@ -34,9 +34,7 @@ def load_model() -> tuple["RecognitionPredictor", "DetectionPredictor"]:
     return RECOGNITION_MODEL, DETECTION_MODEL
 
 
-def extract_ocr_text(
-    imgs: list[Any], langs: list[str] | str | None = "en"
-) -> list[dict]:
+def extract_ocr_text(imgs: list[Any]) -> list[dict]:
     """Extracts text from an image using the OCR service.
 
     This function sends an image to the OCR service for processing and returns
@@ -44,24 +42,15 @@ def extract_ocr_text(
 
     Args:
         imgs: A list of input images.
-        langs: A list of language codes to use for OCR. Defaults to ['en'].
 
     Returns:
         list[dict]: A list of dictionaries, each containing:
             - 'bbox': The bounding box coordinates [x1, y1, x2, y2]
             - 'content': The extracted text content
     """
-    if isinstance(langs, str):
-        langs = [langs]
-    langs = [langs] * len(imgs)
-
     recognition_model, detection_model = load_model()
 
-    preds = recognition_model(
-        imgs,
-        langs,
-        detection_model,
-    )
+    preds = recognition_model(imgs, det_predictor=detection_model)
 
     results = []
     for pred in preds:

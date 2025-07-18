@@ -20,7 +20,7 @@ class Pipeline:
     default_tokenizer_name = None
     default_model_args: ClassVar[dict] = dict()
     default_tokenize_args: ClassVar[dict] = dict(
-        padding=False, truncation=True, max_length=512
+        padding=False, truncation=True, max_length=1024
     )
     dataset_cols: ClassVar[list[str]] = ["input_ids", "attention_mask", "idx"]
 
