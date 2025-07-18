@@ -5,6 +5,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from .. import choices, env
+from ..pacer import RecapAPI
 from ..services import S3, Database, DatabaseModel, load_psql, load_s3
 from .docket_batch import DocketBatch
 from .docket_manager import DocketManager
@@ -24,6 +25,7 @@ class DocketIndex:
             name: {v: k for k, v in choice.items()}
             for name, choice in self.choices.items()
         }
+        self.recap = RecapAPI(sleep=0.2)
         self._table = None
         self._db = None
         self._s3 = None

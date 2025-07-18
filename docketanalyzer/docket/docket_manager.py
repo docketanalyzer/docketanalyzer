@@ -160,7 +160,7 @@ class DocketManager:
         if entry_json is None or entry_json.get("pacer_doc_id") is None:
             print(f"Entry number {entry_number} not found in docket.")
             return False
-        
+
         pacer_doc_id = entry_json["pacer_doc_id"]
         if attachment_number is None:
             pdf, status = self.pacer.purchase_document(
@@ -179,6 +179,30 @@ class DocketManager:
             return False
         pdf_path.write_bytes(pdf)
         return success
+
+    # Recap Utilities
+    @property
+    def recap_path(self):
+        """Get the path to the recap data for this docket."""
+        return self.dir / "recap.json"
+
+    @property
+    def recap_data(self):
+        """Get the recap data for this docket."""
+        if self.recap_path.exists():
+            return json.loads(self.recap_path.read_text())
+
+    def download_recap_data(self, overwrite: bool = False):
+        """Download the recap data for this docket."""
+        if not self.recap_path.exists() or overwrite:
+            self.dir.mkdir(parents=True, exist_ok=True)
+            r = self.recap.consolidated_docket(self.docket_id)
+            results = json.dumps(r.results, indent=2)
+            self.recap_path.write_text(results)
+            return True
+        print(f"Recap data already exists: {self.recap_path}")
+        print("Pass `overwrite=True` to download again.")
+        return False
 
     # S3
     @property
@@ -213,12 +237,12 @@ class DocketManager:
             return self.docket_json["docket_entries"][row_number]
         if entry_number is not None:
             for entry in self.docket_json["docket_entries"]:
-                entry['document_number'] = to_int(entry["document_number"])
+                entry["document_number"] = to_int(entry["document_number"])
                 if entry["document_number"] == entry_number:
                     return entry
             return None
         raise ValueError("Either row_number or entry_number must be provided.")
-    
+
     def get_entry_attachment_json(self, row_number=None, entry_number=None):
         """Get the attachment JSON for a given row or entry number."""
         entry_json = self.get_entry_json(
@@ -239,7 +263,7 @@ class DocketManager:
 
     def __getattribute__(self, name: str):
         """Passthrough attributes from the index and batch."""
-        index_attributes = ["db", "table", "s3", "pacer"]
+        index_attributes = ["db", "table", "s3", "pacer", "recap"]
         if name in index_attributes:
             return getattr(object.__getattribute__(self, "index"), name)
 

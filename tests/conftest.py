@@ -2,7 +2,6 @@ import tempfile
 from pathlib import Path
 
 import pytest
-import simplejson as json
 
 from docketanalyzer import load_docket_index
 
@@ -39,8 +38,3 @@ def sample_docket_id1():
 def sample_docket_id2():
     """Another example docket_id."""
     return SAMPLE_DOCKET_ID2
-
-
-def get_recap_path(docket_id, mode):
-    """Get a path to a recap file."""
-    return FIXTURE_DIR / f"{docket_id}.recap.{mode}.json"
