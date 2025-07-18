@@ -224,13 +224,19 @@ class Pacer:
 
         attachments = AttachmentPage(court, self.session)
         attachments.query(pacer_doc_id)
-        attachments = attachments.data["attachments"]
+        attachments = attachments.data.get("attachments")
+        if attachments is None:
+            return None, "no attachments"
         for attachment in attachments:
             if int(attachment["attachment_number"]) == int(attachment_number):
                 return self.purchase_document(
                     pacer_case_id, attachment["pacer_doc_id"], court
                 )
         return None, "error"
+
+    def pacer_case_id_in_docket_html(self, docket_html: str) -> bool:
+        """Checks if the PACER case ID is in the docket HTML."""
+        return re.search(r"<!--PACER CASE ID: (.*?)-->", docket_html) is not None
 
     def add_pacer_case_id_to_docket_html(
         self, docket_html: str, pacer_case_id: str
@@ -244,6 +250,6 @@ class Pacer:
         Returns:
             str: The docket HTML with the PACER case ID added.
         """
-        if not re.search(r"<!--PACER CASE ID: (.*?)-->", docket_html):
-            docket_html += f"<!--PACER CASE ID: {pacer_case_id}-->"
+        if not self.pacer_case_id_in_docket_html(docket_html):
+            docket_html += f"\n<!--PACER CASE ID: {pacer_case_id}-->"
         return docket_html

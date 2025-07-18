@@ -7,7 +7,7 @@ import pandas as pd
 import peewee as pw
 import simplejson as json
 
-from .. import parse_docket_id
+from .. import json_default, parse_docket_id, to_int
 
 if TYPE_CHECKING:
     from .docket_index import DocketIndex
@@ -73,6 +73,7 @@ class DocketManager:
         """Get the local paths to the document OCR JSON files."""
         return list(self.dir.glob("doc.ocr.*.json"))
 
+    # OCR Utilities
     def apply_ocr(
         self, pdf_path: str | Path, overwrite: bool = True, **kwargs
     ) -> tuple[dict, Path]:
@@ -100,13 +101,13 @@ class DocketManager:
             update (bool): Whether to update the docket if it already exists.
             **kwargs: Additional arguments to pass to the Pacer purchase_docket method.
         """
+        self.dir.mkdir(parents=True, exist_ok=True)
         docket_html_paths = list(self.docket_html_paths)
         if not update and docket_html_paths:
-            return
-        from docketanalyzer.pacer import Pacer
-
-        pacer = Pacer()
-        docket_html, _ = pacer.purchase_docket(self.docket_id, **kwargs)
+            print(f"Docket already purchased: {self.docket_id}")
+            print("Pass `update=True` to purchase an updated version.")
+            return False
+        docket_html, _ = self.pacer.purchase_docket(self.docket_id, **kwargs)
 
         html_versions = [
             re.search(r"pacer\.(\d+)\.html", path.name) for path in docket_html_paths
@@ -115,6 +116,69 @@ class DocketManager:
         new_version = max(html_versions) + 1 if html_versions else 0
         docket_html_path = self.dir / f"pacer.{new_version}.html"
         docket_html_path.write_text(docket_html)
+        return True
+
+    def parse_docket(self):
+        """Parse the docket from the local files."""
+        docket_html_paths = list(self.docket_html_paths)
+        if not docket_html_paths:
+            return False
+
+        # TODO: Incorporate consolidation logic when multiple htmls
+        docket_html_path = docket_html_paths[0]
+        docket_html = docket_html_path.read_text()
+        if not self.pacer.pacer_case_id_in_docket_html(docket_html):
+            pacer_case_id = self.pacer.find_candidate_cases(self.docket_id)[0][
+                "pacer_case_id"
+            ]
+            docket_html = self.pacer.add_pacer_case_id_to_docket_html(
+                docket_html, pacer_case_id
+            )
+            docket_html_path.write_text(docket_html)
+        docket_json = self.pacer.parse(docket_html, self.court)
+        self.docket_json_path.write_text(
+            json.dumps(docket_json, indent=2, default=json_default)
+        )
+        return True
+
+    def purchase_document(
+        self,
+        entry_number,
+        attachment_number=None,
+        overwrite=False,
+        suppress_errors=False,
+    ):
+        """Purchase a document from PACER."""
+        pdf_path = self.get_pdf_path(entry_number, attachment_number)
+        if not overwrite and pdf_path.exists():
+            print(f"Document already purchased: {pdf_path}")
+            print("Pass `overwrite=True` to purchase again.")
+            return
+
+        pacer_case_id = self.docket_json["pacer_case_id"]
+        entry_json = self.get_entry_json(entry_number=entry_number)
+        if entry_json is None or entry_json.get("pacer_doc_id") is None:
+            print(f"Entry number {entry_number} not found in docket.")
+            return False
+        
+        pacer_doc_id = entry_json["pacer_doc_id"]
+        if attachment_number is None:
+            pdf, status = self.pacer.purchase_document(
+                pacer_case_id, pacer_doc_id, self.court
+            )
+        else:
+            pdf, status = self.pacer.purchase_attachment(
+                pacer_case_id, pacer_doc_id, attachment_number, court=self.court
+            )
+        success = status == "success"
+        if not success:
+            message = f"Failed to purchase document: {pdf_path}\nStatus: {status}"
+            print(message)
+            if not suppress_errors:
+                raise ValueError(message)
+            return False
+        pdf_path.write_bytes(pdf)
+        return success
 
     # S3
     @property
@@ -143,6 +207,26 @@ class DocketManager:
             self.index.reset_cached_ids()
             self.table.insert({self.index.id_col: self.docket_id}).execute()
 
+    def get_entry_json(self, row_number=None, entry_number=None):
+        """Get the entry JSON for a given row or entry number."""
+        if row_number is not None:
+            return self.docket_json["docket_entries"][row_number]
+        if entry_number is not None:
+            for entry in self.docket_json["docket_entries"]:
+                entry['document_number'] = to_int(entry["document_number"])
+                if entry["document_number"] == entry_number:
+                    return entry
+            return None
+        raise ValueError("Either row_number or entry_number must be provided.")
+    
+    def get_entry_attachment_json(self, row_number=None, entry_number=None):
+        """Get the attachment JSON for a given row or entry number."""
+        entry_json = self.get_entry_json(
+            row_number=row_number, entry_number=entry_number
+        )
+        pacer_doc_id = entry_json["pacer_doc_id"]
+        return self.pacer.get_attachments(pacer_doc_id, self.court)
+
     @property
     def row(self):
         """Get the row for this docket from the index table."""
@@ -155,7 +239,7 @@ class DocketManager:
 
     def __getattribute__(self, name: str):
         """Passthrough attributes from the index and batch."""
-        index_attributes = ["db", "table", "s3"]
+        index_attributes = ["db", "table", "s3", "pacer"]
         if name in index_attributes:
             return getattr(object.__getattribute__(self, "index"), name)
 

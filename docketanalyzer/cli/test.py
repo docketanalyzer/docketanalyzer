@@ -1,4 +1,5 @@
 import subprocess
+import sys
 
 import click
 
@@ -13,10 +14,24 @@ def test(setup_pacer, path, args):
     """Run or setup tests."""
     package_dir = BASE_DIR.parent.resolve()
     if setup_pacer:
-        data_dir = package_dir / "tests" / "fixtures" / "data"
-        data_dir.mkdir(parents=True, exist_ok=True)
-        index = load_docket_index(data_dir)
-        print(index)
+        sys.path.insert(0, str(package_dir))
+        from tests.conftest import (
+            TEST_DATA_DIR,
+            SAMPLE_DOCKET_ID1,
+            SAMPLE_DOCKET_ID2,
+        )
+
+        TEST_DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+        index = load_docket_index(TEST_DATA_DIR)
+        for docket_id in [SAMPLE_DOCKET_ID1, SAMPLE_DOCKET_ID2]:
+            manager = index[docket_id]
+            manager.purchase_docket()
+            manager.parse_docket()
+            manager.purchase_document(entry_number=1)
+            manager.purchase_document(
+                entry_number=1, attachment_number=1, suppress_errors=True
+            )
     else:
         cmd = ["pytest", path]
         cmd.extend(args or ["-vv"])

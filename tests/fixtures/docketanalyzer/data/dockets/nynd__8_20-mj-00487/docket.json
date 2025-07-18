@@ -1,0 +1,279 @@
+{
+  "court_id": "nynd",
+  "docket_number": "8:20-mj-00487",
+  "case_name": "United States v. Brown",
+  "date_filed": "2020-10-02",
+  "date_terminated": "2021-02-09",
+  "date_converted": null,
+  "date_discharged": null,
+  "assigned_to_str": "Gary L. Favro",
+  "referred_to_str": "",
+  "cause": "",
+  "nature_of_suit": "",
+  "jury_demand": "",
+  "demand": "",
+  "jurisdiction": "",
+  "mdl_status": "",
+  "ordered_by": "date_filed",
+  "federal_dn_office_code": "8",
+  "federal_dn_case_type": "mj",
+  "federal_dn_judge_initials_assigned": "GLF",
+  "federal_dn_judge_initials_referred": null,
+  "federal_defendant_number": "1",
+  "parties": [
+    {
+      "type": "Defendant",
+      "name": "Graigory Brown",
+      "extra_info": "TERMINATED: 02/09/2021",
+      "date_terminated": "2021-02-09",
+      "attorneys": [
+        {
+          "name": "Lisa A. Peebles",
+          "roles": [
+            "LEAD ATTORNEY",
+            "ATTORNEY TO BE NOTICED"
+          ],
+          "contact": "Office of the Federal Public Defender - Syracuse Office\nNorthern District of New York\n4 Clinton Square, 3rd Floor\nSyracuse, NY 13202\n315-701-0080\nFax: 315-701-0081\nEmail: lisa.peebles@fd.org\n"
+        },
+        {
+          "name": "Randi Juda Bianco",
+          "roles": [
+            "LEAD ATTORNEY",
+            "ATTORNEY TO BE NOTICED"
+          ],
+          "contact": "Office of the Federal Public Defender - Syracuse Office\nNorthern District of New York\n4 Clinton Square, 3rd Floor\nSyracuse, NY 13202\n315-701-0080\nFax: 315-701-0081\nEmail: randi_bianco@fd.org\n"
+        },
+        {
+          "name": "Gabrielle DiBella",
+          "roles": [
+            "TERMINATED: 10/07/2020"
+          ],
+          "contact": "Office of the Federal Public Defender - Syracuse Office\nNorthern District of New York\n4 Clinton Square, 3rd Floor\nSyracuse, NY 13202\n315-701-0080\nEmail: gabrielle_dibella@fd.org\n"
+        }
+      ],
+      "criminal_data": {
+        "counts": [],
+        "complaints": [
+          {
+            "name": "18:1201.F-Kidnapping",
+            "disposition": ""
+          }
+        ],
+        "highest_offense_level_opening": "None",
+        "highest_offense_level_terminated": "None"
+      }
+    },
+    {
+      "type": "Plaintiff",
+      "name": "USA",
+      "extra_info": "",
+      "date_terminated": null,
+      "attorneys": [
+        {
+          "name": "Douglas G.N. Collyer",
+          "roles": [
+            "LEAD ATTORNEY",
+            "ATTORNEY TO BE NOTICED"
+          ],
+          "contact": "Office of United States Attorney - Plattsburgh\n14 Durkee Street - Room 340\nPlattsburgh, NY 12901\n518-314-7818\nFax: 518-314-7811\nEmail: douglas.collyer@usdoj.gov\n"
+        },
+        {
+          "name": "Katherine E. Kopita",
+          "roles": [
+            "LEAD ATTORNEY",
+            "ATTORNEY TO BE NOTICED"
+          ],
+          "contact": "Office of United States Attorney - Plattsburgh\n14 Durkee Street - Room 340\nPlattsburgh, NY 12901\n518-314-7800\nFax: 518-314-7811\nEmail: katherine.kopita@usdoj.gov\n"
+        }
+      ]
+    }
+  ],
+  "docket_entries": [
+    {
+      "date_filed": "2020-10-02",
+      "document_number": "1",
+      "pacer_doc_id": "12505615371",
+      "pacer_seq_no": "5",
+      "description": "COMPLAINT as to Graigory Brown (1). (ds, ) (Entered: 10/02/2020)",
+      "date_entered": "2020-10-02"
+    },
+    {
+      "date_filed": "2020-10-02",
+      "document_number": null,
+      "pacer_doc_id": null,
+      "pacer_seq_no": null,
+      "description": "Text Minute Entry (FTR Recorded 10:53 a.m. - 11:01 a.m.) for proceeding held before Magistrate Judge Gary L. Favro: Initial Appearance as to Graigory Brown held on October 2, 2020. APP: AUSA Katherine Kopita, for the Government. Defendant advised of rights, maximum penalty stated and given copy of Criminal Complaint which was signed prior to coming on the record. Defendant questioned regarding finances and is found eligible for a court appointed attorney. Office of the Federal Public Defender is appointed. Defendant advised of right to a Preliminary Hearing. Government seeks detention. Court orders defendant detained. A Detention Hearing is scheduled for October 6, 2020 at 8:30 A.M. in Plattsburgh by video before Judge Gary L. Favro. Defendant REMANDED to custody of the U.S. Marshal. (ds, ) (Entered: 10/02/2020)",
+      "date_entered": "2020-10-02"
+    },
+    {
+      "date_filed": "2020-10-02",
+      "document_number": "2",
+      "pacer_doc_id": "12505615383",
+      "pacer_seq_no": "12",
+      "description": "ORDER APPOINTING FEDERAL PUBLIC DEFENDER as to Graigory Brown: Gabrielle DiBella appointed for Graigory Brown. Signed by Magistrate Judge Gary L. Favro on 10/2/2020. (ds, ) (Entered: 10/02/2020)",
+      "date_entered": "2020-10-02"
+    },
+    {
+      "date_filed": "2020-10-02",
+      "document_number": "3",
+      "pacer_doc_id": "12505615386",
+      "pacer_seq_no": "15",
+      "description": "ORDER OF DETENTION as to Graigory Brown: Detention Hearing set for 10/6/2020 at 8:30 AM by video in Plattsburgh before Magistrate Judge Gary L. Favro. Signed by Magistrate Judge Gary L. Favro on 10/2/2020. (ds, ) (Entered: 10/02/2020)",
+      "date_entered": "2020-10-02"
+    },
+    {
+      "date_filed": "2020-10-05",
+      "document_number": "4",
+      "pacer_doc_id": "12505616912",
+      "pacer_seq_no": "21",
+      "description": "Letter as to Graigory Brown requesting one-week adjournment of detention hearing (DiBella, Gabrielle) (Entered: 10/05/2020)",
+      "date_entered": "2020-10-05"
+    },
+    {
+      "date_filed": "2020-10-06",
+      "document_number": null,
+      "pacer_doc_id": null,
+      "pacer_seq_no": null,
+      "description": "Text Minute Entry (8:30 a.m. - 8:35 a.m) for proceeding held before Magistrate Judge Gary L. Favro: Detention Hearing as to Graigory Brown held on October 6, 2020. APP: AUSA Katherine Kopita, for the Government, AFPD Gabriella DiBella, attorney for defendant. Defendant is advised that this matter is proceeding by video pursuant to the CARES Act and General Order #59. No objections from counsel. Attorneys provided with copy of Pretrial Services Report. Government requests detention. Defense requests a one-week adjournment for more time to prepare for a detention hearing and plans to seek release. Court orders defendant detained and continues the detention hearing to Tuesday, 10/13 at 8:45 a.m. Defense states she will address the Preliminary Hearing at the detention hearing next week. Court schedules a Preliminary Hearing for October 15, 2020 at 8:30 am. Defendant REMANDED to custody of the U.S. Marshal pending his detention hearing. (Court Reporter Jacqueline Stroffolino) (ds, ) (Entered: 10/06/2020)",
+      "date_entered": "2020-10-06"
+    },
+    {
+      "date_filed": "2020-10-06",
+      "document_number": null,
+      "pacer_doc_id": null,
+      "pacer_seq_no": null,
+      "description": "Set Hearing as to Graigory Brown: Detention Hearing continued to 10/13/2020 at 8:45 AM by video in Plattsburgh before Magistrate Judge Gary L. Favro. (ds, ) (Entered: 10/06/2020)",
+      "date_entered": "2020-10-06"
+    },
+    {
+      "date_filed": "2020-10-06",
+      "document_number": null,
+      "pacer_doc_id": null,
+      "pacer_seq_no": null,
+      "description": "Set Hearing as to Graigory Brown: Preliminary Hearing set for 10/15/2020 at 8:30 AM by video in Plattsburgh before Magistrate Judge Gary L. Favro. (ds, ) (Entered: 10/06/2020)",
+      "date_entered": "2020-10-06"
+    },
+    {
+      "date_filed": "2020-10-07",
+      "document_number": "5",
+      "pacer_doc_id": "12505619211",
+      "pacer_seq_no": "30",
+      "description": "NOTICE OF ATTORNEY APPEARANCE: Lisa A. Peebles appearing for Graigory Brown (Peebles, Lisa) (Entered: 10/07/2020)",
+      "date_entered": "2020-10-07"
+    },
+    {
+      "date_filed": "2020-10-07",
+      "document_number": "6",
+      "pacer_doc_id": "12505619218",
+      "pacer_seq_no": "33",
+      "description": "NOTICE OF ATTORNEY APPEARANCE: Randi Juda Bianco appearing for Graigory Brown as co-counsel with/for Attorney: Lisa Peebles (Bianco, Randi) (Entered: 10/07/2020)",
+      "date_entered": "2020-10-07"
+    },
+    {
+      "date_filed": "2020-10-07",
+      "document_number": "7",
+      "pacer_doc_id": "12505619848",
+      "pacer_seq_no": "36",
+      "description": "WAIVER of Preliminary Hearing by Graigory Brown (Bianco, Randi) (Main Document 7 replaced on 10/7/2020 at request of filer for a spelling correction) (ds, ). (Entered: 10/07/2020)",
+      "date_entered": "2020-10-07"
+    },
+    {
+      "date_filed": "2020-10-07",
+      "document_number": null,
+      "pacer_doc_id": null,
+      "pacer_seq_no": null,
+      "description": "Attorney update in case as to Graigory Brown. Attorney Gabrielle DiBella terminated. (dpk) (Entered: 10/08/2020)",
+      "date_entered": "2020-10-08"
+    },
+    {
+      "date_filed": "2020-10-08",
+      "document_number": "8",
+      "pacer_doc_id": "12505620476",
+      "pacer_seq_no": "40",
+      "description": "Letter from Ryan Brown as to Graigory Brown (Bianco, Randi) (Entered: 10/08/2020)",
+      "date_entered": "2020-10-08"
+    },
+    {
+      "date_filed": "2020-10-13",
+      "document_number": null,
+      "pacer_doc_id": null,
+      "pacer_seq_no": null,
+      "description": "Text Minute Entry (FTR Recorded 8:50 a.m. - 9:01 a.m.) for proceeding held before Magistrate Judge Gary L. Favro: Detention Hearing as to Graigory Brown held on October 13, 2020. APP: AUSA Katherine Kopita, for the Government, AFPD Randi Bianco, attorney for defendant. Defendant is advised that this matter is proceeding by video pursuant to the CARES Act and General Order #59. No objections from counsel. Attorneys provided with copy of Pretrial Services Report. Government requests detention. Defense argues for release to St. Joseph's Treatment Center. Court finds defendant poses a risk of danger to the community and a risk of flight and detains defendant. The Preliminary Hearing was waived by letter dated October 7, 2020. Defendant remanded to the custody of the U.S. Marshal pending trial. (Court Reporter Theresa Casal) (ds, ) (Entered: 10/13/2020)",
+      "date_entered": "2020-10-13"
+    },
+    {
+      "date_filed": "2020-10-13",
+      "document_number": "9",
+      "pacer_doc_id": "12505623499",
+      "pacer_seq_no": "45",
+      "description": "ORDER OF DETENTION PENDING TRIAL as to Graigory Brown. Signed by Magistrate Judge Gary L. Favro on 10/13/2020. (ds, ) (Entered: 10/13/2020)",
+      "date_entered": "2020-10-13"
+    },
+    {
+      "date_filed": "2020-10-19",
+      "document_number": "10",
+      "pacer_doc_id": "12505630784",
+      "pacer_seq_no": "47",
+      "description": "STIPULATION by USA to 60-day exclusion of speedy trial (Collyer, Douglas) (Entered: 10/19/2020)",
+      "date_entered": "2020-10-19"
+    },
+    {
+      "date_filed": "2020-10-20",
+      "document_number": "11",
+      "pacer_doc_id": "12505631681",
+      "pacer_seq_no": "49",
+      "description": "ORDER TO CONTINUE - Ends of Justice as to Graigory Brown: Time excluded from 10/19/2020 until 12/17/2020. Signed by Magistrate Judge Gary L. Favro on 10/20/2020.(ds) (Entered: 10/20/2020)",
+      "date_entered": "2020-10-20"
+    },
+    {
+      "date_filed": "2020-12-16",
+      "document_number": "12",
+      "pacer_doc_id": "12505686167",
+      "pacer_seq_no": "52",
+      "description": "STIPULATION by USA to 60-day exclusion of speedy trial (Collyer, Douglas) (Entered: 12/16/2020)",
+      "date_entered": "2020-12-16"
+    },
+    {
+      "date_filed": "2020-12-17",
+      "document_number": "13",
+      "pacer_doc_id": "12505687163",
+      "pacer_seq_no": "54",
+      "description": "ORDER TO CONTINUE - Ends of Justice as to Graigory Brown: Time excluded from 12/7/2020 until 2/4/2021. Signed by Magistrate Judge Gary L. Favro on 12/17/2020. (ds, ) (Entered: 12/17/2020)",
+      "date_entered": "2020-12-17"
+    },
+    {
+      "date_filed": "2020-12-17",
+      "document_number": null,
+      "pacer_doc_id": null,
+      "pacer_seq_no": null,
+      "description": "CLERK'S CORRECTION OF DOCKET ENTRY: Clerk deleted Docket Number 14 and all associated data as a data entry error was made and the stip filed at 14 was for a different case. (ds, ) (Entered: 12/17/2020)",
+      "date_entered": "2020-12-17"
+    },
+    {
+      "date_filed": "2021-02-02",
+      "document_number": "14",
+      "pacer_doc_id": "12505726157",
+      "pacer_seq_no": "62",
+      "description": "STIPULATION by USA to 30-day exclusion of speedy trial (Collyer, Douglas) (Entered: 02/02/2021)",
+      "date_entered": "2021-02-02"
+    },
+    {
+      "date_filed": "2021-02-02",
+      "document_number": "15",
+      "pacer_doc_id": "12505727195",
+      "pacer_seq_no": "64",
+      "description": "ORDER TO CONTINUE - Ends of Justice as to Graigory Brown: Time excluded from 1/25/2021 until 2/23/2021. Signed by Magistrate Judge Gary L. Favro on 2/2/2021. (ds, ) (Entered: 02/03/2021)",
+      "date_entered": "2021-02-03"
+    },
+    {
+      "date_filed": "2021-04-08",
+      "document_number": "16",
+      "pacer_doc_id": "12505792760",
+      "pacer_seq_no": "71",
+      "description": "PRETRIAL SERVICES INVESTIGATION REPORT - [LODGED] as to Graigory Brown. [This document has been electronically lodged with the Court and is viewable by ONLY the attorney for the government, the attorney for the defendant, and the presiding judge. Any further distribution or dissemination is prohibited.] (sg3, ) (Entered: 04/08/2021)",
+      "date_entered": "2021-04-08"
+    }
+  ],
+  "docket_id": "nynd__8_20-mj-00487",
+  "pacer_case_id": "126022"
+}

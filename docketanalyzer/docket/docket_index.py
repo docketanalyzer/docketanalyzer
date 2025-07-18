@@ -27,6 +27,7 @@ class DocketIndex:
         self._table = None
         self._db = None
         self._s3 = None
+        self._pacer = None
 
     # Postgres
     @property
@@ -52,6 +53,16 @@ class DocketIndex:
                 )
             self._table = table
         return self._table
+
+    # Pacer
+    @property
+    def pacer(self):
+        """Get the Pacer connection."""
+        from docketanalyzer.pacer import Pacer
+
+        if not self._pacer:
+            self._pacer = Pacer()
+        return self._pacer
 
     # S3
     @property
