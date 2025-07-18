@@ -75,14 +75,16 @@ class DocketManager:
 
     # OCR Utilities
     def apply_ocr(
-        self, pdf_path: str | Path, overwrite: bool = True, **kwargs
+        self, pdf_path: str | Path, overwrite: bool = False, **kwargs
     ) -> tuple[dict, Path]:
         """Apply OCR to a PDF document path and save the result."""
         entry_number, attachment_number = self.parse_document_path(pdf_path)
         ocr_path = self.get_ocr_path(entry_number, attachment_number)
 
         if not overwrite and ocr_path.exists():
-            raise FileExistsError(f"OCR file already exists: {ocr_path}")
+            print(f"OCR file already exists: {ocr_path}")
+            print("Pass `overwrite=True` to overwrite.")
+            return False, ocr_path
 
         from docketanalyzer.ocr import pdf_document
 

@@ -8,7 +8,7 @@ from docketanalyzer import BASE_DIR, load_docket_index
 
 @click.command(context_settings=dict(ignore_unknown_options=True))
 @click.argument("path", default="", type=str)
-@click.option("--markers", "-m", default=".", help="Optional pytest markers.")
+@click.option("--markers", "-m", default=None, help="Optional pytest markers.")
 @click.option("--setup-pacer", is_flag=True, help="Setup PACER fixtures. Skips tests.")
 @click.option("--setup-recap", is_flag=True, help="Setup RECAP fixtures. Skips tests.")
 def test(path, markers, setup_pacer, setup_recap):
@@ -36,6 +36,11 @@ def test(path, markers, setup_pacer, setup_recap):
                 manager.purchase_document(
                     entry_number=1, attachment_number=1, suppress_errors=True
                 )
+            doc_path = manager.get_pdf_path(entry_number=1)
+            manager.apply_ocr(doc_path)
+            attachment_path = manager.get_pdf_path(entry_number=1, attachment_number=1)
+            if attachment_path.exists():
+                manager.apply_ocr(attachment_path)
     else:
         cmd = ["pytest", path, "-vv"]
         if markers:
