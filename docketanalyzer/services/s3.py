@@ -6,7 +6,9 @@ from typing import Any
 import boto3
 from botocore.client import Config
 
-from .. import env
+from docketanalyzer import env
+
+from .service import Service
 
 
 def export_env():
@@ -270,14 +272,19 @@ class S3:
             return False
 
 
-def load_s3(data_dir: str | Path | None = None) -> S3:
-    """Load the S3 service.
+class S3Service(Service):
+    """S3 service class."""
 
-    Args:
-        data_dir (Optional[Union[str, Path]]): Path to local data directory.
-            If None, uses env.DATA_DIR.
+    name = "s3"
 
-    Returns:
-        S3: An instance of the S3 class.
-    """
-    return S3(data_dir)
+    def init(self):
+        """Initialize the S3 service."""
+        return S3(data_dir=env.DATA_DIR)
+
+    def close(self):
+        """Close the S3 connection."""
+        pass
+
+    def status(self):
+        """Check if the S3 is connected."""
+        return self.client.status()

@@ -1,7 +1,6 @@
 import pytest
 
 from docketanalyzer import env, parse_docket_id
-from docketanalyzer.pacer import Pacer
 
 
 def is_valid_pdf(pdf_bytes):
@@ -19,6 +18,8 @@ def test_pacer_credentials():
 @pytest.mark.cost
 def test_purchase_docket(index, sample_docket_id1):
     """Test purchasing a docket from PACER."""
+    from docketanalyzer.pacer import Pacer
+
     manager = index[sample_docket_id1]
 
     pacer = Pacer()
@@ -47,6 +48,8 @@ def test_purchase_docket(index, sample_docket_id1):
 @pytest.mark.cost
 def test_purchase_document(index, sample_docket_id1):
     """Test that downloaded document matches the fixture data."""
+    from docketanalyzer.pacer import Pacer
+
     entry_number, attachment_number = 1, 1
     manager = index[sample_docket_id1]
     cached_docket_json = manager.docket_json

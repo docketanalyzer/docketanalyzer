@@ -1,10 +1,10 @@
 import pandas as pd
 
-from docketanalyzer.ml import pipeline, training_routine
-
 
 def test_classification(model_dir):
     """Test classification routine on dummy data."""
+    from docketanalyzer.ml import pipeline, training_routine
+
     data = []
     for label in ["apple", "banana", "orange"]:
         data += [{"text": label, "label": 1} for _ in range(300)]
@@ -42,6 +42,8 @@ def test_classification(model_dir):
 
 def test_multi_label_classification(model_dir):
     """Test multi-label classification routine on dummy data."""
+    from docketanalyzer.ml import pipeline, training_routine
+
     text_labels = {
         "apple": ["fruit", "red"],
         "banana": ["fruit", "yellow"],
@@ -94,6 +96,8 @@ def test_multi_label_classification(model_dir):
 
 def test_token_classification(model_dir):
     """Test token classification routine on dummy data."""
+    from docketanalyzer.ml import pipeline, training_routine
+
     texts = [
         "John Doe is a software engineer.",
         "He gave John Doe a raise.",
@@ -146,6 +150,8 @@ def test_token_classification(model_dir):
 
 def test_multi_task(model_dir):
     """Test multi-task routine on dummy data."""
+    from docketanalyzer.ml import pipeline, training_routine
+
     repeats = 800
 
     data = dict(

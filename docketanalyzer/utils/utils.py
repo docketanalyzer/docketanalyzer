@@ -54,13 +54,6 @@ def construct_docket_id(court: str, docket_number: str) -> str:
     return f"{court}__{formatted_number}"
 
 
-def json_default(obj: Any) -> Any:
-    """Default JSON serializer for datetime and date objects."""
-    if isinstance(obj, datetime | date):
-        return obj.isoformat()
-    raise TypeError(f"Type {type(obj)} not serializable")
-
-
 def notabs(text: str) -> str:
     """Remove leading/trailing whitespace on each line."""
     return "\n".join([x.strip() for x in text.split("\n")]).strip()
@@ -142,13 +135,6 @@ def pd_save_or_append(data: pd.DataFrame, path: str | Path, **kwargs):
         data.to_csv(path, index=False, **kwargs)
 
 
-def datetime_utcnow() -> datetime:
-    """Get the current UTC datetime."""
-    from datetime import UTC
-
-    return datetime.now(UTC)
-
-
 def list_to_array(data: list[list[float | int]]) -> np.ndarray:
     """Convert a list of lists to a numpy array of float32."""
     return np.array([np.array(x) for x in data]).astype("float32")
@@ -177,3 +163,17 @@ def load_colab_env():
     for key in env.keys:
         with suppress(userdata.SecretNotFoundError):
             os.environ[key] = userdata.get(key)
+
+
+def datetime_utcnow() -> datetime:
+    """Get the current UTC datetime."""
+    from datetime import UTC
+
+    return datetime.now(UTC)
+
+
+def json_default(obj: Any) -> Any:
+    """Default JSON serializer for datetime and date objects."""
+    if isinstance(obj, datetime | date):
+        return obj.isoformat()
+    raise TypeError(f"Type {type(obj)} not serializable")

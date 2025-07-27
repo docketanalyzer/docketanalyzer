@@ -7,7 +7,7 @@ import pandas as pd
 import peewee as pw
 import simplejson as json
 
-from .. import json_default, parse_docket_id, to_int
+from docketanalyzer import json_default, parse_docket_id, to_int
 
 if TYPE_CHECKING:
     from .docket_index import DocketIndex

@@ -1,7 +1,6 @@
 import simplejson as json
 
 from docketanalyzer import env, parse_docket_id
-from docketanalyzer.pacer import RecapAPI
 
 
 def test_recap_credentials():
@@ -12,6 +11,8 @@ def test_recap_credentials():
 
 def test_recap_docket(sample_docket_id2):
     """Test RECAP docket."""
+    from docketanalyzer.pacer import RecapAPI
+
     recap = RecapAPI(sleep=0.2)
 
     assert len(recap.docket_id_map) == 0, "Docket ID map should be empty"
@@ -39,6 +40,8 @@ def test_recap_docket(sample_docket_id2):
 
 def test_recap_consolidated(index, sample_docket_id2):
     """Test RECAP consolidated docket."""
+    from docketanalyzer.pacer import RecapAPI
+
     manager = index[sample_docket_id2]
     cached_results = manager.recap_path.read_text()
     recap = RecapAPI()

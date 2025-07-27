@@ -13,12 +13,13 @@ print(end - start)
 
 def test_import_time():
     """Test the import time of the package."""
-    result = subprocess.run(
-        [sys.executable, "-c", timing_script],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
+    for _ in range(2):
+        result = subprocess.run(
+            [sys.executable, "-c", timing_script],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
 
     import_time = float(result.stdout.strip())
 

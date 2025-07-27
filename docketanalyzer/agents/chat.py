@@ -1,7 +1,7 @@
 import os
 from typing import Any
 
-from .. import env
+from docketanalyzer import env
 
 
 def export_env():
@@ -9,7 +9,7 @@ def export_env():
     keys = [
         "ANTHROPIC_API_KEY",
         "OPENAI_API_KEY",
-        "TOGETHER_API_KEY",
+        "GEMINI_API_KEY",
         "COHERE_API_KEY",
         "GROQ_API_KEY",
     ]

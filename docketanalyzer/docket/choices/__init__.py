@@ -1,5 +1,5 @@
 import simplejson as json
-from .. import Registry
+from docketanalyzer import Registry
 from .choice import Choice
 
 

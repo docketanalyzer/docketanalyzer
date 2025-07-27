@@ -43,25 +43,25 @@ def test_cohere():
     assert len(response) > 0, "Response is empty"
 
 
+def test_gemini():
+    """Test Gemini chat."""
+    key_check = bool(env.GEMINI_API_KEY)
+    assert key_check, "GEMINI_API_KEY is not set"
+
+    chat = Chat(model="gemini/gemini-1.5-flash")
+    response = chat("Hi!")
+
+    logging.info(f"Gemini says: {response}")
+    assert isinstance(response, str), "Response is not a string"
+    assert len(response) > 0, "Response is empty"
+
+
 def test_groq():
     """Test Groq chat."""
     key_check = bool(env.GROQ_API_KEY)
     assert key_check, "GROQ_API_KEY is not set"
 
     chat = Chat(model="groq/llama3-8b-8192")
-    response = chat("Hi!")
-
-    logging.info(f"Command says: {response}")
-    assert isinstance(response, str), "Response is not a string"
-    assert len(response) > 0, "Response is empty"
-
-
-def test_together():
-    """Test TogetherAI chat."""
-    key_check = bool(env.TOGETHER_API_KEY)
-    assert key_check, "TOGETHER_API_KEY is not set"
-
-    chat = Chat(model="together_ai/meta-llama/Llama-3.2-3B-Instruct-Turbo")
     response = chat("Hi!")
 
     logging.info(f"Command says: {response}")

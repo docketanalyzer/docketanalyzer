@@ -10,7 +10,7 @@ import regex as re
 from PIL import Image
 from tqdm import tqdm
 
-from docketanalyzer import load_s3
+from docketanalyzer import load_clients
 
 from .layout import predict_layout
 from .ocr import extract_native_text, extract_ocr_text
@@ -544,7 +544,7 @@ class PDFDocument:
         self.pages = [Page(self, i) for i in range(len(self.doc))]
         self.remote_client = RemoteClient(api_key=api_key, endpoint_url=endpoint_url)
         self.use_s3 = use_s3
-        self.s3 = load_s3()
+        self.s3 = load_clients("s3")
         self.s3_available = self.s3.status()
         self.s3_key = (
             None if not self.s3_available else f"tmp/{uuid.uuid4()}_{self.filename}"

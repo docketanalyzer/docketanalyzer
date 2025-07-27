@@ -1,7 +1,5 @@
 import simplejson as json
 
-from docketanalyzer.ocr import pdf_document
-
 
 def compare_docs(doc1, doc2):
     """Compare two processed PDF documents for equality."""
@@ -17,6 +15,8 @@ def compare_docs(doc1, doc2):
 
 def test_local_process(index, sample_docket_id1):
     """Test process method, loading pdf from path."""
+    from docketanalyzer.ocr import pdf_document
+
     manager = index[sample_docket_id1]
     pdf_path = manager.get_pdf_path(entry_number=1)
     ocr_path = manager.get_ocr_path(entry_number=1)
@@ -39,6 +39,8 @@ def test_local_process(index, sample_docket_id1):
 
 def test_local_stream(index, sample_docket_id1):
     """Test stream method, loading pdf from bytes."""
+    from docketanalyzer.ocr import pdf_document
+
     manager = index[sample_docket_id1]
     pdf_path = manager.get_pdf_path(entry_number=1)
     ocr_path = manager.get_ocr_path(entry_number=1)

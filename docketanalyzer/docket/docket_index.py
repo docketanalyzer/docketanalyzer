@@ -4,8 +4,9 @@ from pathlib import Path
 import pandas as pd
 from tqdm import tqdm
 
-from .. import choices, env
-from ..services import S3, Database, DatabaseModel, load_psql, load_s3
+from docketanalyzer import env, load_clients
+
+from .choices import choices
 from .docket_batch import DocketBatch
 from .docket_manager import DocketManager
 
@@ -17,30 +18,25 @@ class DocketIndex:
         """Initialize DocketIndex."""
         self.data_dir = Path(data_dir or env.DATA_DIR)
         self.dir = self.data_dir / "data" / "dockets"
-        self.table_name = "docket_index"
-        self.id_col = "docket_id"
         self.choices = choices.dict()
         self.values = {
             name: {v: k for k, v in choice.items()}
             for name, choice in self.choices.items()
         }
         self._table = None
-        self._db = None
-        self._s3 = None
         self._pacer = None
         self._recap = None
 
     # Postgres
     @property
-    def db(self) -> Database:
+    def db(self):
         """Get the database connection."""
-        if not self._db:
-            self._db = load_psql()
-        return self._db
+        return load_clients("db")
 
     @property
-    def table(self) -> DatabaseModel:
+    def table(self):
         """Main table for organizing index data."""
+        raise NotImplementedError("Fix this")
         if not self._table:
             try:
                 table = self.db.t[self.table_name]
@@ -77,11 +73,9 @@ class DocketIndex:
 
     # S3
     @property
-    def s3(self) -> S3:
+    def s3(self):
         """Get the S3 connection."""
-        if not self._s3:
-            self._s3 = load_s3(self.data_dir)
-        return self._s3
+        return load_clients("s3")
 
     def push(self, path: str | Path = "", confirm: bool = False, **args):
         """Push the local data to S3."""
@@ -99,10 +93,11 @@ class DocketIndex:
 
     def load_cached_ids(self, shuffle: bool = False) -> list[str]:
         """Load cached IDs from the file."""
+        raise NotImplementedError("Fix this")
         if not self.cached_ids_path.exists():
-            obj_ids = self.table.pandas(self.id_col)
+            obj_ids = self.table.pandas("docket_id")
             obj_ids.to_csv(self.cached_ids_path, index=False)
-        obj_ids = pd.read_csv(self.cached_ids_path)[self.id_col]
+        obj_ids = pd.read_csv(self.cached_ids_path)["docket_id"]
         if shuffle:
             obj_ids = obj_ids.sample(frac=1)
         return obj_ids.tolist()

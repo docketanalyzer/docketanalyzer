@@ -20,17 +20,6 @@
       heading_level: 2
       members_order: source
 
-::: docketanalyzer.load_psql
-    options:
-      heading_level: 3
-
-::: docketanalyzer.load_redis
-    options:
-      heading_level: 3
-
-::: docketanalyzer.load_s3
-    options:
-      heading_level: 3
 
 ::: docketanalyzer.Database
     options:

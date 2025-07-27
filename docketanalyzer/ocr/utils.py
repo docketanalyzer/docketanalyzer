@@ -1,7 +1,7 @@
 import tempfile
 from pathlib import Path
 
-from docketanalyzer import load_s3
+from docketanalyzer import load_clients
 
 
 def load_pdf(
@@ -41,7 +41,7 @@ def load_pdf(
     # Otherwise, we need to download from S3
     with tempfile.NamedTemporaryFile() as temp_file:
         temp_path = Path(temp_file.name)
-        load_s3().download(s3_key, str(temp_path))
+        load_clients("s3").download(s3_key, str(temp_path))
         return temp_path.read_bytes(), filename
 
 

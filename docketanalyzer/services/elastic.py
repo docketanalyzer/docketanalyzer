@@ -1,12 +1,25 @@
 from elasticsearch import Elasticsearch
 
-from .. import env
+from docketanalyzer import env
+
+from .service import Service
 
 
-def load_elastic(**kwargs):
-    """Load an Elasticsearch client with the configured connection URL.
+class ElasticService(Service):
+    """Elastic service class."""
 
-    Run `da configure elastic` to set the connection URL.
-    """
-    es = Elasticsearch(env.ELASTIC_URL, **kwargs)
-    return es
+    name = "es"
+
+    def init(self):
+        """Initialize the Elastic service."""
+        host = env.ELASTIC_HOST or env.APP_HOST
+        port = env.ELASTIC_PORT
+        return Elasticsearch(f"http://{host}:{port}")
+
+    def close(self):
+        """Close the Elastic connection."""
+        self.client.close()
+
+    def status(self):
+        """Check if the Elastic is connected."""
+        return self.client.ping()

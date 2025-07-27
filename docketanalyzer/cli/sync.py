@@ -1,6 +1,6 @@
 import click
 
-from .. import load_docket_index
+from docketanalyzer import load_docket_index
 
 
 @click.command()

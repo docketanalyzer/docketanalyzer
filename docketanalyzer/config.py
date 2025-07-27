@@ -1,19 +1,17 @@
 from pathlib import Path
 
-from nates import Config
-
-from .utils import CONFIG_DIR
+from docketanalyzer import CONFIG_DIR, Config
 
 env = Config(
     path=CONFIG_DIR / "config.json",
     keys=[
         dict(
             name="DA_DATA_DIR",
-            alias_names=["DATA_DIR"],
             key_type="path",
             description="\nChoose directory for data managed by Docket Analyzer\n",
             default=Path.home() / "docketanalyzer",
             group="docketanalyzer",
+            alias_names=["DATA_DIR"],
         ),
         dict(
             name="PACER_USERNAME",
@@ -54,7 +52,6 @@ env = Config(
             mask=True,
             group="wandb",
         ),
-        # LLM Providers
         dict(
             name="ANTHROPIC_API_KEY",
             key_type="str",
@@ -70,6 +67,14 @@ env = Config(
             default=None,
             mask=True,
             group="openai",
+        ),
+        dict(
+            name="GEMINI_API_KEY",
+            key_type="str",
+            description="\nConfigure Gemini\n",
+            default=None,
+            mask=True,
+            group="gemini",
         ),
         dict(
             name="COHERE_API_KEY",
@@ -88,54 +93,22 @@ env = Config(
             group="groq",
         ),
         dict(
-            name="TOGETHER_API_KEY",
+            name="ELASTIC_HOST",
             key_type="str",
-            description="\nConfigure Together AI\n",
+            description="\nConfigure Elastic\n",
             default=None,
             mask=True,
-            group="together",
+            group="es",
         ),
-        # Runpod
         dict(
-            name="RUNPOD_API_KEY",
-            key_type="str",
-            description="\nConfigure Runpod\n",
-            default=None,
+            name="ELASTIC_PORT",
+            key_type="int",
+            default=9200,
             mask=True,
-            group="runpod",
+            group="es",
         ),
         dict(
-            name="RUNPOD_INFERENCE_ENDPOINT_ID",
-            key_type="str",
-            default=None,
-            mask=True,
-            group="runpod",
-        ),
-        dict(
-            name="RUNPOD_ROUTINES_ENDPOINT_ID",
-            key_type="str",
-            default=None,
-            mask=True,
-            group="runpod",
-        ),
-        dict(
-            name="RUNPOD_OCR_ENDPOINT_ID",
-            key_type="str",
-            default=None,
-            mask=True,
-            group="runpod",
-        ),
-        # Services
-        dict(
-            name="ELASTIC_URL",
-            key_type="str",
-            description="\nConfigure Elasticsearch\n",
-            default=None,
-            mask=True,
-            group="elastic",
-        ),
-        dict(
-            name="POSTGRES_URL",
+            name="POSTGRES_HOST",
             key_type="str",
             description="\nConfigure Postgres\n",
             default=None,
@@ -143,7 +116,35 @@ env = Config(
             group="psql",
         ),
         dict(
-            name="REDIS_URL",
+            name="POSTGRES_PORT",
+            key_type="int",
+            default=5432,
+            mask=True,
+            group="psql",
+        ),
+        dict(
+            name="POSTGRES_DB",
+            key_type="str",
+            default="da",
+            mask=True,
+            group="psql",
+        ),
+        dict(
+            name="POSTGRES_USER",
+            key_type="str",
+            default="admin",
+            mask=True,
+            group="psql",
+        ),
+        dict(
+            name="POSTGRES_PASSWORD",
+            key_type="str",
+            default=None,
+            mask=True,
+            group="psql",
+        ),
+        dict(
+            name="REDIS_HOST",
             key_type="str",
             description="\nConfigure Redis\n",
             default=None,
@@ -151,23 +152,16 @@ env = Config(
             group="redis",
         ),
         dict(
-            name="AWS_ACCESS_KEY_ID",
-            key_type="str",
-            description="\nConfigure S3\n",
-            default=None,
+            name="REDIS_PORT",
+            key_type="int",
+            default=6379,
             mask=True,
-            group="s3",
-        ),
-        dict(
-            name="AWS_SECRET_ACCESS_KEY",
-            key_type="str",
-            default=None,
-            mask=True,
-            group="s3",
+            group="redis",
         ),
         dict(
             name="AWS_S3_BUCKET_NAME",
             key_type="str",
+            description="\nConfigure S3t\n",
             default=None,
             group="s3",
         ),
@@ -176,6 +170,21 @@ env = Config(
             key_type="str",
             default=None,
             group="s3",
+            mask=True,
+        ),
+        dict(
+            name="AWS_ACCESS_KEY_ID",
+            key_type="str",
+            default=None,
+            group="s3",
+            mask=True,
+        ),
+        dict(
+            name="AWS_SECRET_ACCESS_KEY",
+            key_type="str",
+            default=None,
+            group="s3",
+            mask=True,
         ),
         dict(
             name="PYPI_TOKEN",
