@@ -20,6 +20,7 @@ jobs:
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       COURTLISTENER_TOKEN: ${{ secrets.COURTLISTENER_TOKEN }}
 
     steps:

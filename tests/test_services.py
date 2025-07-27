@@ -1,3 +1,4 @@
+import shutil
 from pathlib import Path
 
 import botocore
@@ -5,6 +6,17 @@ import pytest
 
 from docketanalyzer import env, load_clients
 from docketanalyzer.services.s3 import S3
+
+
+@pytest.fixture(scope="session")
+def temp_data_dir():
+    """Create a temp directory in DATA_DIR."""
+    temp_dir = env.DATA_DIR / "temp"
+    temp_dir.mkdir(parents=True, exist_ok=True)
+
+    yield temp_dir
+
+    shutil.rmtree(temp_dir)
 
 
 def test_psql_connection():

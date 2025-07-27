@@ -1,10 +1,9 @@
-import shutil
 import tempfile
 from pathlib import Path
 
 import pytest
 
-from docketanalyzer import env, load_docket_index
+from docketanalyzer import load_docket_index
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures"
 
@@ -18,17 +17,6 @@ SAMPLE_DOCKET_ID2 = "nynd__8_20-mj-00487"
 def index():
     """Load the docket index."""
     return load_docket_index(TEST_DATA_DIR)
-
-
-@pytest.fixture(scope="session")
-def temp_data_dir():
-    """Create a temp directory in DATA_DIR for S3 tests."""
-    temp_dir = env.DATA_DIR / "temp"
-    temp_dir.mkdir(parents=True, exist_ok=True)
-
-    yield temp_dir
-
-    shutil.rmtree(temp_dir)
 
 
 @pytest.fixture
