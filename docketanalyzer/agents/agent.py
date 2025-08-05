@@ -5,7 +5,6 @@ import simplejson as json
 
 from docketanalyzer import env
 
-from .chat import Chat
 from .tool import Tool
 
 
@@ -59,10 +58,7 @@ class Agent:
         """Sanitize messages for display."""
         sanitized_messages = []
         for message in self.messages:
-            sanitized_message = {
-                "role": message["role"],
-                "content": message["content"]
-            }
+            sanitized_message = {"role": message["role"], "content": message["content"]}
             if "tool_calls" in message:
                 sanitized_message["tool_calls"] = message["tool_calls"]
             if message["role"] == "tool":
@@ -129,8 +125,8 @@ class Agent:
         **completion_args: dict,
     ) -> str:
         """Simple one step chat with no tools."""
-        message, finish_reason = self.step(messages, tools=[], **completion_args)
-        return messages["content"]
+        message, _ = self.step(messages, tools=[], **completion_args)
+        return message["content"]
 
     def run(
         self,
