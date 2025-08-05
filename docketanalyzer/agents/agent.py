@@ -1,180 +1,243 @@
+import os
+from typing import Any
+
 import simplejson as json
+
+from docketanalyzer import env
 
 from .chat import Chat
 from .tool import Tool
 
 
+def export_env():
+    """Export llm env for litellm."""
+    keys = [
+        "ANTHROPIC_API_KEY",
+        "OPENAI_API_KEY",
+        "GEMINI_API_KEY",
+        "COHERE_API_KEY",
+        "GROQ_API_KEY",
+    ]
+    for key in keys:
+        if key not in os.environ and env[key]:
+            os.environ[key] = env[key]
+
+
 class Agent:
-    """A base class for agents that can use tools."""
+    """Simplified litellm wrapper for chat models with tools."""
+
+    default_model = "gpt-4.1-mini"
+    default_completion_args = None
+    default_tools = None
 
     def __init__(
         self,
-        messages: list[dict[str, str]] | None = None,
+        model: str | None = None,
         tools: list[Tool] | None = None,
-        chat: Chat | dict[str, str] | None = None,
-        max_steps_per_run: int = 30,
-        max_steps_per_lifetime: int = 100,
-    ):
-        """Initialize the agent.
-
-        This method is intended to be overridden for custom agents.
-            Use this space to setup any agent state attributes or configuration.
-            You must call self.setup() in this method.
-            You can use setup to add a fixed message history / system prompt,
-            a fixed set of tools, or a custom chat model.
-        """
-        self.setup(
-            messages=messages,
-            tools=tools,
-            chat=chat,
-            max_steps_per_run=max_steps_per_run,
-            max_steps_per_lifetime=max_steps_per_lifetime,
-        )
-
-    def __call__(self, messages: list[dict[str, str]] | str | None = None, **kwargs):
-        """Main entry point for the agent.
-
-        Intended to be overridden for custom workflows.
-        """
-        self.run(messages, **kwargs)
-
-    def setup(
-        self,
         messages: list[dict[str, str]] | None = None,
-        tools: list[Tool] | None = None,
-        chat: Chat | dict[str, str] | None = None,
-        max_steps_per_run: int = 30,
-        max_steps_per_lifetime: int = 100,
+        state: dict | None = None,
+        max_steps: int = 30,
+        temperature: float = 1e-16,
+        **completion_args: dict[str, Any],
     ):
-        """Setup basic agent config.
-
-        This method should be called by the __init__ method of the agent.
-
-        Args:
-            messages: A list of message dictionaries to initialize the agent with.
-                This is where you can add a system prompt or initial message history.
-            tools: A list of tool classes to initialize the agent with.
-            chat: A Chat instance or a dictionary to initialize the agent with.
-            max_steps_per_run: The maximum number of steps the agent can run in a
-                single call.
-            max_steps_per_lifetime: The maximum number of steps the agent can run
-                in its lifetime.
-
-        """
-        self.messages = messages or []
-        self.tools = tools or []
+        """Init agent."""
+        export_env()
+        model = model or self.default_model
+        args = {"model": model, "temperature": temperature, **completion_args}
+        default_completion_args = self.default_completion_args or {}
+        self.args = {**default_completion_args, **args}
+        self.tools = tools or self.default_tools or []
         self.tools = {tool.__name__: tool for tool in self.tools}
         self.tool_schemas = [tool.get_schema() for tool in self.tools.values()]
-        self.tool_call_data = {}
-        if isinstance(chat, dict):
-            chat = Chat(**chat)
-        self.chat = chat or Chat()
-        self.max_steps_per_run = max_steps_per_run
-        self.max_steps_per_lifetime = max_steps_per_lifetime
-        self.lifetime_steps = 0
-        self.initialized = True
+        self.messages = messages or []
+        self.state = state or {}
+        self.r = None
+        self.max_steps = max_steps
 
-    def call_tools(self, tool_calls: list[dict[str, str]]) -> list[dict[str, str]]:
-        """Call the tools with the given tool calls.
+    @property
+    def sanitized_messages(self):
+        """Sanitize messages for display."""
+        sanitized_messages = []
+        for message in self.messages:
+            sanitized_message = {
+                "role": message["role"],
+                "content": message["content"]
+            }
+            if "tool_calls" in message:
+                sanitized_message["tool_calls"] = message["tool_calls"]
+            if message["role"] == "tool":
+                sanitized_message["tool_call_id"] = message["tool_call_id"]
+            sanitized_messages.append(sanitized_message)
+        return sanitized_messages
 
-        This method runs the tool calls and adds the results to the message history.
-        If your tool also returns a data dictionary, it is stored in the tool_call_data
-        with the tool call id as the key.
-
-        Args:
-            tool_calls: A list of tool call dictionaries.
-        """
-        for tool_call in tool_calls:
-            tool_name = tool_call["function"]["name"]
-            tool = self.tools[tool_name]
-            tool_args = json.loads(tool_call["function"]["arguments"])
-            tool_response = tool(**tool_args)(self)
-            tool_data = {}
-            if isinstance(tool_response, tuple):
-                tool_response, tool_data = tool_response
-            self.tool_call_data[tool_call["id"]] = tool_data
-            self.messages.append(
-                {
-                    "tool_call_id": tool_call["id"],
-                    "role": "tool",
-                    "name": tool_name,
-                    "content": tool_response,
-                }
-            )
-
-    def prepare_step(self, messages: list[dict[str, str]] | str | None = None):
-        """Prepare the agent for a step."""
-        if not hasattr(self, "initialized") or not self.initialized:
-            raise ValueError("Agent not initialized. Your __init__ must call setup().")
-        if self.lifetime_steps >= self.max_steps_per_lifetime:
-            raise ValueError("Agent has reached max_steps_per_lifetime.")
-        self.lifetime_steps += 1
+    def prepare_generation(
+        self,
+        messages: list[dict[str, str]] | str | None = None,
+        tools: list[Tool | dict] | None = None,
+        **completion_args: dict,
+    ) -> dict:
+        """Prepare arguments for generation."""
         if messages is not None:
             if isinstance(messages, str):
                 messages = [{"role": "user", "content": messages}]
             self.messages.extend(messages)
+        tool_schemas = self.tool_schemas
+        if tools is not None:
+            tool_schemas = []
+            for tool in tools:
+                if isinstance(tool, Tool):
+                    self.tools[tool.__name__] = tool
+                    tool_schemas.append(tool.get_schema())
+                else:
+                    tool_name = tool["function"]["name"]
+                    if tool_name not in self.tools:
+                        raise Exception(
+                            f"'{tool_name}' is not defined. You must either pass "
+                            "the Tool object or a schema matching a Tool the agent "
+                            "was initialized with."
+                        )
+                    tool_schemas.append(tool)
+        completion_args["tools"] = tool_schemas
+        args = {**self.args, **completion_args}
+        args["messages"] = self.sanitized_messages
+        return args
 
-    def step(self, messages: list[dict[str, str]] | str | None = None, **kwargs) -> str:
-        """Run a single step of the conversation."""
-        self.prepare_step(messages)
-        self.chat(messages=self.messages, tools=self.tool_schemas, **kwargs)
-        self.messages = self.chat.messages
-        if self.chat.finish_reason == "tool_calls":
-            self.call_tools(self.messages[-1]["tool_calls"])
+    def step(
+        self,
+        messages: list[dict[str, str]] | str | None = None,
+        tools: list[Tool | dict] | None = None,
+        **completion_args: dict,
+    ):
+        """Take a single conversation step."""
+        from litellm import completion
+
+        args = self.prepare_generation(messages, tools, **completion_args)
+        self.r = completion(**args)
+        message = dict(self.r.choices[0].message)
+        if message.get("tool_calls"):
+            message["tool_calls"] = [
+                dict(tool_call, function=dict(tool_call.function))
+                for tool_call in message["tool_calls"]
+            ]
+        self.messages.append(message)
+        finish_reason = self.r.choices[0].finish_reason
+        return message, finish_reason
+
+    def chat(
+        self,
+        messages: list[dict[str, str]] | str | None = None,
+        **completion_args: dict,
+    ) -> str:
+        """Simple one step chat with no tools."""
+        message, finish_reason = self.step(messages, tools=[], **completion_args)
+        return messages["content"]
 
     def run(
         self,
-        messages: list[dict[str, str]] | str,
-        max_steps: int | None = None,
-        **kwargs,
+        messages: list[dict[str, str]] | str | None = None,
+        tools: list[Tool | dict] | None = None,
+        **completion_args: dict,
     ):
-        """Run the agent with the given messages."""
-        self.step(messages, **kwargs)
-        max_steps = max_steps or self.max_steps_per_run
-        num_steps = 1
-        while self.chat.finish_reason == "tool_calls":
-            if num_steps > max_steps:
-                raise ValueError("Agent has reached max_steps.")
-            self.step(**kwargs)
-            num_steps += 1
-
-    async def stream_step(
-        self, messages: list[dict[str, str]] | str | None = None, **kwargs
-    ):
-        """Run a single step of the conversation with streaming."""
-        self.prepare_step(messages)
-        async for chunk in self.chat.stream(
-            messages=self.messages, tools=self.tool_schemas, **kwargs
-        ):
-            delta = chunk.choices[0].delta
-            if delta.content:
-                yield {"content_delta": delta.content}
-            if self.chat.finish_reason:
-                self.messages = self.chat.messages
-                if "tool_calls" in self.messages[-1]:
-                    tool_calls = self.messages[-1]["tool_calls"]
-                    for tool_call in tool_calls:
-                        yield {"tool_call": tool_call}
-                    self.call_tools(tool_calls)
-                    for tool_call in tool_calls:
-                        tool_call_data = self.tool_call_data[tool_call["id"]]
-                        yield {"tool_result": {**tool_call, "result": tool_call_data}}
-                    break
+        """Run a sequence of steps including tool calls."""
+        message, finish_reason = self.step(messages, tools, **completion_args)
+        steps = 1
+        response_messages = [message]
+        while steps < self.max_steps and finish_reason == "tool_calls":
+            steps += 1
+            tool_calls = self.messages[-1]["tool_calls"]
+            for tool_call in tool_calls:
+                tool_name = tool_call["function"]["name"]
+                tool = self.tools[tool_name]
+                tool_args = json.loads(tool_call["function"]["arguments"])
+                tool_response = tool(**tool_args)(self)
+                tool_data = {}
+                if isinstance(tool_response, tuple):
+                    tool_response, tool_data = tool_response
+                self.messages.append(
+                    {
+                        "tool_call_id": tool_call["id"],
+                        "role": "tool",
+                        "content": tool_response,
+                        "name": tool_name,
+                        "data": tool_data,
+                        "args": tool_args,
+                    }
+                )
+            message, finish_reason = self.step(None, tools, **completion_args)
+            response_messages.append(message)
+        return response_messages
 
     async def stream(
         self,
-        messages: list[dict[str, str]] | str,
-        max_steps: int | None = None,
-        **kwargs,
+        messages: list[dict[str, str]] | str | None = None,
+        tools: list[Tool | dict] | None = None,
+        **completion_args: dict,
     ):
-        """Run the agent with the given messages."""
-        max_steps = max_steps or self.max_steps_per_run
-        num_steps = 1
-        async for response in self.stream_step(messages, **kwargs):
-            yield response
-        while self.chat.finish_reason == "tool_calls":
-            if num_steps > max_steps:
-                raise ValueError("Agent has reached max_steps.")
-            async for response in self.stream_step(**kwargs):
-                yield response
-            num_steps += 1
+        """Run a streaming generation with tool calls."""
+        from litellm import acompletion
+
+        steps, done = 0, False
+        while steps < self.max_steps and not done:
+            steps += 1
+
+            args = self.prepare_generation(messages, tools, **completion_args)
+            self.r = await acompletion(stream=True, **args)
+            self.messages.append({"role": "assistant", "content": ""})
+            tool_calls, messages = {}, None
+
+            async for chunk in self.r:
+                delta = chunk.choices[0].delta
+
+                if delta.content:
+                    if "tool_calls" in self.messages[-1]:
+                        self.messages.append({"role": "assistant", "content": ""})
+                    self.messages[-1]["content"] += delta.content
+                    yield {"content_delta": delta.content}
+
+                if delta.tool_calls:
+                    if "tool_calls" not in self.messages[-1]:
+                        self.messages.append(
+                            {"role": "assistant", "content": "", "tool_calls": []}
+                        )
+                    for tool_call in delta.tool_calls:
+                        if tool_call.index not in tool_calls:
+                            tool_calls[tool_call.index] = {
+                                "id": tool_call.id,
+                                "type": tool_call.type,
+                                "function": {
+                                    "name": tool_call.function.name,
+                                    "arguments": tool_call.function.arguments,
+                                },
+                            }
+                        else:
+                            if tool_call.function.arguments:
+                                tool_calls[tool_call.index]["function"][
+                                    "arguments"
+                                ] += tool_call.function.arguments
+                    self.messages[-1]["tool_calls"] = list(tool_calls.values())
+
+                finish_reason = chunk.choices[0].finish_reason
+                if finish_reason:
+                    if finish_reason == "tool_calls":
+                        yield self.messages[-1]
+                        for tool_call in self.messages[-1].get("tool_calls", []):
+                            tool_name = tool_call["function"]["name"]
+                            tool = self.tools[tool_name]
+                            tool_args = json.loads(tool_call["function"]["arguments"])
+                            tool_response = await tool(**tool_args)(self)
+                            tool_data = {}
+                            if isinstance(tool_response, tuple):
+                                tool_response, tool_data = tool_response
+                            self.messages.append(
+                                {
+                                    "tool_call_id": tool_call["id"],
+                                    "role": "tool",
+                                    "name": tool_name,
+                                    "content": tool_response,
+                                    "data": tool_data,
+                                    "args": tool_args,
+                                }
+                            )
+                            yield self.messages[-1]
+                    else:
+                        done = True
