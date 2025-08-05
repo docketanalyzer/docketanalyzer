@@ -86,7 +86,7 @@ class Registry:
             "Subclasses must implement find_filter() to define registration criteria."
         )
 
-    def find(self, module: ModuleType | None = None, recurse: bool = False) -> None:
+    def find(self, module: ModuleType | None = None, recurse: bool = True) -> None:
         """Find and register all objects in the module that match find_filter."""
         if module is None:
             module = self.module
