@@ -130,13 +130,13 @@ class DocketManager:
         docket_html_path = docket_html_paths[0]
         docket_html = docket_html_path.read_text()
         if not self.pacer.pacer_case_id_in_docket_html(docket_html):
-            pacer_case_id = self.pacer.find_candidate_cases(self.docket_id)[0][
-                "pacer_case_id"
-            ]
-            docket_html = self.pacer.add_pacer_case_id_to_docket_html(
-                docket_html, pacer_case_id
-            )
-            docket_html_path.write_text(docket_html)
+            candidates = self.pacer.find_candidate_cases(self.docket_id)
+            if candidates:
+                pacer_case_id = candidates[0]["pacer_case_id"]
+                docket_html = self.pacer.add_pacer_case_id_to_docket_html(
+                    docket_html, pacer_case_id
+                )
+                docket_html_path.write_text(docket_html)
         docket_json = self.pacer.parse(docket_html, self.court)
         self.docket_json_path.write_text(
             json.dumps(docket_json, indent=2, default=json_default)
