@@ -52,11 +52,5 @@ plugins:
 nav:
   - Overview: index.md
   - Configuration: config.md
-  - Quickstart:
-    - Docket Management: quickstart/dockets.md
-    - Agents: quickstart/agents.md
-  - Utilities:
-    - PACER: utils/pacer.md
-    - Services: utils/services.md
-  - Package Reference:
-    - api/main.md
+  - Toolkit:
+    - PACER: toolkit/pacer.md

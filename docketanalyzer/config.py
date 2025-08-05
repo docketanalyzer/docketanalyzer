@@ -52,6 +52,7 @@ env = Config(
             mask=True,
             group="wandb",
         ),
+        # LLM Providers
         dict(
             name="ANTHROPIC_API_KEY",
             key_type="str",
@@ -92,6 +93,7 @@ env = Config(
             mask=True,
             group="groq",
         ),
+        # Services
         dict(
             name="ELASTIC_HOST",
             key_type="str",
@@ -186,6 +188,7 @@ env = Config(
             group="s3",
             mask=True,
         ),
+        # Developer
         dict(
             name="PYPI_TOKEN",
             key_type="str",

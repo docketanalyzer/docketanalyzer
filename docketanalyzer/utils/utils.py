@@ -84,10 +84,10 @@ def download_file(url: str, path: str | Path, description: str = "Downloading"):
 class timeit:
     """Context manager for timing things.
 
-    Usage:
+    ```python
     with timeit("Task"):
         # do something
-        do_something()
+    ```
 
     This will print the time taken to execute the block of code.
     """

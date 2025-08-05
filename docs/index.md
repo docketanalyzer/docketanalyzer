@@ -1,8 +1,10 @@
-# Docket Analyzer
+# Docket Analyzer Python Package
 
-Docket Analyzer is a AI toolkit for working with federal court dockets.
+The Docket Analyzer Python package is a toolkit for working with federal court dockets.
 
-Install docketanalyzer with pip:
+> **Note** These docs are a work in progress. Will finish by v1.0.0.
+
+You can install it with `pip`:
 
 ```bash
 pip install 'docketanalyzer[all]'
@@ -20,3 +22,5 @@ Alternatively, you can install just the core package and/or specific extensions:
 pip install docketanalyzer
 pip install 'docketanalyzer[pacer]'
 ```
+
+Most of the docketanalyzer utilities are extremely high-level, opinionated wrappers around existing tools (e.g. Juriscraper, LiteLLM, HuggingFace, etc.). If the design choices don't fit your use case, we encourage you to use the underlying tools directly.
