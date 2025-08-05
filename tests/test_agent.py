@@ -98,18 +98,22 @@ def test_groq_chat():
 def test_conversation_history():
     """Test persistent conversation history."""
     agent = Agent()
-    agent.run(notabs("""
+    agent.run(
+        notabs("""
         This is a unit test to make sure we're maintaining conversation history.
         The secret number is 72.
                            
         Just respond with the word 'ok' and nothing else.
-    """))
-    
-    response_messages = agent.run(notabs("""
+    """)
+    )
+
+    response_messages = agent.run(
+        notabs("""
         Ok, what was the secret number?
         Please respond with the number itself and nothing else.
-    """))
-    response = response_messages[-1]['content']
+    """)
+    )
+    response = response_messages[-1]["content"]
 
     assert "72" in response, "Secret number not found in response"
     assert len(agent.messages) == 4, "Message history length not correct"
@@ -158,7 +162,7 @@ def test_agent_tool_use():
         elif message["role"] == "tool":
             tool_results += 1
 
-    last_response = agent.messages[-1]['content']
+    last_response = agent.messages[-1]["content"]
     assert user_messages == 1, "Expected one user message"
     assert assistant_messages == 2, "Expected two assistant messages"
     assert tool_calls == 2, "Expected two tool call messages"
@@ -188,7 +192,7 @@ def test_streaming_agent_tool_use():
 
     asyncio.run(run_stream())
 
-    last_response = agent.messages[-1]['content']
+    last_response = agent.messages[-1]["content"]
     assert content_delta_count > 5, "Too few content deltas in response stream"
     assert tool_calls == 2, "Expected two tool calls in response stream"
     assert tool_results == 2, "Expected two tool results in response stream"
