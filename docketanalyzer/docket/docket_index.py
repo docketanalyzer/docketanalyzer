@@ -75,7 +75,9 @@ class DocketIndex:
     @property
     def s3(self):
         """Get the S3 connection."""
-        return load_clients("s3")
+        s3 = load_clients("s3")
+        s3.data_dir = self.data_dir
+        return s3
 
     def push(self, path: str | Path = "", confirm: bool = False, **args):
         """Push the local data to S3."""
