@@ -16,7 +16,7 @@ from pandas.errors import OutOfBoundsDatetime
 from tqdm import tqdm
 
 BASE_DIR = Path(__file__).parent.parent.resolve()
-CONFIG_DIR = Path.home() / ".cache" / "docketanalyzer"
+CACHE_DIR = Path.home() / ".cache" / "docketanalyzer"
 
 
 class extension_required:

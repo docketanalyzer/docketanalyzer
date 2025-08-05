@@ -1,9 +1,9 @@
 from pathlib import Path
 
-from docketanalyzer import CONFIG_DIR, Config
+from docketanalyzer import CACHE_DIR, Config
 
 env = Config(
-    path=CONFIG_DIR / "config.json",
+    path=CACHE_DIR / "config.json",
     keys=[
         dict(
             name="DA_DATA_DIR",
@@ -35,7 +35,6 @@ env = Config(
             mask=True,
             group="recap",
         ),
-        # ML Tools
         dict(
             name="HF_TOKEN",
             key_type="str",
@@ -52,7 +51,6 @@ env = Config(
             mask=True,
             group="wandb",
         ),
-        # LLM Providers
         dict(
             name="ANTHROPIC_API_KEY",
             key_type="str",
@@ -93,7 +91,6 @@ env = Config(
             mask=True,
             group="groq",
         ),
-        # Services
         dict(
             name="ELASTIC_HOST",
             key_type="str",
@@ -188,7 +185,6 @@ env = Config(
             group="s3",
             mask=True,
         ),
-        # Developer
         dict(
             name="PYPI_TOKEN",
             key_type="str",

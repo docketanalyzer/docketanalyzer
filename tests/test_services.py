@@ -40,7 +40,6 @@ def test_elastic_connection():
     assert es_service.status(), "Elasticsearch could not connect"
 
 
-@pytest.mark.local
 def test_redis_connection():
     """Test the Redis service."""
     redis_service = load_clients("redis", return_service=True)
