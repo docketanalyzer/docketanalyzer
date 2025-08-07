@@ -101,7 +101,10 @@ class Pacer:
             tuple: A tuple containing the raw HTML and the parsed docket JSON.
         """
         court, _ = parse_docket_id(docket_id)
-        pacer_case_id = self.find_candidate_cases(docket_id)[0]["pacer_case_id"]
+        candidates = self.find_candidate_cases(docket_id)
+        if len(candidates) == 0:
+            return None, None
+        pacer_case_id = candidates[0]["pacer_case_id"]
         return self.purchase_docket_with_pacer_case_id(court, pacer_case_id, **kwargs)
 
     def purchase_docket_with_pacer_case_id(

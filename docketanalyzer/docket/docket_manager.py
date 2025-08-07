@@ -25,6 +25,7 @@ class DocketManager:
         self.index = index
         self.dir = self.index.dir / self.docket_id
         self.docket_json_path = self.dir / "docket.json"
+        self.status_path = self.dir / "status.json"
 
     # Docket data paths
     @property
@@ -110,6 +111,9 @@ class DocketManager:
             print("Pass `update=True` to purchase an updated version.")
             return False
         docket_html, _ = self.pacer.purchase_docket(self.docket_id, **kwargs)
+        if not docket_html:
+            print(f"Failed to purchase docket: {self.docket_id}")
+            return False
 
         html_versions = [
             re.search(r"pacer\.(\d+)\.html", path.name) for path in docket_html_paths
@@ -262,6 +266,19 @@ class DocketManager:
     def batch(self):
         """Get a batch of one for this docket."""
         return self.index.make_batch([self.docket_id])
+
+    @property
+    def status(self):
+        """Get the status for this docket."""
+        if self.status_path.exists():
+            return json.loads(self.status_path.read_text())
+        return {}
+
+    def set_status(self, status_update: dict):
+        """Set the status for this docket."""
+        status = self.status
+        status.update(status_update)
+        self.status_path.write_text(json.dumps(status, indent=2))
 
     def __getattribute__(self, name: str):
         """Passthrough attributes from the index and batch."""
