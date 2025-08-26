@@ -105,10 +105,12 @@ class Agent:
         **completion_args: dict,
     ):
         """Take a single conversation step."""
-        from litellm import completion
+        import litellm
+
+        litellm.drop_params = True
 
         args = self.prepare_generation(messages, tools, **completion_args)
-        self.r = completion(**args)
+        self.r = litellm.completion(**args)
         message = dict(self.r.choices[0].message)
         if message.get("tool_calls"):
             message["tool_calls"] = [
@@ -170,14 +172,16 @@ class Agent:
         **completion_args: dict,
     ):
         """Run a streaming generation with tool calls."""
-        from litellm import acompletion
+        import litellm
+
+        litellm.drop_params = True
 
         steps, done = 0, False
         while steps < self.max_steps and not done:
             steps += 1
 
             args = self.prepare_generation(messages, tools, **completion_args)
-            self.r = await acompletion(stream=True, **args)
+            self.r = await litellm.acompletion(stream=True, **args)
             self.messages.append({"role": "assistant", "content": ""})
             tool_calls, messages = {}, None
 

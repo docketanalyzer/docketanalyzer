@@ -19,6 +19,7 @@ def temp_data_dir():
     shutil.rmtree(temp_dir)
 
 
+@pytest.mark.local
 def test_psql_connection():
     """Test the Postgres service."""
     key_check = bool(env.APP_HOST) or bool(env.POSTGRES_HOST)

@@ -84,7 +84,6 @@ def test_multi_label_classification(model_dir):
     assert model_dir.exists(), f"Model directory {model_dir} does not exist"
 
     pipe = pipeline("multi-label-classification", model_name=str(model_dir))
-    print(pipe(["apple", "banana", "dog", "cat"]))
 
     assert pipe(["apple", "banana", "dog", "bird"]) == [
         ["fruit", "red"],
