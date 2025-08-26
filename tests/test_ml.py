@@ -110,7 +110,7 @@ def test_token_classification(model_dir):
 
     for text in texts:
         start = text.index("John Doe")
-        for _ in range(600):
+        for _ in range(300):
             data.append(
                 {
                     "text": text,
@@ -182,7 +182,6 @@ def test_multi_task(model_dir):
     )
 
     data = pd.DataFrame(data).sample(frac=1)
-    print(data)
 
     split = int(0.8 * len(data))
     train_data = data.head(split)
@@ -216,6 +215,13 @@ def test_multi_task(model_dir):
         assert sorted(preds[i]["labels"]) == sorted(data.iloc[i]["labels"]), (
             f"Labels do not match for text {texts[i]}"
         )
-        assert sorted(preds[i]["spans"], key=lambda x: x["start"]) == sorted(
-            data.iloc[i]["spans"], key=lambda x: x["start"]
-        ), f"Spans do not match for text {texts[i]}"
+
+        for pred in preds[i]["spans"]:
+            del pred["text"]
+            del pred["score"]
+
+        assert sorted(
+            preds[i]["spans"], key=lambda x: (x["start"], x["end"])
+        ) == sorted(data.iloc[i]["spans"], key=lambda x: (x["start"], x["end"])), (
+            f"Spans do not match for text {texts[i]}"
+        )

@@ -77,9 +77,9 @@ class MultiTaskRoutine(TokenClassificationRoutine):
         if "label_map" not in self.cache:
             label_map = {}
             for label_name in self.label_names:
-                label_map["O-" + label_name] = len(label_map)
                 label_map["B-" + label_name] = len(label_map)
                 label_map["I-" + label_name] = len(label_map)
+                label_map["O-" + label_name] = len(label_map)
             self.cache["label_map"] = label_map
         return self.cache["label_map"]
 

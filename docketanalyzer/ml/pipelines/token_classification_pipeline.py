@@ -21,74 +21,79 @@ class TokenClassificationPipeline(Pipeline):
         "idx",
     ]
 
-    def init_preds(self, dataset, **kwargs):
-        """Initialize the prediction tensor."""
-        max_len = max(len(x) for x in dataset["input_ids"])
+    def process_batch(self, batch, outputs, **kwargs):
+        """Process the batch."""
+        logits = outputs.logits
 
-        def get_start_end(inputs):
-            start = [x[:, 0].tolist() for x in inputs["offset_mapping"]]
-            start = [x + [0] * (max_len - len(x)) for x in start]
-            end = [x[:, 1].tolist() for x in inputs["offset_mapping"]]
-            end = [x + [0] * (max_len - len(x)) for x in end]
-            return dict(start=start, end=end)
+        id2label_type = self.id2label_type.to(logits.device)
+        id2entity_id = self.id2entity_id.to(logits.device)
+        entity_names = self.entity_names
+        starts = batch["starts"]
+        ends = batch["ends"]
 
-        dataset = dataset.map(get_start_end, batched=True)
-        dataset = dataset.remove_columns(["offset_mapping"])
-        return dataset, torch.full(
-            (len(dataset), max_len), self.model.config.label2id["O"], dtype=torch.long
-        )
+        scores, labels = logits.softmax(-1).max(-1)
 
-    def process_outputs(self, outputs, **kwargs):
-        """Argmax the label dimension."""
-        return outputs.logits.argmax(dim=-1)
+        valid = ends.to(logits.device) > 0
+        entity_ids = id2entity_id[labels]
+        entity_ids = entity_ids * valid + (~valid) * (-1)
+        label_types = id2label_type[labels]
+        label_types = label_types * valid
 
-    def post_process_preds(self, examples, preds, dataset, **kwargs):
-        """Convert BIO-encoded labels to spans."""
-        id2label = self.model.config.id2label
-        dataset = dataset.sort("idx")
-        starts = dataset["start"]
-        ends = dataset["end"]
-        broken = True
+        is_B = label_types == 0
+        is_I = label_types == 1
+        is_O = label_types == 2
 
-        results = []
-        for i, example in enumerate(examples):
-            token_ids = preds[i]
+        prev_is_O = torch.zeros_like(is_O)
+        prev_is_O[:, 1:] = is_O[:, :-1]
+        prev_ent_diff = torch.zeros_like(is_O, dtype=torch.bool)
+        prev_ent_diff[:, 1:] = entity_ids[:, 1:] != entity_ids[:, :-1]
+        start_mask = is_B | (is_I & (prev_is_O | prev_ent_diff))
+
+        next_is_O = torch.zeros_like(is_O)
+        next_is_O[:, :-1] = is_O[:, 1:]
+        next_ent_diff = torch.zeros_like(is_O, dtype=torch.bool)
+        next_ent_diff[:, :-1] = entity_ids[:, :-1] != entity_ids[:, 1:]
+        end_mask = (~is_O) & (next_is_O | next_ent_diff)
+        end_mask[:, -1] |= ~is_O[:, -1]
+
+        preds = []
+        scores = scores.detach().cpu()
+        entity_ids = entity_ids.detach().cpu()
+        start_mask = start_mask.detach().cpu()
+        end_mask = end_mask.detach().cpu()
+
+        for i in range(len(batch["input_ids"])):
+            example_start_idxs = torch.nonzero(start_mask[i], as_tuple=False).flatten()
+            example_end_idxs = torch.nonzero(end_mask[i], as_tuple=False).flatten()
             spans = []
-            for tok_idx, label_id in enumerate(token_ids):
-                if dataset[i]["input_ids"][tok_idx] in [
-                    self.model.config.eos_token_id,
-                    self.model.config.pad_token_id,
-                ]:
-                    break
+            for span_idx in range(min(len(example_start_idxs), len(example_end_idxs))):
+                start_idx = example_start_idxs[span_idx].item()
+                end_idx = example_end_idxs[span_idx].item()
+                entity_id = entity_ids[i, start_idx].item()
+                if entity_id < 0:
+                    continue
+                spans.append(
+                    {
+                        "start": starts[i, start_idx].item(),
+                        "end": ends[i, end_idx].item(),
+                        "label": entity_names[entity_id],
+                        "score": scores[i, start_idx : end_idx + 1].mean().item(),
+                    }
+                )
+            preds.append(spans)
 
-                label_id = label_id.item()
-                if label_id == -1:
-                    break
-                label = id2label[label_id]
-                start, end = starts[i][tok_idx], ends[i][tok_idx]
-                if label == "O":
-                    broken = True
-                elif label.startswith("B-") or broken:
-                    spans.append(
-                        {"start": start.item(), "end": end.item(), "label": label[2:]}
-                    )
-                    broken = False
-                elif label.startswith("I-"):
-                    if spans and spans[-1]["label"] == label[2:]:
-                        spans[-1]["end"] = end.item()
-                    else:
-                        spans.append(
-                            {
-                                "start": start.item(),
-                                "end": end.item(),
-                                "label": label[2:],
-                            }
-                        )
-            for span in spans:
-                if example[span["start"]] == " ":
+        return preds
+
+    def post_process_preds(self, examples, preds, **kwargs):
+        """Post-process predictions hook."""
+        for i, pred in enumerate(preds):
+            for span in pred:
+                span_text = examples[i][span["start"] : span["end"]]
+                if span_text[0] == " ":
                     span["start"] += 1
-            results.append(spans)
-        return results
+                    span_text = span_text[1:]
+                span["text"] = span_text
+        return preds
 
 
 class NERPipeline(TokenClassificationPipeline):

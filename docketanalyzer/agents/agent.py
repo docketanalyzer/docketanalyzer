@@ -25,7 +25,7 @@ def export_env():
 class Agent:
     """Simplified litellm wrapper for chat models with tools."""
 
-    default_model = "gpt-4.1-mini"
+    default_model = "gpt-5-mini"
     default_completion_args = None
     default_tools = None
 

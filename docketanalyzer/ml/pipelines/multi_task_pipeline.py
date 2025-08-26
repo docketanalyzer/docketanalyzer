@@ -21,111 +21,87 @@ class MultiTaskPipeline(Pipeline):
         "idx",
     ]
 
-    def init_preds(self, dataset, **kwargs):
-        """Initialize the prediction tensor."""
-        max_len = max(len(x) for x in dataset["input_ids"])
+    def process_batch(self, batch, outputs, **kwargs):
+        """Process the batch."""
+        logits = outputs.logits
+        original_shape = logits.shape
 
-        def get_start_end(inputs):
-            start = [x[:, 0].tolist() for x in inputs["offset_mapping"]]
-            start = [x + [0] * (max_len - len(x)) for x in start]
-            end = [x[:, 1].tolist() for x in inputs["offset_mapping"]]
-            end = [x + [0] * (max_len - len(x)) for x in end]
-            return dict(start=start, end=end)
+        id2entity_name = self.id2entity_name
+        entity_names = self.entity_names
+        starts = batch["starts"]
+        ends = batch["ends"]
 
-        dataset = dataset.map(get_start_end, batched=True)
-        dataset = dataset.remove_columns(["offset_mapping"])
-        return dataset, torch.zeros(
-            (len(dataset), max_len, len(self.model.config.id2label)), dtype=torch.long
-        )
+        scores = logits.view(*original_shape[:2], len(entity_names), 3).softmax(-1)
+        labels = scores.argmax(-1)
+        scores = scores.gather(-1, labels.unsqueeze(-1)).squeeze(-1)
+        valid = (ends.to(logits.device) > 0).unsqueeze(-1)
 
-    def process_outputs(self, outputs, **kwargs):
-        """Argmax the label dimension."""
-        original_shape = outputs.logits.shape
-        logits = outputs.logits.reshape((-1, 3))
-        scores = logits.softmax(-1)
-        preds = (scores == scores.max(-1, keepdim=True)[0]).float()
-        preds = preds.reshape(original_shape)
+        sequence_labels = labels[:, 0, :]
+        labels = labels.where(valid, torch.full_like(labels, 2))
+        scores = scores.where(valid, torch.zeros_like(scores))
+
+        is_B = labels == 0
+        is_I = labels == 1
+        is_O = labels == 2
+
+        prev_is_O = torch.zeros_like(is_O)
+        prev_is_O[:, 1:, :] = is_O[:, :-1, :]
+        start_mask = is_B | (is_I & prev_is_O)
+
+        next_is_I = torch.zeros_like(is_I)
+        next_is_I[:, :-1, :] = is_I[:, 1:, :]
+        end_mask = (~is_O) & (~next_is_I)
+        end_mask[:, -1, :] |= ~is_O[:, -1, :]
+
+        start_mask = start_mask.detach().cpu()
+        end_mask = end_mask.detach().cpu()
+        scores = scores.detach().cpu()
+
+        preds = []
+        for i in range(original_shape[0]):
+            spans = []
+
+            for label_idx in range(len(entity_names)):
+                example_start_idxs = torch.nonzero(
+                    start_mask[i, :, label_idx], as_tuple=False
+                ).flatten()
+                example_end_idxs = torch.nonzero(
+                    end_mask[i, :, label_idx], as_tuple=False
+                ).flatten()
+                for span_idx in range(
+                    min(len(example_start_idxs), len(example_end_idxs))
+                ):
+                    start_idx = example_start_idxs[span_idx].item()
+                    end_idx = example_end_idxs[span_idx].item()
+                    spans.append(
+                        {
+                            "start": starts[i, start_idx].item(),
+                            "end": ends[i, end_idx].item(),
+                            "label": id2entity_name[label_idx * 3],
+                            "score": (
+                                scores[i, start_idx : end_idx + 1, label_idx]
+                                .mean()
+                                .item()
+                            ),
+                        }
+                    )
+
+            example_labels = []
+            for label_idx in range(len(entity_names)):
+                if sequence_labels[i, label_idx] == 0:
+                    example_labels.append(id2entity_name[label_idx * 3])
+
+            preds.append({"spans": spans, "labels": example_labels})
+
         return preds
 
-    def post_process_preds(self, examples, preds, dataset, **kwargs):
-        """Convert BIO-encoded labels to labels and spans."""
-        dataset = dataset.sort("idx")
-        batch_size, seq_len, num_labels = preds.shape
-        num_groups = num_labels // 3
-        tok_idxs = (
-            torch.arange(seq_len).repeat_interleave(num_groups).repeat(batch_size)
-        )
-        max_toks = torch.tensor(
-            [len(x) - 1 for x in dataset["input_ids"]]
-        ).repeat_interleave(seq_len * num_groups)
-        mask = tok_idxs < max_toks
-        tok_idxs = tok_idxs[mask]
-
-        example_idxs = torch.arange(batch_size).repeat_interleave(seq_len * num_groups)[
-            mask
-        ]
-        group_idxs = torch.arange(num_groups).repeat(batch_size * seq_len)[mask]
-        preds = preds.reshape(-1, 3).argmax(-1)[mask]
-
-        starts = torch.stack(list(dataset["start"]))
-        starts = starts.reshape(-1).repeat_interleave(num_groups)[mask]
-        ends = torch.stack(list(dataset["end"]))
-        ends = ends.reshape(-1).repeat_interleave(num_groups)[mask]
-
-        label_lookup = [
-            self.model.config.id2label[i].split("-") for i in range(num_labels)
-        ]
-        rows = torch.stack(
-            [example_idxs, tok_idxs, group_idxs, preds, starts, ends], dim=1
-        ).tolist()
-
-        results = []
-
-        current_example = None
-        span_groups = {}
-
-        for row in rows:
-            example_idx, tok_idx, group_idx, pred, start, end = row
-            label_type, label_name = label_lookup[group_idx * 3 + pred]
-
-            if example_idx != current_example:
-                if current_example is not None:
-                    # Close any remaining spans
-                    results[-1]["spans"].extend(span_groups.values())
-                    # Remove leading spaces
-                    for span in results[-1]["spans"]:
-                        if examples[current_example][span["start"]] == " ":
-                            span["start"] += 1
-                results.append(dict(labels=[], spans=[]))
-                current_example = example_idx
-                span_groups = {}
-            if tok_idx == 0:  # add sentence-level labels
-                if label_type == "B":
-                    results[-1]["labels"].append(label_name)
-            else:  # add spans
-                # Close the span if ended or new
-                if label_name in span_groups and label_type in [
-                    "O",
-                    "B",
-                ]:
-                    results[-1]["spans"].append(span_groups.pop(label_name))
-
-                # Open new spans
-                if label_type == "B":
-                    span_groups[label_name] = {
-                        "start": start,
-                        "end": end,
-                        "label": label_name,
-                    }
-
-                # Continue existing spans
-                elif label_type == "I":
-                    if label_name in span_groups:
-                        span_groups[label_name]["end"] = end
-                    else:  # Open in edge case where it wasn't already
-                        span_groups[label_name] = {
-                            "start": start,
-                            "end": end,
-                            "label": label_name,
-                        }
-        return results
+    def post_process_preds(self, examples, preds, **kwargs):
+        """Post-process predictions hook."""
+        for i, pred in enumerate(preds):
+            for span in pred["spans"]:
+                span_text = examples[i][span["start"] : span["end"]]
+                if span_text[0] == " ":
+                    span["start"] += 1
+                    span_text = span_text[1:]
+                span["text"] = span_text
+        return preds

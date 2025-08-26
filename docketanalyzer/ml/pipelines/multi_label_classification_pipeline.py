@@ -10,37 +10,27 @@ class MultiLabelClassificationPipeline(ClassificationPipeline):
     model_class = AutoModelForSequenceClassification
     threshold = 0.5
 
-    def process_outputs(self, outputs, **kwargs):
+    def process_batch(self, batch, outputs, return_scores=False, **kwargs):
         """Apply sigmoid to the logits."""
-        return outputs.logits.sigmoid()
+        id2label = self.id2label
+        scores = outputs.logits.sigmoid()
+        mask = scores > self.threshold
+        labels = mask.nonzero(as_tuple=False).cpu().tolist()
 
-    def post_process_preds(
-        self, examples, preds, dataset=None, return_scores=False, **kwargs
-    ):
-        """Return the labels and scores for multi-label classification."""
         if return_scores:
-            return [
-                {
-                    "labels": [
-                        label_name
-                        for j, label_name in self.id2label.items()
-                        if p[j].item() > self.threshold
-                    ],
-                    "scores": {
-                        label_name: p[j].item()
-                        for j, label_name in self.id2label.items()
-                    },
-                }
-                for p in preds
+            scores = scores.cpu().tolist()
+            preds = [
+                {"labels": [], "scores": {v: scores[i][k] for k, v in id2label.items()}}
+                for i in range(mask.shape[0])
             ]
-        return [
-            [
-                label_name
-                for j, label_name in self.id2label.items()
-                if p[j].item() > self.threshold
-            ]
-            for p in preds
-        ]
+            for idx, label_id in labels:
+                preds[idx]["labels"].append(id2label[label_id])
+            return preds
+
+        preds = [[] for _ in range(mask.shape[0])]
+        for idx, label_id in labels:
+            preds[idx].append(id2label[label_id])
+        return preds
 
     def __call__(self, examples, batch_size=1, return_scores=False):
         """Main entrypoint, expects a list of strings."""
@@ -53,3 +43,15 @@ class MultilabelClassificationPipeline(MultiLabelClassificationPipeline):
     """Alias for multi-label classification pipeline."""
 
     name = "multilabel-classification"
+
+
+class MultiLabelPipeline(MultiLabelClassificationPipeline):
+    """Alias for multi-label classification pipeline."""
+
+    name = "multi-label"
+
+
+class MultilabelPipeline(MultiLabelClassificationPipeline):
+    """Alias for multi-label classification pipeline."""
+
+    name = "multilabel"

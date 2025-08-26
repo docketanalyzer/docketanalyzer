@@ -17,7 +17,7 @@ pipeline_registry.find()
 pipeline_registry.import_registered()
 
 
-def pipeline(name, remote=False, **kwargs):
+def pipeline(name, model_name=None, remote=False, **kwargs):
     """Load and initialize a pipeline by name."""
     if remote:
         raise NotImplementedError("Remote pipelines are not supported yet.")
@@ -26,5 +26,5 @@ def pipeline(name, remote=False, **kwargs):
         return RemotePipeline(name, **kwargs)
     for pipeline_class in pipeline_registry.all():
         if pipeline_class.name == name:
-            return pipeline_class(**kwargs)
+            return pipeline_class(model_name=model_name, **kwargs)
     raise ValueError(f'Pipeline "{name}" not found.')

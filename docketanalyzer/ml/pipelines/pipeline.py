@@ -8,7 +8,40 @@ from typing import ClassVar
 import torch
 from datasets import Dataset
 from tqdm import tqdm
-from transformers import AutoTokenizer, DataCollatorWithPadding
+from transformers import AutoTokenizer
+
+
+class DataCollator:
+    """Data collator."""
+
+    def __init__(self, tokenizer, padding=True, pad_to_multiple_of=8):
+        """Initialize the data collator."""
+        self.tokenizer = tokenizer
+        self.padding = padding
+        self.pad_to_multiple_of = pad_to_multiple_of
+
+    def __call__(self, features):
+        """Call the data collator."""
+        starts, ends = [], []
+        for row in features:
+            if "offset_mapping" in row:
+                offset_mapping = row.pop("offset_mapping")
+                starts.append(offset_mapping[:, 0])
+                ends.append(offset_mapping[:, 1])
+        features = self.tokenizer.pad(
+            features, padding=self.padding, pad_to_multiple_of=self.pad_to_multiple_of
+        )
+        if starts:
+            features["starts"] = torch.full(
+                features["input_ids"].shape, fill_value=-1, dtype=torch.long
+            )
+            features["ends"] = torch.full(
+                features["input_ids"].shape, fill_value=-1, dtype=torch.long
+            )
+            for i, (start, end) in enumerate(zip(starts, ends, strict=True)):
+                features["starts"][i, : len(start)] = start
+                features["ends"][i, : len(end)] = end
+        return features
 
 
 class Pipeline:
@@ -33,7 +66,6 @@ class Pipeline:
         num_workers=0,
         device=None,
         bf16=True,
-        smart_sort=True,
     ):
         """Initialize the pipeline."""
         self.model_name = model_name or self.default_model_name
@@ -45,7 +77,6 @@ class Pipeline:
         self.num_workers = num_workers
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         self.bf16 = bf16
-        self.smart_sort = smart_sort
         self.cache = {}
         self.post_init()
 
@@ -72,6 +103,60 @@ class Pipeline:
         """Check if the model is loaded."""
         return "model" in self.cache
 
+    @property
+    def id2label(self):
+        """Get the mapping for label id to label names."""
+        if "id2label" not in self.cache:
+            self.cache["id2label"] = self.model.config.id2label
+        return self.cache["id2label"]
+
+    @property
+    def id2label_type(self):
+        """Get the mapping for label id to label types."""
+        if "id2label_type" not in self.cache:
+            label_types = {k: v.split("-")[0] for k, v in self.id2label.items()}
+            label_types = sorted(label_types.items(), key=lambda x: x[0])
+            label_types = [x[1] for x in label_types]
+            label_type_map = {
+                "B": 0,
+                "I": 1,
+                "O": 2,
+            }
+            label_types = [label_type_map[label_type] for label_type in label_types]
+            self.cache["id2label_type"] = torch.tensor(label_types)
+        return self.cache["id2label_type"]
+
+    @property
+    def id2entity_name(self):
+        """Get the mapping for label id to entity names."""
+        if "id2entity_name" not in self.cache:
+            self.cache["id2entity_name"] = {
+                k: v.split("-")[-1] for k, v in self.id2label.items()
+            }
+        return self.cache["id2entity_name"]
+
+    @property
+    def entity_names(self):
+        """Get the entity id to entity names."""
+        if "entity_names" not in self.cache:
+            entity_names = list(set(self.id2entity_name.values()))
+            if "O" in entity_names:
+                entity_names.remove("O")
+            self.cache["entity_names"] = entity_names
+        return self.cache["entity_names"]
+
+    @property
+    def id2entity_id(self):
+        """Get the mapping for label id to entity ids."""
+        if "id2entity_id" not in self.cache:
+            entity_names = self.entity_names
+            id2entity_id = sorted(self.id2entity_name.items(), key=lambda x: x[0])
+            id2entity_id = [
+                entity_names.index(x[1]) if x[1] != "O" else -1 for x in id2entity_id
+            ]
+            self.cache["id2entity_id"] = torch.tensor(id2entity_id)
+        return self.cache["id2entity_id"]
+
     def clear_gpu(self):
         """Delete the model from the GPU cache."""
         if self.model_loaded:
@@ -97,11 +182,11 @@ class Pipeline:
             dict(text=examples, idx=list(range(len(examples)))), split="train"
         )
         dataset = dataset.map(self.tokenize, batched=True)
-        if self.smart_sort:
-            dataset = dataset.map(
-                lambda x: {"length": [len(y) for y in x["input_ids"]]}, batched=True
-            )
-            dataset = dataset.sort("length", reverse=True)
+
+        dataset = dataset.map(
+            lambda x: {"length": [len(y) for y in x["input_ids"]]}, batched=True
+        )
+        dataset = dataset.sort("length", reverse=True)
         dataset.set_format(type="torch", columns=self.dataset_cols)
         return dataset
 
@@ -113,35 +198,26 @@ class Pipeline:
             shuffle=False,
             pin_memory=True,
             num_workers=self.num_workers,
-            collate_fn=DataCollatorWithPadding(
-                self.tokenizer, padding=True, pad_to_multiple_of=8
-            ),
+            collate_fn=DataCollator(self.tokenizer),
         )
         return dataloader
-
-    def pre_process_examples(self, examples, **kwargs):
-        """Pre-process examples hook."""
-        return examples
 
     def post_process_preds(self, examples, preds, **kwargs):
         """Post-process predictions hook."""
         return preds
 
-    def init_preds(self, dataset, **kwargs):
-        """Initialize the prediction tensor."""
-        raise NotImplementedError
-
-    def process_outputs(self, outputs, **kwargs):
+    def process_batch(self, outputs, **kwargs):
         """Process the outputs of a batch."""
         raise NotImplementedError
 
     def predict(self, examples, batch_size=1, **kwargs):
         """Predict the labels for the examples."""
-        examples = self.pre_process_examples(examples, **kwargs)
+        num_pad_examples = len(examples) % batch_size
+        num_pad_examples = (batch_size - num_pad_examples) % batch_size
+
         dataset = self.create_dataset(examples)
 
-        dataset, preds = self.init_preds(dataset, **kwargs)
-        idxs = torch.empty(len(dataset), dtype=torch.long)
+        preds = [None] * len(dataset)
 
         dataloader = self.create_dataloader(
             dataset,
@@ -149,9 +225,8 @@ class Pipeline:
         )
 
         model = self.model
-
         model.eval().to(self.device)
-        start_idx = 0
+
         with torch.no_grad():
             autocast_context = (
                 torch.autocast(self.device, dtype=torch.bfloat16)
@@ -160,24 +235,18 @@ class Pipeline:
             )
             with autocast_context:
                 for batch in tqdm(dataloader, desc="Predicting"):
-                    batch_len = batch["input_ids"].shape[0]
-                    idxs[start_idx : start_idx + batch_len] = batch["idx"]
-                    del batch["idx"]
-                    batch = {
+                    idxs = batch.pop("idx").tolist()
+                    inputs = {
                         k: batch[k].to(self.device, non_blocking=False)
                         for k in ["input_ids", "attention_mask"]
                     }
-                    outputs = model(**batch)
-                    batch_preds = self.process_outputs(outputs, **kwargs).cpu()
-                    preds[start_idx : start_idx + batch_len, : batch_preds.shape[1]] = (
-                        batch_preds[:, : preds.shape[1]]
-                    )
-                    start_idx += batch_len
+                    outputs = model(**inputs)
+                    batch_preds = self.process_batch(batch, outputs, **kwargs)
+                    for i, idx in enumerate(idxs):
+                        preds[idx] = batch_preds[i]
                     del outputs
-                    torch.cuda.empty_cache()
 
-        idxs = idxs.argsort()
-        preds = preds[idxs]
+        torch.cuda.empty_cache()
         preds = self.post_process_preds(examples, preds, dataset=dataset, **kwargs)
         return preds
 
