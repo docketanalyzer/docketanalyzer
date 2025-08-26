@@ -49,11 +49,11 @@ class TokenClassificationPipeline(Pipeline):
         prev_ent_diff[:, 1:] = entity_ids[:, 1:] != entity_ids[:, :-1]
         start_mask = is_B | (is_I & (prev_is_O | prev_ent_diff))
 
-        next_is_O = torch.zeros_like(is_O)
-        next_is_O[:, :-1] = is_O[:, 1:]
-        next_ent_diff = torch.zeros_like(is_O, dtype=torch.bool)
+        next_is_I = torch.zeros_like(is_I)
+        next_is_I[:, :-1] = is_I[:, 1:]
+        next_ent_diff = torch.zeros_like(is_I, dtype=torch.bool)
         next_ent_diff[:, :-1] = entity_ids[:, :-1] != entity_ids[:, 1:]
-        end_mask = (~is_O) & (next_is_O | next_ent_diff)
+        end_mask = (~is_O) & (~next_is_I | next_ent_diff)
         end_mask[:, -1] |= ~is_O[:, -1]
 
         preds = []
@@ -89,7 +89,7 @@ class TokenClassificationPipeline(Pipeline):
         for i, pred in enumerate(preds):
             for span in pred:
                 span_text = examples[i][span["start"] : span["end"]]
-                if span_text[0] == " ":
+                if span_text and span_text[0] == " ":
                     span["start"] += 1
                     span_text = span_text[1:]
                 span["text"] = span_text

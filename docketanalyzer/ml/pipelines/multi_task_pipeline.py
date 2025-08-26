@@ -100,7 +100,7 @@ class MultiTaskPipeline(Pipeline):
         for i, pred in enumerate(preds):
             for span in pred["spans"]:
                 span_text = examples[i][span["start"] : span["end"]]
-                if span_text[0] == " ":
+                if span_text and span_text[0] == " ":
                     span["start"] += 1
                     span_text = span_text[1:]
                 span["text"] = span_text
