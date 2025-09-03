@@ -10,6 +10,11 @@ from .tool import Tool
 
 def export_env():
     """Export llm env for litellm."""
+    global litellm
+    import litellm
+
+    litellm.drop_params = True
+
     keys = [
         "ANTHROPIC_API_KEY",
         "OPENAI_API_KEY",
@@ -36,13 +41,12 @@ class Agent:
         messages: list[dict[str, str]] | None = None,
         state: dict | None = None,
         max_steps: int = 30,
-        temperature: float = 1e-16,
         **completion_args: dict[str, Any],
     ):
         """Init agent."""
         export_env()
         model = model or self.default_model
-        args = {"model": model, "temperature": temperature, **completion_args}
+        args = {"model": model, **completion_args}
         default_completion_args = self.default_completion_args or {}
         self.args = {**default_completion_args, **args}
         self.tools = tools or self.default_tools or []
@@ -105,10 +109,6 @@ class Agent:
         **completion_args: dict,
     ):
         """Take a single conversation step."""
-        import litellm
-
-        litellm.drop_params = True
-
         args = self.prepare_generation(messages, tools, **completion_args)
         self.r = litellm.completion(**args)
         message = dict(self.r.choices[0].message)
@@ -172,10 +172,6 @@ class Agent:
         **completion_args: dict,
     ):
         """Run a streaming generation with tool calls."""
-        import litellm
-
-        litellm.drop_params = True
-
         steps, done = 0, False
         while steps < self.max_steps and not done:
             steps += 1

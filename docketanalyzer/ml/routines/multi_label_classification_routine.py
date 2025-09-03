@@ -83,7 +83,7 @@ class MultiLabelClassificationRoutine(Routine):
             scores = {
                 f"label__{self.label_names[i]}": scores[i] for i in range(len(scores))
             }
-            scores["f1_macro"] = f1_score(predictions, labels, average="macro")
+            scores["f1_macro"] = f1_score(labels, predictions, average="macro")
             return scores
 
         return f

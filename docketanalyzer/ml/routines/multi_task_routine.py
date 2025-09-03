@@ -102,22 +102,17 @@ class MultiTaskRoutine(TokenClassificationRoutine):
     def tokenize_hook(self, examples, inputs):
         """Tokenize the examples and convert labels to multi-task format."""
         labels = []
-        labeled_for = examples.get("labeled_for", [[]] * len(examples["text"]))
+        labeled_for = examples.get(
+            "labeled_for", [[] for _ in range(len(examples["text"]))]
+        )
 
-        for (
-            input_ids,
-            offset_mapping,
-            example_spans,
-            example_labels,
-            example_labeled_for,
-        ) in zip(
-            inputs["input_ids"],
-            inputs["offset_mapping"],
-            examples["spans"],
-            examples["labels"],
-            labeled_for,
-            strict=False,
-        ):
+        for i in range(len(inputs["input_ids"])):
+            input_ids = inputs["input_ids"][i]
+            offset_mapping = inputs["offset_mapping"][i]
+            example_spans = examples["spans"][i]
+            example_labels = examples["labels"][i]
+            example_labeled_for = labeled_for[i]
+
             example_outputs = torch.zeros((len(input_ids), len(self.label_map))).float()
 
             for label_name in self.label_names:
