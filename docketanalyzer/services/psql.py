@@ -12,12 +12,11 @@ class PostgresService(Service):
 
     def init(self):
         """Initialize the Postgres service."""
-        host = env.POSTGRES_HOST or env.APP_HOST
         return PooledPostgresqlExtDatabase(
             database=env.POSTGRES_DB,
             user=env.POSTGRES_USER,
             password=env.POSTGRES_PASSWORD,
-            host=host,
+            host=env.POSTGRES_HOST,
             port=env.POSTGRES_PORT,
             max_connections=32,
             stale_timeout=300,

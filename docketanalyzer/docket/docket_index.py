@@ -108,14 +108,13 @@ class DocketIndex:
         """Reset the cached IDs by deleting the file."""
         if self.cached_ids_path.exists():
             self.cached_ids_path.unlink()
-    
+
     @property
     def docket_dirs(self) -> list[Path]:
         """Get the docket directories."""
-        return list([
-            x for x in self.dir.iterdir() 
-            if x.is_dir() and not x.name.startswith(".")
-        ])
+        return list(
+            [x for x in self.dir.iterdir() if x.is_dir() and not x.name.startswith(".")]
+        )
 
     @property
     def cached_ids(self) -> list[str]:
@@ -126,9 +125,7 @@ class DocketIndex:
     def add_local_docket_ids(self):
         """Add local directory docket IDs to the index."""
         self.dir.mkdir(parents=True, exist_ok=True)
-        docket_ids = pd.DataFrame(
-            {"docket_id": [x.name for x in self.docket_dirs]}
-        )
+        docket_ids = pd.DataFrame({"docket_id": [x.name for x in self.docket_dirs]})
 
         self.reset_cached_ids()
         existing_docket_ids = self.cached_ids
